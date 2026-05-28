@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>几何题解析 - 三角形面积比</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: 'Noto Sans SC', sans-serif; }
+        .step-card {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+        }
+        .step-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .formula-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .nav-btn {
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            transform: scale(1.05);
+        }
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        .image-container {
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .image-container img {
+            transition: transform 0.3s ease;
+        }
+        .image-container:hover img {
+            transform: scale(1.02);
+        }
+        .hint-text {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .key-point {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        /* 提示按钮样式 */
+        .hint-btn {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .hint-btn:hover {
+            transform: translateX(5px);
+        }
+        .hint-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, padding 0.5s ease;
+        }
+        .hint-content.show {
+            max-height: 500px;
+            padding: 12px 16px;
+        }
+        .hint-correct {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            border-radius: 0 8px 8px 0;
+        }
+        .hint-wrong {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            border-radius: 0 8px 8px 0;
+        }
+        .hint-neutral {
+            background: #e0e7ff;
+            border-left: 4px solid #6366f1;
+            border-radius: 0 8px 8px 0;
+        }
+        .check-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        .check-correct { background: #10b981; color: white; }
+        .check-wrong { background: #ef4444; color: white; }
+        .check-neutral { background: #6366f1; color: white; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold text-gray-800">📐 几何题解析</h1>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600">进度:</span>
+                    <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div id="progressBar" class="progress-bar h-full bg-gradient-to-r from-blue-500 to-purple-500" style="width: 0%"></div>
+                    </div>
+                    <span id="progressText" class="text-sm font-medium text-gray-700">0/7</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Problem Statement -->
+        <div id="step0" class="step-card visible mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">🎯 题目</h2>
+                <div class="highlight-box text-white rounded-xl p-6 text-lg leading-relaxed">
+                    <p class="text-center">
+                        在△ABC中，已知 <strong>AB = 12</strong>，<strong>AC = 9</strong>，<strong>BC = 13</strong>，<br>
+                        过点A分别作∠C、∠B平分线的垂线，垂足分别为M、N，联结MN，<br>
+                        求 <span class="text-2xl font-bold">$\frac{S_{\triangle AMN}}{S_{\triangle ABC}}$</span> 的值。
+                    </p>
+                </div>
+                <div class="mt-6 text-center">
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl">
+                        开始解题 →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Understand the Problem -->
+        <div id="step1" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">1</span>
+                    <h2 class="text-2xl font-bold text-gray-800">理解题目条件</h2>
+                </div>
+                
+                <p class="text-gray-700 mb-4 text-lg">首先，让我们画出三角形ABC，并标记已知的三边长度：</p>
+                
+                <div class="image-container mb-6">
+                    <img src="step1_basic.png" alt="基本三角形" class="w-full max-w-2xl mx-auto">
+                </div>
+                
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 rounded-lg p-4 text-center">
+                        <p class="text-blue-600 font-bold text-xl">AB = 12</p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4 text-center">
+                        <p class="text-green-600 font-bold text-xl">AC = 9</p>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4 text-center">
+                        <p class="text-purple-600 font-bold text-xl">BC = 13</p>
+                    </div>
+                </div>
+
+                <!-- 交互式提示 -->
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3">💭 思考：题目要求从点A向两个角的平分线作垂线，这让我们想到什么几何性质？</p>
+                    <p class="text-sm text-gray-500 mb-3">点击下面的提示查看思路：</p>
+                    
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint1-1')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示1：角平分线有什么性质？</span>
+                        </div>
+                        <div id="hint1-1" class="hint-content hint-neutral">
+                            <span class="check-icon check-neutral">?</span><strong>角平分线性质：</strong>角平分线上的点到角两边的距离相等。但这里我们是从点A向角平分线作垂线，这提示我们可能需要利用<strong>对称性</strong>！
+                        </div>
+
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint1-2')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示2：直接用勾股定理计算垂线长度？</span>
+                        </div>
+                        <div id="hint1-2" class="hint-content hint-wrong">
+                            <span class="check-icon check-wrong">✗</span><strong>不太合适：</strong>虽然可以用坐标计算，但这会非常复杂。七年级题目通常有更巧妙的几何方法，试着寻找对称关系！
+                        </div>
+
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint1-3')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示3：考虑延长垂线会有什么发现？</span>
+                        </div>
+                        <div id="hint1-3" class="hint-content hint-correct">
+                            <span class="check-icon check-correct">✓</span><strong>正确思路！</strong>当我们延长AM交BC于P时，由于CM是角平分线且AM⊥CM，根据对称性，△AMC ≅ △PMC！这是一个关键的突破口。
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">
+                        ← 上一步
+                    </button>
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">
+                        下一步 →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Discover Symmetry -->
+        <div id="step2" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-purple-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">2</span>
+                    <h2 class="text-2xl font-bold text-gray-800">发现对称性（关键！）</h2>
+                </div>
+                
+                <p class="text-gray-700 mb-4 text-lg">这道题的关键在于<strong class="text-purple-600">利用角平分线的对称性</strong>。</p>
+                
+                <div class="image-container mb-6">
+                    <img src="step2_perpendiculars.png" alt="垂线和对称性" class="w-full max-w-2xl mx-auto">
+                </div>
+                
+                <div class="key-point">
+                    <strong>🔑 关键发现：</strong><br>
+                    当我们从点A向∠C的平分线作垂线，垂足为M时，可以<strong>延长AM交BC于点P</strong>。
+                </div>
+                
+                <p class="text-gray-700 mb-4">由于CM是∠C的平分线，且AM⊥CM，根据<strong>对称性原理</strong>：</p>
+                
+                <ul class="list-disc list-inside space-y-2 text-gray-700 mb-6 ml-4">
+                    <li>△AMC ≅ △PMC（全等，ASA判定）</li>
+                    <li>因此 <strong>AC = PC = 9</strong></li>
+                    <li><strong>M是AP的中点</strong></li>
+                </ul>
+
+                <!-- 交互式提示 -->
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3">💭 思考：对于∠B的平分线，我们能得到什么结论？</p>
+                    <p class="text-sm text-gray-500 mb-3">点击下面的提示验证你的想法：</p>
+                    
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint2-1')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示1：同理，延长AN交BC于Q</span>
+                        </div>
+                        <div id="hint2-1" class="hint-content hint-correct">
+                            <span class="check-icon check-correct">✓</span><strong>正确！</strong>延长AN交BC于Q，由于BN是∠B的平分线且AN⊥BN，所以△ANB ≅ △QNB，得到 <strong>AB = QB = 12</strong>，<strong>N是AQ的中点</strong>。
+                        </div>
+
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint2-2')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示2：∠B和∠C的平分线交于内心？</span>
+                        </div>
+                        <div id="hint2-2" class="hint-content hint-wrong">
+                            <span class="check-icon check-wrong">✗</span><strong>虽然正确但没用：</strong>两条平分线确实交于内心，但这与从A作垂线的关系不大。关注对称性更有用！
+                        </div>
+
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint2-3')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示3：M、N是中点意味着什么？</span>
+                        </div>
+                        <div id="hint2-3" class="hint-content hint-neutral">
+                            <span class="check-icon check-neutral">?</span><strong>重要发现：</strong>M是AP中点，N是AQ中点，这意味着MN是△APQ的<strong>中位线</strong>！根据中位线定理，MN ∥ PQ 且 MN = ½PQ。
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">
+                        ← 上一步
+                    </button>
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">
+                        下一步 →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Calculate Positions -->
+        <div id="step3" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-green-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">3</span>
+                    <h2 class="text-2xl font-bold text-gray-800">确定P、Q在BC上的位置</h2>
+                </div>
+                
+                <p class="text-gray-700 mb-4 text-lg">现在我们来确定P和Q在BC边上的具体位置：</p>
+                
+                <div class="image-container mb-6">
+                    <img src="step3_extension.png" alt="延长线和中位线" class="w-full max-w-2xl mx-auto">
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-blue-50 rounded-xl p-6">
+                        <h3 class="font-bold text-blue-700 mb-3 text-lg">📍 点P的位置</h3>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>PC = AC = <strong>9</strong></li>
+                            <li>BC = 13</li>
+                            <li>BP = BC - PC = 13 - 9 = <strong class="text-blue-600 text-xl">4</strong></li>
+                        </ul>
+                    </div>
+                    <div class="bg-green-50 rounded-xl p-6">
+                        <h3 class="font-bold text-green-700 mb-3 text-lg">📍 点Q的位置</h3>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>QB = AB = <strong>12</strong></li>
+                            <li>BC = 13</li>
+                            <li>QC = BC - QB = 13 - 12 = <strong class="text-green-600 text-xl">1</strong></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="formula-box text-white rounded-xl p-6 text-center mb-4">
+                    <p class="text-lg mb-2">PQ的长度：</p>
+                    <p class="text-3xl font-bold">PQ = BC - BP - QC = 13 - 4 - 1 = <span class="text-yellow-300">8</span></p>
+                    <p class="text-sm mt-2 opacity-90">或 PQ = QB - PB = 12 - 4 = 8 ✓</p>
+                </div>
+
+                <!-- 交互式提示 -->
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3">💭 思考：为什么PQ = 8对解题很重要？</p>
+                    <p class="text-sm text-gray-500 mb-3">点击下面的提示理解：</p>
+                    
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint3-1')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示1：PQ是△APQ的底边</span>
+                        </div>
+                        <div id="hint3-1" class="hint-content hint-correct">
+                            <span class="check-icon check-correct">✓</span><strong>正确！</strong>PQ是△APQ的底边，而△APQ与△ABC有相同的高（从A到BC的垂线）。所以面积比等于底边比：$\frac{S_{\triangle APQ}}{S_{\triangle ABC}} = \frac{PQ}{BC} = \frac{8}{13}$。
+                        </div>
+
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint3-2')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示2：PQ = 8可以直接得到答案？</span>
+                        </div>
+                        <div id="hint3-2" class="hint-content hint-wrong">
+                            <span class="check-icon check-wrong">✗</span><strong>还不能：</strong>我们要求的是△AMN的面积，不是△APQ。还需要利用中位线定理找到△AMN与△APQ的关系！
+                        </div>
+
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint3-3')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示3：MN与PQ的关系是什么？</span>
+                        </div>
+                        <div id="hint3-3" class="hint-content hint-neutral">
+                            <span class="check-icon check-neutral">?</span><strong>关键关系：</strong>由于M、N分别是AP、AQ的中点，MN是△APQ的中位线，所以 MN = ½PQ = 4，且△AMN ∽ △APQ，相似比为1:2。
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">
+                        ← 上一步
+                    </button>
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">
+                        下一步 →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Midsegment Theorem -->
+        <div id="step4" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-orange-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">4</span>
+                    <h2 class="text-2xl font-bold text-gray-800">利用中位线定理</h2>
+                </div>
+                
+                <p class="text-gray-700 mb-4 text-lg">在△APQ中观察M和N的位置：</p>
+                
+                <div class="image-container mb-6">
+                    <img src="step4_midsegment.png" alt="中位线定理" class="w-full max-w-2xl mx-auto">
+                </div>
+                
+                <div class="key-point">
+                    <strong>📐 三角形中位线定理：</strong><br>
+                    连接三角形两边中点的线段（中位线）平行于第三边，且等于第三边的一半。
+                </div>
+                
+                <div class="bg-gray-800 text-white rounded-xl p-6 text-center mb-4">
+                    <p class="text-lg mb-2">因此：</p>
+                    <p class="text-2xl">MN ∥ PQ</p>
+                    <p class="text-3xl font-bold text-yellow-400 mt-2">MN = $\frac{1}{2}$PQ = $\frac{1}{2}$ × 8 = <span class="text-green-400">4</span></p>
+                </div>
+
+                <!-- 交互式提示 -->
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3">💭 思考：△AMN与△APQ的面积比是多少？</p>
+                    <p class="text-sm text-gray-500 mb-3">点击下面的提示计算：</p>
+                    
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint4-1')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示1：相似三角形面积比等于相似比的平方</span>
+                        </div>
+                        <div id="hint4-1" class="hint-content hint-correct">
+                            <span class="check-icon check-correct">✓</span><strong>正确！</strong>由于MN是中位线，△AMN ∽ △APQ，相似比为1:2。因此面积比为 $(\frac{1}{2})^2 = \frac{1}{4}$，即 $\frac{S_{\triangle AMN}}{S_{\triangle APQ}} = \frac{1}{4}$。
+                        </div>
+
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint4-2')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示2：面积比等于边长比1:2？</span>
+                        </div>
+                        <div id="hint4-2" class="hint-content hint-wrong">
+                            <span class="check-icon check-wrong">✗</span><strong>不对：</strong>相似三角形的面积比等于<strong>相似比的平方</strong>，不是相似比本身。所以是1:4，不是1:2！
+                        </div>
+
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint4-3')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示3：如何求最终的面积比？</span>
+                        </div>
+                        <div id="hint4-3" class="hint-content hint-neutral">
+                            <span class="check-icon check-neutral">?</span><strong>思路：</strong>我们已经知道 $\frac{S_{\triangle AMN}}{S_{\triangle APQ}} = \frac{1}{4}$ 和 $\frac{S_{\triangle APQ}}{S_{\triangle ABC}} = \frac{8}{13}$，将两者相乘即可得到答案！
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">
+                        ← 上一步
+                    </button>
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">
+                        下一步 →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Calculate Area Ratio -->
+        <div id="step5" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">5</span>
+                    <h2 class="text-2xl font-bold text-gray-800">计算面积比</h2>
+                </div>
+                
+                <p class="text-gray-700 mb-4 text-lg">由于MN是△APQ的中位线，△AMN ∽ △APQ，相似比为 1:2</p>
+                
+                <div class="image-container mb-6">
+                    <img src="step5_area_ratio.png" alt="面积比计算" class="w-full max-w-2xl mx-auto">
+                </div>
+                
+                <div class="bg-gradient-to-r from-pink-50 to-red-50 rounded-xl p-6 mb-6">
+                    <p class="text-gray-700 mb-2"><strong>相似三角形面积比</strong>等于相似比的平方：</p>
+                    <p class="text-2xl text-center font-bold text-red-600">
+                        $\frac{S_{\triangle AMN}}{S_{\triangle APQ}} = \left(\frac{1}{2}\right)^2 = \frac{1}{4}$
+                    </p>
+                </div>
+                
+                <p class="text-gray-700 mb-4">接下来求△APQ与△ABC的面积关系：</p>
+                
+                <div class="bg-blue-50 rounded-xl p-6 mb-6">
+                    <p class="text-gray-700 mb-2">两个三角形有<strong>相同的高</strong>（从A到BC的垂线），所以面积比等于底边比：</p>
+                    <p class="text-2xl text-center font-bold text-blue-600 mt-4">
+                        $\frac{S_{\triangle APQ}}{S_{\triangle ABC}} = \frac{PQ}{BC} = \frac{8}{13}$
+                    </p>
+                </div>
+                
+                <div class="formula-box text-white rounded-xl p-6 mb-4">
+                    <p class="text-lg mb-2">因此，最终答案为：</p>
+                    <p class="text-xl text-center">
+                        $\frac{S_{\triangle AMN}}{S_{\triangle ABC}} = \frac{S_{\triangle AMN}}{S_{\triangle APQ}} \times \frac{S_{\triangle APQ}}{S_{\triangle ABC}} = \frac{1}{4} \times \frac{8}{13} = \frac{2}{13}$
+                    </p>
+                </div>
+
+                <!-- 交互式提示 -->
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3">💭 思考：验证一下答案是否合理？</p>
+                    <p class="text-sm text-gray-500 mb-3">点击下面的提示验证：</p>
+                    
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint5-1')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示1：答案应该小于1/4</span>
+                        </div>
+                        <div id="hint5-1" class="hint-content hint-correct">
+                            <span class="check-icon check-correct">✓</span><strong>验证正确！</strong>因为△AMN在△APQ内部，而△APQ又在△ABC内部，所以△AMN的面积应该小于△APQ的1/4。$\frac{2}{13} \approx 0.154$，而$\frac{1}{4} = 0.25$，确实小于！
+                        </div>
+
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint5-2')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示2：答案是4/13？</span>
+                        </div>
+                        <div id="hint5-2" class="hint-content hint-wrong">
+                            <span class="check-icon check-wrong">✗</span><strong>计算错误：</strong>可能是把$\frac{1}{4} \times \frac{8}{13}$算成了$\frac{8}{26}$后没有约分，或者漏掉了某个步骤。正确答案是$\frac{2}{13}$！
+                        </div>
+
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint5-3')">
+                            <span class="check-icon check-neutral">?</span>
+                            <span class="text-gray-700">提示3：回顾整个解题过程</span>
+                        </div>
+                        <div id="hint5-3" class="hint-content hint-neutral">
+                            <span class="check-icon check-neutral">?</span><strong>关键步骤回顾：</strong><br>
+                            1. 利用对称性得到PC=9，QB=12<br>
+                            2. 计算PQ = 8<br>
+                            3. 利用中位线定理得到面积比1:4<br>
+                            4. 同高三角形面积比8:13<br>
+                            5. 综合得到$\frac{2}{13}$
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">
+                        ← 上一步
+                    </button>
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">
+                        查看答案 →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Final Answer -->
+        <div id="step6" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-yellow-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">6</span>
+                    <h2 class="text-2xl font-bold text-gray-800">最终答案</h2>
+                </div>
+                
+                <div class="image-container mb-6">
+                    <img src="step6_final.png" alt="最终结果" class="w-full max-w-2xl mx-auto">
+                </div>
+                
+                <div class="highlight-box text-white rounded-2xl p-8 text-center mb-6">
+                    <p class="text-lg mb-4">最终答案</p>
+                    <p class="text-5xl font-bold">
+                        $\frac{S_{\triangle AMN}}{S_{\triangle ABC}} = \boxed{\frac{2}{13}}$
+                    </p>
+                </div>
+                
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="font-bold text-gray-800 mb-4 text-lg">📝 关键知识点总结</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <span class="text-2xl mr-2">1️⃣</span>
+                            <span class="text-gray-700"><strong>角平分线的对称性</strong>：当一点在角平分线上的垂线被延长时，形成等腰三角形</span>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <span class="text-2xl mr-2">2️⃣</span>
+                            <span class="text-gray-700"><strong>全等三角形判定</strong>：ASA（角边角）</span>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <span class="text-2xl mr-2">3️⃣</span>
+                            <span class="text-gray-700"><strong>三角形中位线定理</strong>：中位线平行于第三边且等于第三边的一半</span>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <span class="text-2xl mr-2">4️⃣</span>
+                            <span class="text-gray-700"><strong>相似三角形面积比</strong>：等于相似比的平方</span>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm md:col-span-2">
+                            <span class="text-2xl mr-2">5️⃣</span>
+                            <span class="text-gray-700"><strong>同高三角形面积比</strong>：等于底边之比</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">
+                        ← 上一步
+                    </button>
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">
+                        解题思路梳理 →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 7: Summary -->
+        <div id="step7" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-indigo-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">7</span>
+                    <h2 class="text-2xl font-bold text-gray-800">解题思路梳理与总结</h2>
+                </div>
+                
+                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-indigo-700 mb-4 text-lg">🎯 完整解题思路</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <span class="bg-indigo-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-3 mt-0.5">1</span>
+                            <div>
+                                <p class="font-medium text-gray-800">利用角平分线的对称性</p>
+                                <p class="text-gray-600 text-sm">延长AM交BC于P，由对称性得△AMC ≅ △PMC，所以AC = PC = 9，M是AP中点</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="bg-indigo-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-3 mt-0.5">2</span>
+                            <div>
+                                <p class="font-medium text-gray-800">同理得到Q点位置</p>
+                                <p class="text-gray-600 text-sm">延长AN交BC于Q，得AB = QB = 12，N是AQ中点</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="bg-indigo-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-3 mt-0.5">3</span>
+                            <div>
+                                <p class="font-medium text-gray-800">计算PQ长度</p>
+                                <p class="text-gray-600 text-sm">BP = 4，QC = 1，所以PQ = 13 - 4 - 1 = 8</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="bg-indigo-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-3 mt-0.5">4</span>
+                            <div>
+                                <p class="font-medium text-gray-800">应用中位线定理</p>
+                                <p class="text-gray-600 text-sm">MN是△APQ的中位线，MN = ½PQ = 4，△AMN ∽ △APQ，面积比1:4</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="bg-indigo-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm mr-3 mt-0.5">5</span>
+                            <div>
+                                <p class="font-medium text-gray-800">计算最终面积比</p>
+                                <p class="text-gray-600 text-sm">$\frac{S_{\triangle AMN}}{S_{\triangle ABC}} = \frac{1}{4} \times \frac{8}{13} = \frac{2}{13}$</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-50 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-yellow-700 mb-4 text-lg">💡 解题技巧总结</h3>
+                    <ul class="space-y-2 text-gray-700">
+                        <li class="flex items-start">
+                            <span class="text-yellow-500 mr-2">•</span>
+                            <span><strong>看到角平分线+垂线</strong> → 想到对称性，考虑延长构造全等三角形</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-yellow-500 mr-2">•</span>
+                            <span><strong>看到中点</strong> → 想到中位线定理，可能有相似三角形</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-yellow-500 mr-2">•</span>
+                            <span><strong>求面积比</strong> → 考虑相似比或同高/同底的面积关系</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-yellow-500 mr-2">•</span>
+                            <span><strong>复杂问题</strong> → 分解为多个简单步骤，逐步推导</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-green-50 rounded-xl p-6">
+                    <h3 class="font-bold text-green-700 mb-4 text-lg">📚 涉及的知识点</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm">
+                            <p class="text-sm text-gray-600">角平分线性质</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm">
+                            <p class="text-sm text-gray-600">对称性</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm">
+                            <p class="text-sm text-gray-600">全等三角形</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm">
+                            <p class="text-sm text-gray-600">中位线定理</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm">
+                            <p class="text-sm text-gray-600">相似三角形</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm">
+                            <p class="text-sm text-gray-600">面积比</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">
+                        ← 上一步
+                    </button>
+                    <button onclick="resetSteps()" class="nav-btn bg-gradient-to-r from-green-500 to-teal-600 text-white px-6 py-2 rounded-full font-medium">
+                        🔄 重新开始
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-gray-400">七年级几何题解析 | 角平分线与面积比</p>
+        </div>
+    </footer>
+
+    <script>
+        let currentStep = 0;
+        const totalSteps = 8; // 0-7
+        
+        function updateProgress() {
+            const progress = (currentStep / (totalSteps - 1)) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressText').textContent = currentStep + '/' + (totalSteps - 1);
+        }
+        
+        function showStep(step) {
+            // Hide all steps
+            for (let i = 0; i < totalSteps; i++) {
+                const stepEl = document.getElementById('step' + i);
+                if (stepEl) {
+                    stepEl.classList.remove('visible');
+                }
+            }
+            
+            // Show current step
+            const currentEl = document.getElementById('step' + step);
+            if (currentEl) {
+                currentEl.classList.add('visible');
+                currentEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            
+            currentStep = step;
+            updateProgress();
+            
+            // Re-render MathJax for the visible step
+            if (window.MathJax) {
+                MathJax.typesetPromise([currentEl]).catch(function (err) {
+                    console.log('MathJax typeset failed: ' + err.message);
+                });
+            }
+        }
+        
+        function nextStep() {
+            if (currentStep < totalSteps - 1) {
+                showStep(currentStep + 1);
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 0) {
+                showStep(currentStep - 1);
+            }
+        }
+        
+        function resetSteps() {
+            // Hide all hints
+            const allHints = document.querySelectorAll('.hint-content');
+            allHints.forEach(hint => hint.classList.remove('show'));
+            showStep(0);
+        }
+        
+        // Toggle hint visibility
+        function toggleHint(hintId) {
+            const hint = document.getElementById(hintId);
+            if (hint) {
+                hint.classList.toggle('show');
+            }
+        }
+        
+        // Initialize
+        updateProgress();
+        
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextStep();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevStep();
+            }
+        });
+        
+        // Initial MathJax render
+        window.addEventListener('load', function() {
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        });
+    </script>
+</body>
+</html>

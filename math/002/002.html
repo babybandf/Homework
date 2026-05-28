@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>几何题解析 - 等腰三角形取值范围</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans SC', sans-serif; }
+        .step-card { opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out; }
+        .step-card.visible { opacity: 1; transform: translateY(0); }
+        .nav-btn { transition: all 0.3s ease; }
+        .nav-btn:hover { transform: scale(1.05); }
+        .hint-btn { transition: all 0.3s ease; cursor: pointer; }
+        .hint-btn:hover { transform: translateX(5px); }
+        .hint-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease, padding 0.5s ease; }
+        .hint-content.show { max-height: 500px; padding: 12px 16px; }
+        .hint-correct { background: #d1fae5; border-left: 4px solid #10b981; }
+        .hint-wrong { background: #fee2e2; border-left: 4px solid #ef4444; }
+        .hint-neutral { background: #e0e7ff; border-left: 4px solid #6366f1; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold text-gray-800">📐 几何题解析</h1>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600">进度:</span>
+                    <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <span id="progressText" class="text-sm font-medium text-gray-700">0/5</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Step 0: Problem -->
+        <div id="step0" class="step-card visible mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">🎯 题目</h2>
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-6 text-lg leading-relaxed">
+                    <p class="text-center">
+                        等腰三角形的两个内角的度数之比为 <strong>a:b (a &lt; b)</strong>，<br>
+                        若这个三角形是<strong>钝角三角形</strong>，<br>
+                        求 <span class="text-2xl font-bold">b/a</span> 的取值范围。
+                    </p>
+                </div>
+                <div class="mt-6 text-center">
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-lg">开始解题 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Understanding -->
+        <div id="step1" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">1</span>
+                    <h2 class="text-2xl font-bold text-gray-800">理解题意</h2>
+                </div>
+                <p class="text-gray-700 mb-4 text-lg">等腰三角形有三种可能的角的组合，我们需要分析哪种情况可能形成钝角三角形。</p>
+                <div class="image-container mb-6 rounded-xl overflow-hidden shadow-lg">
+                    <img src="step1_problem.png" alt="题目示意图" class="w-full max-w-2xl mx-auto">
+                </div>
+                
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3">💭 思考：等腰三角形的角可能是什么形式？</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint1-1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-500 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700">提示1：设底角为a，顶角为b</span>
+                        </div>
+                        <div id="hint1-1" class="hint-content hint-correct">
+                            <span class="inline-block w-5 h-5 rounded-full bg-green-500 text-white text-center text-xs leading-5 mr-1">✓</span><strong>正确！</strong>设两个底角都是a，顶角是b，则三个角为(a, a, b)。根据内角和：2a + b = 180°
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint1-2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-500 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700">提示2：设顶角为a，底角为b</span>
+                        </div>
+                        <div id="hint1-2" class="hint-content hint-wrong">
+                            <span class="inline-block w-5 h-5 rounded-full bg-red-500 text-white text-center text-xs leading-5 mr-1">✗</span><strong>有问题：</strong>如果顶角是a，底角是b，则a + 2b = 180°。但题目说a &lt; b，这样顶角a会很小，很难形成钝角三角形。
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">← 上一步</button>
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Angle Analysis -->
+        <div id="step2" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-purple-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">2</span>
+                    <h2 class="text-2xl font-bold text-gray-800">分析角度关系</h2>
+                </div>
+                <div class="image-container mb-6 rounded-xl overflow-hidden shadow-lg">
+                    <img src="step2_analysis.png" alt="角度关系分析" class="w-full max-w-2xl mx-auto">
+                </div>
+                <div class="bg-blue-50 rounded-xl p-6 mb-6">
+                    <p class="text-gray-700 mb-2">设等腰三角形的三个角为：<strong>底角 = a，底角 = a，顶角 = b</strong></p>
+                    <p class="text-xl text-center font-bold text-blue-600 mt-4">2a + b = 180°</p>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">← 上一步</button>
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Critical Point -->
+        <div id="step3" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-orange-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">3</span>
+                    <h2 class="text-2xl font-bold text-gray-800">临界情况分析</h2>
+                </div>
+                <div class="image-container mb-6 rounded-xl overflow-hidden shadow-lg">
+                    <img src="step3_critical.png" alt="临界情况分析" class="w-full max-w-2xl mx-auto">
+                </div>
+                <div class="bg-yellow-50 rounded-xl p-6 mb-6">
+                    <p class="text-gray-700 mb-2"><strong>关键发现：</strong>由于 a &lt; b，b 是最大的角。</p>
+                    <p class="text-gray-700">如果三角形是钝角三角形，必然是 <strong class="text-red-600">b &gt; 90°</strong></p>
+                </div>
+                
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3">💭 思考：当 b = 90° 时是什么情况？</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('hint3-1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-500 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700">提示：计算此时的 a 和 b/a</span>
+                        </div>
+                        <div id="hint3-1" class="hint-content hint-correct">
+                            <span class="inline-block w-5 h-5 rounded-full bg-green-500 text-white text-center text-xs leading-5 mr-1">✓</span>当 b = 90° 时，2a = 90°，a = 45°，此时 <strong>b/a = 2</strong>。这是直角三角形，是临界情况。
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">← 上一步</button>
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Solution -->
+        <div id="step4" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-green-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">4</span>
+                    <h2 class="text-2xl font-bold text-gray-800">求解取值范围</h2>
+                </div>
+                <div class="image-container mb-6 rounded-xl overflow-hidden shadow-lg">
+                    <img src="step4_solution.png" alt="最终答案" class="w-full max-w-2xl mx-auto">
+                </div>
+                <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-xl p-6 text-center mb-6">
+                    <p class="text-lg mb-2">最终答案</p>
+                    <p class="text-4xl font-bold">b/a &gt; 2</p>
+                    <p class="text-xl mt-2">或写成 (2, +∞)</p>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">← 上一步</button>
+                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">总结 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Summary -->
+        <div id="step5" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-indigo-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">5</span>
+                    <h2 class="text-2xl font-bold text-gray-800">总结</h2>
+                </div>
+                <div class="bg-indigo-50 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-indigo-700 mb-4">🎯 解题思路</h3>
+                    <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                        <li>确定角度关系：设底角为a，顶角为b，得 2a + b = 180°</li>
+                        <li>分析钝角位置：由于 a &lt; b，钝角只能是顶角 b</li>
+                        <li>建立不等式：b &gt; 90°，代入得 a &lt; 45°</li>
+                        <li>计算比值：b/a = 180°/a - 2 &gt; 2</li>
+                    </ol>
+                </div>
+                <div class="bg-yellow-50 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-yellow-700 mb-4">💡 解题技巧</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li>看到等腰三角形 → 立即设未知数表示各角</li>
+                        <li>看到取值范围 → 找临界情况（直角是锐角和钝角的分界）</li>
+                        <li>验证答案 → 取特殊值代入验证</li>
+                    </ul>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">← 上一步</button>
+                    <button onclick="resetSteps()" class="nav-btn bg-gradient-to-r from-green-500 to-teal-600 text-white px-6 py-2 rounded-full font-medium">🔄 重新开始</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-gray-400">七年级几何题解析 | 等腰三角形取值范围</p>
+        </div>
+    </footer>
+
+    <script>
+        let currentStep = 0;
+        const totalSteps = 6;
+        
+        function updateProgress() {
+            const progress = (currentStep / (totalSteps - 1)) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressText').textContent = currentStep + '/' + (totalSteps - 1);
+        }
+        
+        function showStep(step) {
+            for (let i = 0; i < totalSteps; i++) {
+                const stepEl = document.getElementById('step' + i);
+                if (stepEl) stepEl.classList.remove('visible');
+            }
+            const currentEl = document.getElementById('step' + step);
+            if (currentEl) {
+                currentEl.classList.add('visible');
+                currentEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            currentStep = step;
+            updateProgress();
+        }
+        
+        function nextStep() {
+            if (currentStep < totalSteps - 1) showStep(currentStep + 1);
+        }
+        
+        function prevStep() {
+            if (currentStep > 0) showStep(currentStep - 1);
+        }
+        
+        function resetSteps() {
+            document.querySelectorAll('.hint-content').forEach(hint => hint.classList.remove('show'));
+            showStep(0);
+        }
+        
+        function toggleHint(hintId) {
+            const hint = document.getElementById(hintId);
+            if (hint) hint.classList.toggle('show');
+        }
+        
+        updateProgress();
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextStep();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevStep();
+            }
+        });
+    </script>
+</body>
+</html>
