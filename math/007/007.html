@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>007 - 三角形分成两个等腰三角形</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .header p {
+            opacity: 0.95;
+            font-size: 1.1em;
+        }
+        .progress-bar {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .progress-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .progress-dot.active {
+            background: white;
+            color: #f5576c;
+            transform: scale(1.2);
+        }
+        .progress-dot.completed {
+            background: rgba(255,255,255,0.7);
+            color: #f093fb;
+        }
+        .step-card {
+            display: none;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: fadeIn 0.4s ease;
+        }
+        .step-card.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .step-card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f5576c;
+        }
+        .step-card h3 {
+            color: #555;
+            margin: 18px 0 10px;
+        }
+        .step-card p, .step-card li {
+            color: #444;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        .step-card ul, .step-card ol {
+            padding-left: 25px;
+            margin: 10px 0;
+        }
+        .step-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .highlight-box {
+            background: #fff0f3;
+            border-left: 4px solid #f5576c;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .case-box {
+            background: #f8f9ff;
+            border: 1px solid #e0e4ff;
+            border-radius: 12px;
+            padding: 18px;
+            margin: 12px 0;
+        }
+        .case-box h4 {
+            color: #5b6abf;
+            margin-bottom: 8px;
+        }
+        .answer-box {
+            background: linear-gradient(135deg, #f093fb22, #f5576c22);
+            border: 2px solid #f5576c;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .answer-box .answer-text {
+            font-size: 1.3em;
+            color: #333;
+            font-weight: bold;
+        }
+        .hint-container {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .hint-btn {
+            padding: 10px 18px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hint-btn:hover {
+            border-color: #f5576c;
+            background: #fff0f3;
+        }
+        .hint-content {
+            display: none;
+            padding: 12px 18px;
+            margin-top: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            animation: fadeIn 0.3s ease;
+        }
+        .hint-content.correct {
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+        }
+        .hint-content.wrong {
+            background: #fce4ec;
+            border: 1px solid #e91e63;
+            color: #c62828;
+        }
+        .hint-content.neutral {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            color: #1565c0;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .nav-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .nav-btn.prev {
+            background: #eee;
+            color: #666;
+        }
+        .nav-btn.prev:hover {
+            background: #ddd;
+        }
+        .nav-btn.next {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+        .nav-btn.next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245,87,108,0.4);
+        }
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .result-table th, .result-table td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: center;
+            font-size: 15px;
+        }
+        .result-table th {
+            background: #fff0f3;
+            color: #333;
+            font-weight: bold;
+        }
+        .result-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+        .check-mark {
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .knowledge-tag {
+            display: inline-block;
+            background: #f5576c22;
+            color: #f5576c;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            margin: 4px;
+        }
+        .case-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 15px 0;
+        }
+        @media (max-width: 600px) {
+            .case-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .mini-case {
+            background: #f8f9ff;
+            border: 1px solid #e0e4ff;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+        .mini-case .angles {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #5b6abf;
+        }
+        .mini-case .type {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>007 - 三角形分割问题</h1>
+            <p>一个内角为36°的三角形，分成两个等腰三角形</p>
+        </div>
+
+        <div class="progress-bar" id="progressBar"></div>
+
+        <!-- Step 1: Problem -->
+        <div class="step-card active" id="step1">
+            <h2>📋 第一步：理解题目</h2>
+            <div class="highlight-box">
+                <p><strong>题目：</strong>将一个三角形分成两个等腰三角形，若原三角形的一个内角是36°，则原三角形的另两个内角有多少种可能的情况？写出各种可能的情况。</p>
+            </div>
+
+            <h3>题目分析：</h3>
+            <ul>
+                <li>三角形有一个角为 <strong>36°</strong>，另两个角之和为 <strong>144°</strong></li>
+                <li>通过一条线段将三角形分为<strong>两个等腰三角形</strong></li>
+                <li>这条线段必须是从某个顶点到对边的线段（cevian）</li>
+                <li>需要找出<strong>所有可能的情况</strong></li>
+            </ul>
+
+            <img src="step1_setup.png" alt="题目示意图">
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h1_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h1_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h1_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h1_1">✓ 与参考例题类似，但这道题更加开放——原三角形不一定是等腰三角形，而且36°角可以在任意位置。</div>
+            <div class="hint-content neutral" id="h1_2">? 分割线从哪个顶点出发会影响结果。需要分别讨论：从36°角顶点出发、从其他顶点出发。</div>
+            <div class="hint-content wrong" id="h1_3">✗ 不要认为只有一两个答案！这道题需要穷举所有可能，答案可能有很多种。</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" disabled>← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(2)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Analysis Framework -->
+        <div class="step-card" id="step2">
+            <h2>📐 第二步：建立分析框架</h2>
+            <p>设△ABC中，一个角为36°。分割线从某顶点到对边上的点D。</p>
+
+            <h3>分类讨论策略：</h3>
+            <div class="highlight-box">
+                <p>按分割线的起点分为两大类：</p>
+                <ol>
+                    <li><strong>从36°角的顶点出发</strong>：分割线将36°角分为两部分</li>
+                    <li><strong>从其他顶点出发</strong>：36°角在某个小三角形中保持完整</li>
+                </ol>
+            </div>
+
+            <h3>通用方法：</h3>
+            <p>对每种情况，设未知角度，利用：</p>
+            <ul>
+                <li>三角形内角和 = 180°</li>
+                <li>等腰三角形的两底角相等</li>
+                <li>邻补角之和 = 180°（D点两侧的角）</li>
+            </ul>
+
+            <p>每个小三角形有3种等腰可能（3对可能相等的边），但部分会因为角度范围无效而被排除。最后将有效情况两两组合。</p>
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h2_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h2_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h2_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h2_1">✓ 系统化分类是关键！虽然看起来情况很多，但通过角度范围（>0° 且 <180°）可以快速排除无效组合。</div>
+            <div class="hint-content neutral" id="h2_2">? 提示：从"非36°角的顶点"出发时，如果∠ABD = 36°（即分割线平分了某个角），往往能得到有效解。</div>
+            <div class="hint-content wrong" id="h2_3">✗ 不要遗漏对称情况！比如"从B出发"和"从C出发"可能给出不同结果（当三角形不对称时）。</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(1)">← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(3)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Case 1 - 36-72-72 -->
+        <div class="step-card" id="step3">
+            <h2>🔍 第三步：情况1 — 36°、72°、72°</h2>
+
+            <div class="case-box">
+                <h4>等腰三角形（顶角36°）</h4>
+                <p>这就是参考例题中的"黄金三角形"！</p>
+            </div>
+
+            <p><strong>分割方式：</strong>从∠B出发，到AC上的点D。</p>
+            <ul>
+                <li>设 ∠ABD = 36°，∠DBC = 36°</li>
+                <li>△ABD：∠A=36°, ∠ABD=36°, ∠ADB=108° → <strong>AD = BD</strong>（底角相等）✓</li>
+                <li>△BDC：∠DBC=36°, ∠C=72°, ∠BDC=72° → <strong>BC = BD</strong>（底角相等）✓</li>
+            </ul>
+
+            <img src="step3_case1.png" alt="情况1">
+
+            <div class="highlight-box">
+                <p><strong>验证：</strong>36° + 36° + 108° = 180° ✓；36° + 72° + 72° = 180° ✓</p>
+            </div>
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h3_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h3_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h3_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h3_1">✓ 36°-72°-72°是最经典的可分割等腰三角形。分割后的小三角形△BDC也是36°-72°-72°！可以无限分割下去。</div>
+            <div class="hint-content neutral" id="h3_2">? 这个三角形与正五边形紧密相关——正五边形对角线构成的三角形恰好是36°-72°-72°。</div>
+            <div class="hint-content wrong" id="h3_3">✗ 注意分割线∠ABD=36°不是角平分线（因为∠B=72°，角平分线应是36°）。这里恰好∠ABD等于∠A。</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(2)">← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(4)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Case 2 - 36-108-36 -->
+        <div class="step-card" id="step4">
+            <h2>🔍 第四步：情况2 — 36°、108°、36°</h2>
+
+            <div class="case-box">
+                <h4>等腰三角形（顶角108°）</h4>
+                <p>也叫"钝角黄金三角形"——正五边形的一个三角形部分。</p>
+            </div>
+
+            <p><strong>分割方式：</strong>从∠B出发，到AC上的点D。</p>
+            <ul>
+                <li>设 ∠ABD = 72°，∠DBC = 36°</li>
+                <li>△ABD：∠A=36°, ∠ABD=72°, ∠ADB=72° → <strong>AB = AD</strong>（底角相等）✓</li>
+                <li>△BDC：∠DBC=36°, ∠C=36°, ∠BDC=108° → <strong>BD = CD</strong>（底角相等）✓</li>
+            </ul>
+
+            <img src="step4_case2.png" alt="情况2">
+
+            <div class="highlight-box">
+                <p><strong>验证：</strong>36° + 72° + 72° = 180° ✓；36° + 36° + 108° = 180° ✓</p>
+            </div>
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h4_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h4_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h4_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h4_1">✓ 有趣的是：分割后得到的两个小三角形恰好是36°-72°-72°和36°-36°-108°——即情况1和情况2本身！</div>
+            <div class="hint-content neutral" id="h4_2">? 36°-108°-36°也是等腰三角形（AB=BC）。两个底角都是36°。</div>
+            <div class="hint-content wrong" id="h4_3">✗ 有人可能误认为这和情况1是同一种三角形——但它们不同！情况1是锐角等腰三角形，情况2是钝角等腰三角形。</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(3)">← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(5)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Case 3 - 36-132-12 -->
+        <div class="step-card" id="step5">
+            <h2>🔍 第五步：情况3 — 36°、132°、12°</h2>
+
+            <div class="case-box">
+                <h4>一般钝角三角形</h4>
+                <p>分割线从36°角的顶点A出发到对边BC。</p>
+            </div>
+
+            <p><strong>分割方式：</strong>从∠A出发，设∠BAD = 24°，∠CAD = 12°。</p>
+            <ul>
+                <li>△ABD：∠BAD=24°, ∠B=132°, ∠ADB=24° → <strong>AB = BD</strong>（底角相等）✓</li>
+                <li>△ACD：∠CAD=12°, ∠C=12°, ∠ADC=156° → <strong>AD = CD</strong>（底角相等）✓</li>
+            </ul>
+
+            <img src="step5_case3.png" alt="情况3">
+
+            <div class="highlight-box">
+                <p><strong>验证：</strong>24° + 132° + 24° = 180° ✓；12° + 12° + 156° = 180° ✓</p>
+                <p><strong>检查D点：</strong>∠ADB + ∠ADC = 24° + 156° = 180° ✓（D在BC上）</p>
+            </div>
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h5_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h5_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h5_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h5_1">✓ 这是从36°角顶点出发的情况。注意分割将36°分为24°+12°。</div>
+            <div class="hint-content neutral" id="h5_2">? 关键观察：132° = 180° - 48° = 180° - 2×24°，而12° = 36° - 24°。所有角度都与24°和12°有关。</div>
+            <div class="hint-content wrong" id="h5_3">✗ 这个三角形很"扁"（132°角接近平角），容易在画图时遗漏。但它完全合法！</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(4)">← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(6)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 6: Case 4 - 36-126-18 -->
+        <div class="step-card" id="step6">
+            <h2>🔍 第六步：情况4 — 36°、126°、18°</h2>
+
+            <div class="case-box">
+                <h4>一般钝角三角形</h4>
+                <p>分割线从126°角的顶点B出发。</p>
+            </div>
+
+            <p><strong>分割方式：</strong>从∠B=126°出发，设∠ABD = 108°，∠DBC = 18°。</p>
+            <ul>
+                <li>△ABD：∠A=36°, ∠ABD=108°, ∠ADB=36° → <strong>AB = BD</strong>（∠A=∠ADB=36°）✓</li>
+                <li>△BDC：∠DBC=18°, ∠C=18°, ∠BDC=144° → <strong>BD = CD</strong>（底角相等）✓</li>
+            </ul>
+
+            <img src="step6_case4.png" alt="情况4">
+
+            <div class="highlight-box">
+                <p><strong>验证：</strong>36° + 108° + 36° = 180° ✓；18° + 18° + 144° = 180° ✓</p>
+                <p><strong>检查D点：</strong>∠ADB + ∠BDC = 36° + 144° = 180° ✓</p>
+            </div>
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h6_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h6_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h6_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h6_1">✓ 分割后的△ABD恰好是36°-108°-36°（即情况2的三角形），说明这些情况之间有内在联系！</div>
+            <div class="hint-content neutral" id="h6_2">? 注意：126° = 108° + 18°，而108° = 3×36°，18° = 36°/2。所有角度都是36°的倍数或半数。</div>
+            <div class="hint-content wrong" id="h6_3">✗ 容易遗漏这种情况——因为126°和18°看起来"不常见"。分类讨论时必须穷举所有可能！</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(5)">← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(7)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 7: Case 5 - 36-90-54 -->
+        <div class="step-card" id="step7">
+            <h2>🔍 第七步：情况5 — 36°、90°、54°</h2>
+
+            <div class="case-box">
+                <h4>直角三角形</h4>
+                <p>这是一个直角三角形！分割线从90°角的顶点出发。</p>
+            </div>
+
+            <p><strong>分割方式：</strong>从∠B=90°出发，设∠ABD = 36°，∠DBC = 54°。</p>
+            <ul>
+                <li>△ABD：∠A=36°, ∠ABD=36°, ∠ADB=108° → <strong>AD = BD</strong>（底角相等）✓</li>
+                <li>△BDC：∠DBC=54°, ∠C=54°, ∠BDC=72° → <strong>BD = CD</strong>（底角相等）✓</li>
+            </ul>
+
+            <img src="step7_case5.png" alt="情况5">
+
+            <div class="highlight-box">
+                <p><strong>验证：</strong>36° + 36° + 108° = 180° ✓；54° + 54° + 72° = 180° ✓</p>
+                <p><strong>检查D点：</strong>∠ADB + ∠BDC = 108° + 72° = 180° ✓</p>
+            </div>
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h7_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h7_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h7_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h7_1">✓ 这是唯一的直角三角形情况！36° + 54° = 90°，恰好互余。</div>
+            <div class="hint-content neutral" id="h7_2">? 分割后AD = BD = CD，这意味着D是某个圆的圆心（到A、B、C距离之间有特殊关系）。</div>
+            <div class="hint-content wrong" id="h7_3">✗ 有些同学会忽略直角三角形这种情况。记住：题目没有限制三角形类型，所以直角三角形也要考虑！</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(6)">← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(8)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 8: Summary -->
+        <div class="step-card" id="step8">
+            <h2>🎯 总结</h2>
+
+            <div class="answer-box">
+                <p class="answer-text">共有 <span style="color:#f5576c; font-size:1.3em;">5</span> 种可能的情况</p>
+            </div>
+
+            <table class="result-table">
+                <tr>
+                    <th>序号</th>
+                    <th>三个内角</th>
+                    <th>三角形类型</th>
+                    <th>验证</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td><strong>36°、72°、72°</strong></td>
+                    <td>锐角等腰三角形</td>
+                    <td class="check-mark">✓</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td><strong>36°、108°、36°</strong></td>
+                    <td>钝角等腰三角形</td>
+                    <td class="check-mark">✓</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td><strong>36°、132°、12°</strong></td>
+                    <td>钝角三角形</td>
+                    <td class="check-mark">✓</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td><strong>36°、126°、18°</strong></td>
+                    <td>钝角三角形</td>
+                    <td class="check-mark">✓</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td><strong>36°、90°、54°</strong></td>
+                    <td>直角三角形</td>
+                    <td class="check-mark">✓</td>
+                </tr>
+            </table>
+
+            <img src="step2_all_solutions.png" alt="五种情况总览">
+
+            <h3>解题思路总结：</h3>
+            <ol>
+                <li>确定分割线是从顶点到对边的线段</li>
+                <li>分别讨论从36°角顶点和从其他顶点出发</li>
+                <li>对每个小三角形列出所有等腰可能</li>
+                <li>两两组合、联立方程求解</li>
+                <li>验证每个解的合法性（角度>0°）</li>
+            </ol>
+
+            <h3>涉及知识点：</h3>
+            <div style="margin: 15px 0;">
+                <span class="knowledge-tag">等腰三角形性质</span>
+                <span class="knowledge-tag">三角形内角和</span>
+                <span class="knowledge-tag">分类讨论</span>
+                <span class="knowledge-tag">方程思想</span>
+                <span class="knowledge-tag">穷举验证</span>
+                <span class="knowledge-tag">邻补角</span>
+            </div>
+
+            <h3>解题技巧：</h3>
+            <ul>
+                <li><strong>不遗漏</strong>：系统化讨论所有可能的cevian起点和等腰组合</li>
+                <li><strong>善用对称性</strong>：交换B和C的角色可以减少重复计算</li>
+                <li><strong>验证完备</strong>：每个答案都要验证两个小三角形确实是等腰的</li>
+                <li><strong>特殊值敏感</strong>：36°与72°、108°等角度关系密切（五边形角度）</li>
+            </ul>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(7)">← 上一步</button>
+                <button class="nav-btn next" disabled>完成 ✓</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const totalSteps = 8;
+        let currentStep = 1;
+
+        function initProgress() {
+            const bar = document.getElementById('progressBar');
+            for (let i = 1; i <= totalSteps; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot' + (i === 1 ? ' active' : '');
+                dot.textContent = i;
+                dot.onclick = () => goToStep(i);
+                bar.appendChild(dot);
+            }
+        }
+
+        function goToStep(step) {
+            if (step < 1 || step > totalSteps) return;
+            
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.remove('active');
+                card.style.display = 'none';
+            });
+            
+            const targetCard = document.getElementById('step' + step);
+            targetCard.classList.add('active');
+            targetCard.style.display = 'block';
+            
+            document.querySelectorAll('.progress-dot').forEach((dot, idx) => {
+                dot.className = 'progress-dot';
+                if (idx + 1 === step) dot.classList.add('active');
+                else if (idx + 1 < step) dot.classList.add('completed');
+            });
+            
+            currentStep = step;
+            window.scrollTo(0, 0);
+        }
+
+        function toggleHint(id) {
+            const hint = document.getElementById(id);
+            hint.style.display = hint.style.display === 'block' ? 'none' : 'block';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') goToStep(currentStep + 1);
+            if (e.key === 'ArrowLeft') goToStep(currentStep - 1);
+        });
+
+        initProgress();
+    </script>
+</body>
+</html>
