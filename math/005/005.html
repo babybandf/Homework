@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>005 - 证明 PA + PB = PC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; }
+        .step-card { display: none; }
+        .step-card.visible { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .hint-btn { transition: all 0.3s ease; cursor: pointer; }
+        .hint-btn:hover { transform: translateX(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .hint-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; }
+        .hint-content.show { max-height: 300px; padding: 12px 16px; margin-top: 8px; }
+        .nav-btn { transition: all 0.3s ease; }
+        .nav-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .lang-btn { cursor: pointer; transition: all 0.2s; }
+        .lang-btn:hover { transform: scale(1.05); }
+        .lang-btn.active { background-color: #4f46e5; color: white; }
+
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold text-gray-800" data-i18n="title">📐 005 - 证明 PA + PB = PC</h1>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center bg-gray-100 rounded-full p-0.5">
+                        <button onclick="setLang('zh')" class="lang-btn active px-3 py-1 rounded-full text-xs font-medium" id="langZh">中文</button>
+                        <button onclick="setLang('en')" class="lang-btn px-3 py-1 rounded-full text-xs font-medium text-gray-600" id="langEn">EN</button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600" data-i18n="progress">进度:</span>
+                        <div class="flex space-x-1" id="progressDots"></div>
+                        <span id="progressText" class="text-sm font-medium text-gray-700 ml-2">1/8</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- Step 0: Problem Statement -->
+        <div id="step0" class="step-card visible mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">1</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s0_title">题目</h2>
+                </div>
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl p-6 text-lg leading-relaxed mb-6">
+                    <p data-i18n="s0_problem">在△ABC中，∠ABC = ∠BAC = 70°，点P为三角形内一点，∠PAB = 40°，∠PBA = 20°，求证：PA + PB = PC。</p>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step1_problem.png" alt="Problem Setup" class="w-full max-w-2xl mx-auto transition-transform hover:scale-[1.02]">
+                </div>
+                <div class="bg-gray-100 rounded-xl p-4 mt-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="s0_think">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h0_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h0_1_q">这个三角形有什么特殊性质？</span>
+                        </div>
+                        <div id="h0_1" class="hint-content bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                            <span class="text-green-700" data-i18n="h0_1_a">✓ ∠ABC = ∠BAC = 70°，所以AC = BC，△ABC是等腰三角形，∠ACB = 40°。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h0_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h0_2_q">PA + PB = PC 这种等式暗示了什么构造？</span>
+                        </div>
+                        <div id="h0_2" class="hint-content bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                            <span class="text-blue-700" data-i18n="h0_2_a">? 如果能找到一条线段等于PC，且能分成PA和PB两段，就能证明结论。可以考虑在BP延长线上取点构造。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Angle Analysis -->
+        <div id="step1" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">2</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s1_title">角度分析</h2>
+                </div>
+                <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4 mb-6">
+                    <p class="text-gray-700" data-i18n="s1_desc"><strong>🔑 关键发现：</strong>利用三角形内角和与已知角度，计算所有相关角度。</p>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step1b_angles.png" alt="Angle Analysis" class="w-full max-w-2xl mx-auto transition-transform hover:scale-[1.02]">
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 rounded-lg p-4 text-center">
+                        <p class="text-blue-600 font-bold text-lg">∠ACB = 40°</p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4 text-center">
+                        <p class="text-green-600 font-bold text-lg">∠PAC = 30°</p>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4 text-center">
+                        <p class="text-purple-600 font-bold text-lg">∠PBC = 50°</p>
+                    </div>
+                    <div class="bg-red-50 rounded-lg p-4 text-center">
+                        <p class="text-red-600 font-bold text-lg">∠APB = 120°</p>
+                    </div>
+                    <div class="bg-yellow-50 rounded-lg p-4 text-center">
+                        <p class="text-yellow-600 font-bold text-lg">AC = BC</p>
+                    </div>
+                </div>
+                <div class="bg-orange-50 rounded-xl p-5">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s1_calc">推导过程：</p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s1_l1">① ∠ACB = 180° - 70° - 70° = 40°</li>
+                        <li data-i18n="s1_l2">② AC = BC（等角对等边）</li>
+                        <li data-i18n="s1_l3">③ ∠PAC = ∠BAC - ∠PAB = 70° - 40° = 30°</li>
+                        <li data-i18n="s1_l4">④ ∠PBC = ∠ABC - ∠PBA = 70° - 20° = 50°</li>
+                        <li data-i18n="s1_l5">⑤ ∠APB = 180° - 40° - 20° = 120°</li>
+                    </ul>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(2)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Auxiliary Construction -->
+        <div id="step2" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">3</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s2_title">辅助构造：等边三角形APN</h2>
+                </div>
+                <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4 mb-6">
+                    <p class="text-gray-700" data-i18n="s2_key"><strong>🔑 关键构造：</strong>在BP延长线上取点N，使PN = PA。</p>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step2_auxiliary.png" alt="Equilateral Triangle APN" class="w-full max-w-2xl mx-auto transition-transform hover:scale-[1.02]">
+                </div>
+                <div class="bg-orange-50 rounded-xl p-5">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s2_reason">推理过程：</p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s2_l1">① 在BP延长线上取N，使PN = PA</li>
+                        <li data-i18n="s2_l2">② ∠APN = 180° - ∠APB = 180° - 120° = 60°</li>
+                        <li data-i18n="s2_l3">③ PA = PN 且 ∠APN = 60° → △APN是等边三角形</li>
+                        <li data-i18n="s2_l4">④ 所以 AN = PA = PN</li>
+                    </ul>
+                    <p class="mt-4 font-bold text-orange-700" data-i18n="s2_conc">∴ △APN是等边三角形，三边相等</p>
+                </div>
+                <div class="bg-gray-100 rounded-xl p-4 mt-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="s2_think">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_1_q">为什么选择在BP延长线上构造？</span>
+                        </div>
+                        <div id="h2_1" class="hint-content bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                            <span class="text-green-700" data-i18n="h2_1_a">✓ 因为要证PA + PB = PC，如果在BP延长线上取N使PN = PA，则NB = NP + PB = PA + PB，只需证NB = PC即可。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_2_q">如何判断△APN是等边三角形？</span>
+                        </div>
+                        <div id="h2_2" class="hint-content bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                            <span class="text-green-700" data-i18n="h2_2_a">✓ 有两条边相等（PA = PN），且夹角为60°（∠APN = 60°）。等腰三角形中，如果顶角为60°，则三个角都是60°，即为等边三角形。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(3)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Congruent Triangles NAC ≅ PAC -->
+        <div id="step3" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">4</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s3_title">证明 △NAC ≅ △PAC</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step3_congruent1.png" alt="Congruent Triangles NAC and PAC" class="w-full max-w-2xl mx-auto transition-transform hover:scale-[1.02]">
+                </div>
+                <div class="bg-orange-50 rounded-xl p-5">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s3_subtitle">比较△NAC和△PAC：</p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s3_l1">① ∠NAC = ∠NAP - ∠PAC = 60° - 30° = 30° ✓</li>
+                        <li data-i18n="s3_l2">② ∠PAC = 30° ✓ → ∠NAC = ∠PAC</li>
+                        <li data-i18n="s3_l3">③ AN = AP（等边三角形三边相等）✓</li>
+                        <li data-i18n="s3_l4">④ AC = AC（公共边）✓</li>
+                    </ul>
+                    <p class="mt-4 font-bold text-orange-700" data-i18n="s3_conc">∴ △NAC ≅ △PAC（SAS），所以 NC = PC，∠NCA = ∠PCA</p>
+                </div>
+                <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4 mt-4">
+                    <p class="text-blue-700" data-i18n="s3_note"><strong>重要结论：</strong>CA平分∠NCP，即∠NCA = ∠PCA。</p>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(2)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(4)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Rotation -->
+        <div id="step4" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">5</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s4_title">旋转构造：△CAN → △CBM</h2>
+                </div>
+                <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4 mb-6">
+                    <p class="text-gray-700" data-i18n="s4_key"><strong>🔑 关键操作：</strong>将△CAN绕C逆时针旋转40°（= ∠ACB），使A对应B，N对应M。</p>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step4_rotation.png" alt="Rotation CAN to CBM" class="w-full max-w-2xl mx-auto transition-transform hover:scale-[1.02]">
+                </div>
+                <div class="bg-orange-50 rounded-xl p-5">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s4_subtitle">旋转推理：</p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s4_l1">① 旋转角 = ∠ACB = 40°，A→B，N→M</li>
+                        <li data-i18n="s4_l2">② CM = CN = CP（旋转保持长度 + 第4步结论）</li>
+                        <li data-i18n="s4_l3">③ ∠BCM = ∠ACN（旋转对应角）</li>
+                        <li data-i18n="s4_l4">④ ∠ACP = ∠ACN = ∠BCM（第4步：∠NCA = ∠PCA）</li>
+                        <li data-i18n="s4_l5">⑤ CA = CB，CP = CM，∠ACP = ∠BCM</li>
+                    </ul>
+                    <p class="mt-4 font-bold text-orange-700" data-i18n="s4_conc">∴ △CAP ≅ △CBM（SAS），所以 BM = AP = PN</p>
+                </div>
+                <div class="bg-gray-100 rounded-xl p-4 mt-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="s4_think">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h4_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h4_1_q">为什么旋转角度恰好是∠ACB？</span>
+                        </div>
+                        <div id="h4_1" class="hint-content bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                            <span class="text-green-700" data-i18n="h4_1_a">✓ 因为CA = CB（等腰三角形），旋转∠ACB能把CA映到CB，从而利用对称性建立新的全等关系。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(3)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(5)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: PM // AB -->
+        <div id="step5" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">6</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s5_title">证明 PM // AB</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step5_isosceles.png" alt="PM parallel to AB" class="w-full max-w-2xl mx-auto transition-transform hover:scale-[1.02]">
+                </div>
+                <div class="bg-orange-50 rounded-xl p-5">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s5_subtitle">推理过程：</p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s5_l1">① 过C作CH⊥AB于H，则∠ACH = ∠BCH = 20°（等腰三角形性质）</li>
+                        <li data-i18n="s5_l2">② 因为∠ACP = ∠BCM，所以∠PCH = ∠MCH</li>
+                        <li data-i18n="s5_l3">③ CH平分∠PCM，且CP = CM → △PCM是等腰三角形</li>
+                        <li data-i18n="s5_l4">④ 等腰三角形中，顶角平分线⊥底边 → CH⊥PM</li>
+                        <li data-i18n="s5_l5">⑤ CH⊥AB 且 CH⊥PM → PM // AB</li>
+                    </ul>
+                    <p class="mt-4 font-bold text-orange-700" data-i18n="s5_conc">∴ PM // AB</p>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(4)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(6)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Isosceles Triangle BPM -->
+        <div id="step6" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">7</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s6_title">证明 PM = BM（等腰三角形BPM）</h2>
+                </div>
+                <div class="bg-orange-50 rounded-xl p-5 mb-6">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s6_subtitle">角度推导：</p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s6_l1">① 由旋转△CAN→△CBM：∠MBC = ∠NAC = 30°</li>
+                        <li data-i18n="s6_l2">② ∠MBA = ∠ABC - ∠MBC = 70° - 30° = 40°</li>
+                        <li data-i18n="s6_l3">③ ∠MBP = ∠MBA - ∠PBA = 40° - 20° = 20°</li>
+                        <li data-i18n="s6_l4">④ PM // AB → ∠MPB = ∠PBA = 20°（内错角）</li>
+                        <li data-i18n="s6_l5">⑤ ∠MBP = ∠MPB = 20° → PM = BM</li>
+                    </ul>
+                    <p class="mt-4 font-bold text-orange-700" data-i18n="s6_conc">∴ PM = BM = AP = PN</p>
+                </div>
+                <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4">
+                    <p class="text-blue-700" data-i18n="s6_note"><strong>关键链条：</strong>PM = BM（等腰△BPM）= AP（△CAP≅△CBM）= PN（等边△APN）</p>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(5)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(7)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 7: Final Conclusion -->
+        <div id="step7" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">8</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s7_title">最终结论：PC = PA + PB</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step6_final.png" alt="Final Conclusion" class="w-full max-w-2xl mx-auto transition-transform hover:scale-[1.02]">
+                </div>
+                <div class="bg-orange-50 rounded-xl p-5 mb-6">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s7_subtitle">最终推理：</p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s7_l1">① CP = CN = CM 且 PN = PM → △NCP ≅ △MCP（SSS）</li>
+                        <li data-i18n="s7_l2">② 所以∠NCP = ∠MCP</li>
+                        <li data-i18n="s7_l3">③ ∠NCA = (1/2)∠NCP = (1/4)∠NCM = (1/4)×40° = 10°</li>
+                        <li data-i18n="s7_l4">④ ∠NCB = ∠NCA + ∠ACB = 10° + 40° = 50°</li>
+                        <li data-i18n="s7_l5">⑤ ∠NBC = ∠PBC = 50°（N在BP延长线上）</li>
+                        <li data-i18n="s7_l6">⑥ ∠NCB = ∠NBC = 50° → NB = NC</li>
+                    </ul>
+                </div>
+                <div class="bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl p-8 text-center">
+                    <p class="text-lg mb-4" data-i18n="s7_chain">完整等式链：</p>
+                    <p class="text-2xl font-bold py-2 border-t border-white/30" data-i18n="s7_result">PC = NC = NB = NP + PB = PA + PB</p>
+                    <p class="text-lg mt-4" data-i18n="s7_qed">证毕 ■</p>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(6)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(8)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">总结 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 8: Summary -->
+        <div id="step8" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-emerald-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">★</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s8_title">解题思路总结</h2>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-emerald-800 mb-3" data-i18n="s8_answer_label">🎯 最终答案</h3>
+                    <p class="text-xl font-bold text-center text-emerald-700">PA + PB = PC 证毕</p>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-4" data-i18n="s8_flow_label">📋 解题流程</h3>
+                <div class="flex flex-col space-y-3 mb-6">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">1</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f1">计算角度：∠ACB=40°, ∠PAC=30°, ∠APB=120°</div>
+                    </div>
+                    <div class="w-0.5 h-4 bg-blue-300 ml-4"></div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">2</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f2">BP延长线取N使PN=PA → 构造等边△APN</div>
+                    </div>
+                    <div class="w-0.5 h-4 bg-blue-300 ml-4"></div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">3</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f3">证△NAC≅△PAC(SAS) → NC=PC</div>
+                    </div>
+                    <div class="w-0.5 h-4 bg-blue-300 ml-4"></div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">4</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f4">旋转△CAN → △CBM, 证△CAP≅△CBM → BM=AP</div>
+                    </div>
+                    <div class="w-0.5 h-4 bg-blue-300 ml-4"></div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">5</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f5">利用CH⊥AB证PM//AB → ∠MPB=20°</div>
+                    </div>
+                    <div class="w-0.5 h-4 bg-blue-300 ml-4"></div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">6</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f6">△BPM等腰 → PM=BM=AP=PN</div>
+                    </div>
+                    <div class="w-0.5 h-4 bg-blue-300 ml-4"></div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">7</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f7">△NCP≅△MCP → ∠NCB=∠NBC=50° → NB=NC=PC</div>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-4" data-i18n="s8_tags_label">🏷️ 涉及知识点</h3>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag1">等腰三角形性质</span>
+                    <span class="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm" data-i18n="tag2">等边三角形构造</span>
+                    <span class="bg-green-200 text-green-800 px-3 py-1 rounded-full text-sm" data-i18n="tag3">SAS全等</span>
+                    <span class="bg-purple-200 text-purple-800 px-3 py-1 rounded-full text-sm" data-i18n="tag4">SSS全等</span>
+                    <span class="bg-red-200 text-red-800 px-3 py-1 rounded-full text-sm" data-i18n="tag5">旋转变换</span>
+                    <span class="bg-pink-200 text-pink-800 px-3 py-1 rounded-full text-sm" data-i18n="tag6">平行线内错角</span>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-4" data-i18n="s8_tips_label">💡 解题技巧</h3>
+                <ul class="space-y-2 text-gray-700">
+                    <li data-i18n="s8_tip1">• <strong>延长线取点法</strong>：证明线段和等式 a+b=c 时，在一条线段延长线上截取，将问题转化为证明两段相等</li>
+                    <li data-i18n="s8_tip2">• <strong>等边三角形构造</strong>：当出现60°角或120°（补角）时，考虑构造等边三角形</li>
+                    <li data-i18n="s8_tip3">• <strong>旋转法</strong>：当有等腰三角形时，绕顶点旋转可以产生新的全等关系</li>
+                    <li data-i18n="s8_tip4">• <strong>等量代换链</strong>：通过多步全等建立等式链 PM=BM=AP=PN，最终串联结论</li>
+                </ul>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(7)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(0)" class="nav-btn bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="restart">重新开始 ↻</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // ======== i18n System ========
+        let currentLang = 'zh';
+        const i18n = {
+            zh: {
+                title: '📐 005 - 证明 PA + PB = PC',
+                progress: '进度:',
+                prev: '← 上一步',
+                next: '下一步 →',
+                restart: '重新开始 ↻',
+                s0_title: '题目',
+                s0_problem: '在△ABC中，∠ABC = ∠BAC = 70°，点P为三角形内一点，∠PAB = 40°，∠PBA = 20°，求证：PA + PB = PC。',
+                s0_think: '💭 思考问题',
+                h0_1_q: '这个三角形有什么特殊性质？',
+                h0_1_a: '✓ ∠ABC = ∠BAC = 70°，所以AC = BC，△ABC是等腰三角形，∠ACB = 40°。',
+                h0_2_q: 'PA + PB = PC 这种等式暗示了什么构造？',
+                h0_2_a: '? 如果能找到一条线段等于PC，且能分成PA和PB两段，就能证明结论。可以考虑在BP延长线上取点构造。',
+                s1_title: '角度分析',
+                s1_desc: '<strong>🔑 关键发现：</strong>利用三角形内角和与已知角度，计算所有相关角度。',
+                s1_calc: '推导过程：',
+                s1_l1: '① ∠ACB = 180° - 70° - 70° = 40°',
+                s1_l2: '② AC = BC（等角对等边）',
+                s1_l3: '③ ∠PAC = ∠BAC - ∠PAB = 70° - 40° = 30°',
+                s1_l4: '④ ∠PBC = ∠ABC - ∠PBA = 70° - 20° = 50°',
+                s1_l5: '⑤ ∠APB = 180° - 40° - 20° = 120°',
+                s2_title: '辅助构造：等边三角形APN',
+                s2_key: '<strong>🔑 关键构造：</strong>在BP延长线上取点N，使PN = PA。',
+                s2_reason: '推理过程：',
+                s2_l1: '① 在BP延长线上取N，使PN = PA',
+                s2_l2: '② ∠APN = 180° - ∠APB = 180° - 120° = 60°',
+                s2_l3: '③ PA = PN 且 ∠APN = 60° → △APN是等边三角形',
+                s2_l4: '④ 所以 AN = PA = PN',
+                s2_conc: '∴ △APN是等边三角形，三边相等',
+                s2_think: '💭 思考问题',
+                h2_1_q: '为什么选择在BP延长线上构造？',
+                h2_1_a: '✓ 因为要证PA + PB = PC，如果在BP延长线上取N使PN = PA，则NB = NP + PB = PA + PB，只需证NB = PC即可。',
+                h2_2_q: '如何判断△APN是等边三角形？',
+                h2_2_a: '✓ 有两条边相等（PA = PN），且夹角为60°。等腰三角形中，如果顶角为60°，则三个角都是60°，即为等边三角形。',
+                s3_title: '证明 △NAC ≅ △PAC',
+                s3_subtitle: '比较△NAC和△PAC：',
+                s3_l1: '① ∠NAC = ∠NAP - ∠PAC = 60° - 30° = 30° ✓',
+                s3_l2: '② ∠PAC = 30° ✓ → ∠NAC = ∠PAC',
+                s3_l3: '③ AN = AP（等边三角形三边相等）✓',
+                s3_l4: '④ AC = AC（公共边）✓',
+                s3_conc: '∴ △NAC ≅ △PAC（SAS），所以 NC = PC，∠NCA = ∠PCA',
+                s3_note: '<strong>重要结论：</strong>CA平分∠NCP，即∠NCA = ∠PCA。',
+                s4_title: '旋转构造：△CAN → △CBM',
+                s4_key: '<strong>🔑 关键操作：</strong>将△CAN绕C逆时针旋转40°（= ∠ACB），使A对应B，N对应M。',
+                s4_subtitle: '旋转推理：',
+                s4_l1: '① 旋转角 = ∠ACB = 40°，A→B，N→M',
+                s4_l2: '② CM = CN = CP（旋转保持长度 + 第4步结论）',
+                s4_l3: '③ ∠BCM = ∠ACN（旋转对应角）',
+                s4_l4: '④ ∠ACP = ∠ACN = ∠BCM（第4步：∠NCA = ∠PCA）',
+                s4_l5: '⑤ CA = CB，CP = CM，∠ACP = ∠BCM',
+                s4_conc: '∴ △CAP ≅ △CBM（SAS），所以 BM = AP = PN',
+                s4_think: '💭 思考问题',
+                h4_1_q: '为什么旋转角度恰好是∠ACB？',
+                h4_1_a: '✓ 因为CA = CB（等腰三角形），旋转∠ACB能把CA映到CB，从而利用对称性建立新的全等关系。',
+                s5_title: '证明 PM // AB',
+                s5_subtitle: '推理过程：',
+                s5_l1: '① 过C作CH⊥AB于H，则∠ACH = ∠BCH = 20°（等腰三角形性质）',
+                s5_l2: '② 因为∠ACP = ∠BCM，所以∠PCH = ∠MCH',
+                s5_l3: '③ CH平分∠PCM，且CP = CM → △PCM是等腰三角形',
+                s5_l4: '④ 等腰三角形中，顶角平分线⊥底边 → CH⊥PM',
+                s5_l5: '⑤ CH⊥AB 且 CH⊥PM → PM // AB',
+                s5_conc: '∴ PM // AB',
+                s6_title: '证明 PM = BM（等腰三角形BPM）',
+                s6_subtitle: '角度推导：',
+                s6_l1: '① 由旋转△CAN→△CBM：∠MBC = ∠NAC = 30°',
+                s6_l2: '② ∠MBA = ∠ABC - ∠MBC = 70° - 30° = 40°',
+                s6_l3: '③ ∠MBP = ∠MBA - ∠PBA = 40° - 20° = 20°',
+                s6_l4: '④ PM // AB → ∠MPB = ∠PBA = 20°（内错角）',
+                s6_l5: '⑤ ∠MBP = ∠MPB = 20° → PM = BM',
+                s6_conc: '∴ PM = BM = AP = PN',
+                s6_note: '<strong>关键链条：</strong>PM = BM（等腰△BPM）= AP（△CAP≅△CBM）= PN（等边△APN）',
+                s7_title: '最终结论：PC = PA + PB',
+                s7_subtitle: '最终推理：',
+                s7_l1: '① CP = CN = CM 且 PN = PM → △NCP ≅ △MCP（SSS）',
+                s7_l2: '② 所以∠NCP = ∠MCP',
+                s7_l3: '③ ∠NCA = (1/2)∠NCP = (1/4)∠NCM = (1/4)×40° = 10°',
+                s7_l4: '④ ∠NCB = ∠NCA + ∠ACB = 10° + 40° = 50°',
+                s7_l5: '⑤ ∠NBC = ∠PBC = 50°（N在BP延长线上）',
+                s7_l6: '⑥ ∠NCB = ∠NBC = 50° → NB = NC',
+                s7_chain: '完整等式链：',
+                s7_result: 'PC = NC = NB = NP + PB = PA + PB',
+                s7_qed: '证毕 ■',
+                s8_title: '解题思路总结',
+                s8_answer_label: '🎯 最终答案',
+                s8_flow_label: '📋 解题流程',
+                s8_f1: '计算角度：∠ACB=40°, ∠PAC=30°, ∠APB=120°',
+                s8_f2: 'BP延长线取N使PN=PA → 构造等边△APN',
+                s8_f3: '证△NAC≅△PAC(SAS) → NC=PC',
+                s8_f4: '旋转△CAN → △CBM, 证△CAP≅△CBM → BM=AP',
+                s8_f5: '利用CH⊥AB证PM//AB → ∠MPB=20°',
+                s8_f6: '△BPM等腰 → PM=BM=AP=PN',
+                s8_f7: '△NCP≅△MCP → ∠NCB=∠NBC=50° → NB=NC=PC',
+                s8_tags_label: '🏷️ 涉及知识点',
+                tag1: '等腰三角形性质',
+                tag2: '等边三角形构造',
+                tag3: 'SAS全等',
+                tag4: 'SSS全等',
+                tag5: '旋转变换',
+                tag6: '平行线内错角',
+                s8_tips_label: '💡 解题技巧',
+                s8_tip1: '• <strong>延长线取点法</strong>：证明线段和等式 a+b=c 时，在一条线段延长线上截取，将问题转化为证明两段相等',
+                s8_tip2: '• <strong>等边三角形构造</strong>：当出现60°角或120°（补角）时，考虑构造等边三角形',
+                s8_tip3: '• <strong>旋转法</strong>：当有等腰三角形时，绕顶点旋转可以产生新的全等关系',
+                s8_tip4: '• <strong>等量代换链</strong>：通过多步全等建立等式链 PM=BM=AP=PN，最终串联结论',
+            },
+            en: {
+                title: '📐 005 - Prove PA + PB = PC',
+                progress: 'Progress:',
+                prev: '← Prev',
+                next: 'Next →',
+                restart: 'Restart ↻',
+                s0_title: 'Problem',
+                s0_problem: 'In △ABC, ∠ABC = ∠BAC = 70°, P is a point inside the triangle, ∠PAB = 40°, ∠PBA = 20°. Prove: PA + PB = PC.',
+                s0_think: '💭 Think about it',
+                h0_1_q: 'What special property does this triangle have?',
+                h0_1_a: '✓ Since ∠ABC = ∠BAC = 70°, AC = BC, so △ABC is isosceles with ∠ACB = 40°.',
+                h0_2_q: 'What does PA + PB = PC suggest for construction?',
+                h0_2_a: '? If we can find a segment equal to PC that can be split into PA and PB, we can prove the conclusion. Consider extending BP.',
+                s1_title: 'Angle Analysis',
+                s1_desc: '<strong>🔑 Key finding:</strong> Use angle sum and given angles to compute all related angles.',
+                s1_calc: 'Derivation:',
+                s1_l1: '① ∠ACB = 180° - 70° - 70° = 40°',
+                s1_l2: '② AC = BC (sides opposite equal angles)',
+                s1_l3: '③ ∠PAC = ∠BAC - ∠PAB = 70° - 40° = 30°',
+                s1_l4: '④ ∠PBC = ∠ABC - ∠PBA = 70° - 20° = 50°',
+                s1_l5: '⑤ ∠APB = 180° - 40° - 20° = 120°',
+                s2_title: 'Construction: Equilateral △APN',
+                s2_key: '<strong>🔑 Key construction:</strong> On the extension of BP, take point N such that PN = PA.',
+                s2_reason: 'Reasoning:',
+                s2_l1: '① On extension of BP, take N with PN = PA',
+                s2_l2: '② ∠APN = 180° - ∠APB = 180° - 120° = 60°',
+                s2_l3: '③ PA = PN and ∠APN = 60° → △APN is equilateral',
+                s2_l4: '④ Therefore AN = PA = PN',
+                s2_conc: '∴ △APN is equilateral, all three sides equal',
+                s2_think: '💭 Think about it',
+                h2_1_q: 'Why construct on the extension of BP?',
+                h2_1_a: '✓ To prove PA + PB = PC: if N is on BP extension with PN = PA, then NB = NP + PB = PA + PB. We just need to prove NB = PC.',
+                h2_2_q: 'How do we know △APN is equilateral?',
+                h2_2_a: '✓ Two sides equal (PA = PN) with included angle 60°. An isosceles triangle with vertex angle 60° has all angles 60°, hence equilateral.',
+                s3_title: 'Prove △NAC ≅ △PAC',
+                s3_subtitle: 'Compare △NAC and △PAC:',
+                s3_l1: '① ∠NAC = ∠NAP - ∠PAC = 60° - 30° = 30° ✓',
+                s3_l2: '② ∠PAC = 30° ✓ → ∠NAC = ∠PAC',
+                s3_l3: '③ AN = AP (equilateral triangle) ✓',
+                s3_l4: '④ AC = AC (common side) ✓',
+                s3_conc: '∴ △NAC ≅ △PAC (SAS), so NC = PC, ∠NCA = ∠PCA',
+                s3_note: '<strong>Key conclusion:</strong> CA bisects ∠NCP, i.e., ∠NCA = ∠PCA.',
+                s4_title: 'Rotation: △CAN → △CBM',
+                s4_key: '<strong>🔑 Key operation:</strong> Rotate △CAN around C counterclockwise by 40° (= ∠ACB), mapping A→B, N→M.',
+                s4_subtitle: 'Rotation reasoning:',
+                s4_l1: '① Rotation angle = ∠ACB = 40°, A→B, N→M',
+                s4_l2: '② CM = CN = CP (rotation preserves length + Step 4 result)',
+                s4_l3: '③ ∠BCM = ∠ACN (corresponding rotation angle)',
+                s4_l4: '④ ∠ACP = ∠ACN = ∠BCM (from Step 4: ∠NCA = ∠PCA)',
+                s4_l5: '⑤ CA = CB, CP = CM, ∠ACP = ∠BCM',
+                s4_conc: '∴ △CAP ≅ △CBM (SAS), so BM = AP = PN',
+                s4_think: '💭 Think about it',
+                h4_1_q: 'Why is the rotation angle exactly ∠ACB?',
+                h4_1_a: '✓ Since CA = CB (isosceles), rotating by ∠ACB maps CA to CB, leveraging symmetry to establish new congruence.',
+                s5_title: 'Prove PM // AB',
+                s5_subtitle: 'Reasoning:',
+                s5_l1: '① Draw CH⊥AB at H, then ∠ACH = ∠BCH = 20° (isosceles property)',
+                s5_l2: '② Since ∠ACP = ∠BCM, ∠PCH = ∠MCH',
+                s5_l3: '③ CH bisects ∠PCM and CP = CM → △PCM is isosceles',
+                s5_l4: '④ In isosceles △, angle bisector from apex ⊥ base → CH⊥PM',
+                s5_l5: '⑤ CH⊥AB and CH⊥PM → PM // AB',
+                s5_conc: '∴ PM // AB',
+                s6_title: 'Prove PM = BM (Isosceles △BPM)',
+                s6_subtitle: 'Angle derivation:',
+                s6_l1: '① From rotation △CAN→△CBM: ∠MBC = ∠NAC = 30°',
+                s6_l2: '② ∠MBA = ∠ABC - ∠MBC = 70° - 30° = 40°',
+                s6_l3: '③ ∠MBP = ∠MBA - ∠PBA = 40° - 20° = 20°',
+                s6_l4: '④ PM // AB → ∠MPB = ∠PBA = 20° (alternate interior angles)',
+                s6_l5: '⑤ ∠MBP = ∠MPB = 20° → PM = BM',
+                s6_conc: '∴ PM = BM = AP = PN',
+                s6_note: '<strong>Key chain:</strong> PM = BM (isosceles △BPM) = AP (△CAP≅△CBM) = PN (equilateral △APN)',
+                s7_title: 'Final: PC = PA + PB',
+                s7_subtitle: 'Final reasoning:',
+                s7_l1: '① CP = CN = CM and PN = PM → △NCP ≅ △MCP (SSS)',
+                s7_l2: '② So ∠NCP = ∠MCP',
+                s7_l3: '③ ∠NCA = (1/2)∠NCP = (1/4)∠NCM = (1/4)×40° = 10°',
+                s7_l4: '④ ∠NCB = ∠NCA + ∠ACB = 10° + 40° = 50°',
+                s7_l5: '⑤ ∠NBC = ∠PBC = 50° (N on extension of BP)',
+                s7_l6: '⑥ ∠NCB = ∠NBC = 50° → NB = NC',
+                s7_chain: 'Complete equality chain:',
+                s7_result: 'PC = NC = NB = NP + PB = PA + PB',
+                s7_qed: 'Q.E.D. ■',
+                s8_title: 'Solution Summary',
+                s8_answer_label: '🎯 Final Answer',
+                s8_flow_label: '📋 Solution Flow',
+                s8_f1: 'Calculate angles: ∠ACB=40°, ∠PAC=30°, ∠APB=120°',
+                s8_f2: 'Take N on BP extension with PN=PA → equilateral △APN',
+                s8_f3: 'Prove △NAC≅△PAC (SAS) → NC=PC',
+                s8_f4: 'Rotate △CAN → △CBM, prove △CAP≅△CBM → BM=AP',
+                s8_f5: 'Use CH⊥AB to prove PM//AB → ∠MPB=20°',
+                s8_f6: '△BPM isosceles → PM=BM=AP=PN',
+                s8_f7: '△NCP≅△MCP → ∠NCB=∠NBC=50° → NB=NC=PC',
+                s8_tags_label: '🏷️ Knowledge Points',
+                tag1: 'Isosceles Triangle Properties',
+                tag2: 'Equilateral Triangle Construction',
+                tag3: 'SAS Congruence',
+                tag4: 'SSS Congruence',
+                tag5: 'Rotation Transformation',
+                tag6: 'Alternate Interior Angles',
+                s8_tips_label: '💡 Problem-Solving Tips',
+                s8_tip1: '• <strong>Extension method</strong>: To prove a+b=c, extend a line and take a point to convert to proving two segments equal',
+                s8_tip2: '• <strong>Equilateral construction</strong>: When 60° or 120° (supplement) appears, consider constructing an equilateral triangle',
+                s8_tip3: '• <strong>Rotation method</strong>: With isosceles triangles, rotation about the apex creates new congruences',
+                s8_tip4: '• <strong>Equality chain</strong>: Build chains PM=BM=AP=PN through multiple congruences to connect the conclusion',
+            }
+        };
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+            document.getElementById('langZh').classList.toggle('active', lang === 'zh');
+            document.getElementById('langZh').classList.toggle('text-gray-600', lang !== 'zh');
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            document.getElementById('langEn').classList.toggle('text-gray-600', lang !== 'en');
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang][key] !== undefined) {
+                    el.innerHTML = i18n[lang][key];
+                }
+            });
+        }
+
+        // ======== Navigation ========
+        let currentStep = 0;
+        const totalSteps = 9;
+
+        function goToStep(step) {
+            if (step < 0 || step >= totalSteps) return;
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.remove('visible');
+                card.style.display = 'none';
+            });
+            const target = document.getElementById('step' + step);
+            target.style.display = 'block';
+            void target.offsetHeight;
+            target.classList.add('visible');
+            currentStep = step;
+            updateProgress();
+            window.scrollTo(0, 0);
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([target]);
+            }
+        }
+
+        function updateProgress() {
+            const dots = document.getElementById('progressDots');
+            dots.innerHTML = '';
+            for (let i = 0; i < totalSteps; i++) {
+                const dot = document.createElement('div');
+                dot.className = `w-2.5 h-2.5 rounded-full transition-all duration-300 ${i === currentStep ? 'bg-blue-500 scale-125' : i < currentStep ? 'bg-blue-300' : 'bg-gray-300'}`;
+                dots.appendChild(dot);
+            }
+            document.getElementById('progressText').textContent = `${currentStep + 1}/${totalSteps}`;
+        }
+
+        function toggleHint(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('show');
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') goToStep(currentStep + 1);
+            if (e.key === 'ArrowLeft') goToStep(currentStep - 1);
+        });
+
+
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>
