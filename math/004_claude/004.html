@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>004 - 求角BMC的度数</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsxgraph@1.8.0/distrib/jsxgraphcore.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.8.0/distrib/jsxgraph.css">
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; }
+        .step-card { display: none; }
+        .step-card.visible { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hint-btn { transition: all 0.3s ease; cursor: pointer; }
+        .hint-btn:hover { transform: translateX(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .hint-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease, margin 0.4s ease; }
+        .hint-content.show { max-height: 300px; padding: 12px 16px; margin-top: 8px; }
+        .jxgbox { margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .nav-btn { transition: all 0.3s ease; }
+        .nav-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .lang-btn { cursor: pointer; transition: all 0.2s; }
+        .lang-btn:hover { transform: scale(1.05); }
+        .lang-btn.active { background-color: #4f46e5; color: white; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold text-gray-800" data-i18n="title">📐 004 - 求∠BMC的度数</h1>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center bg-gray-100 rounded-full p-0.5">
+                        <button onclick="setLang('zh')" class="lang-btn active px-3 py-1 rounded-full text-xs font-medium" id="langZh">中文</button>
+                        <button onclick="setLang('en')" class="lang-btn px-3 py-1 rounded-full text-xs font-medium text-gray-600" id="langEn">EN</button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-600" data-i18n="progress">进度:</span>
+                        <div class="flex space-x-1" id="progressDots"></div>
+                        <span id="progressText" class="text-sm font-medium text-gray-700 ml-2">1/7</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- Step 0: Problem Statement -->
+        <div id="step0" class="step-card visible mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-indigo-500 text-white w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold mr-3" data-i18n="s0_badge">题</span>
+                    <span data-i18n="s0_title">题目</span>
+                </h2>
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl p-6 text-lg leading-relaxed mb-6">
+                    <p data-i18n="s0_desc">在△ABC中，∠BAC = ∠BCA = 44°，点M为△ABC内一点，且∠MCA = 30°，∠MAC = 16°。</p>
+                    <p class="mt-2 text-2xl font-bold text-center" data-i18n="s0_ask">求：∠BMC 的度数</p>
+                </div>
+                <div id="board0" class="jxgbox" style="width:500px; height:420px;"></div>
+                <div class="mt-6 text-center">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-lg" data-i18n="s0_start">开始解题 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Angle Analysis -->
+        <div id="step1" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="bg-blue-500 text-white w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold mr-3">1</span>
+                    <span data-i18n="s1_title">分析已知条件，计算所有已知角</span>
+                </h2>
+                <div id="board1" class="jxgbox" style="width:500px; height:420px;"></div>
+                <div class="bg-blue-50 rounded-xl p-5 mt-6">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s1_subtitle">从已知条件出发：</p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s1_l1">• ∠BAC = ∠BCA = 44° → <strong>△ABC是等腰三角形</strong>（AB = BC）</li>
+                        <li data-i18n="s1_l2">• ∠ABC = 180° - 44° - 44° = <span class="bg-yellow-200 px-1 rounded font-bold">92°</span></li>
+                        <li data-i18n="s1_l3">• ∠BAM = ∠BAC - ∠MAC = 44° - 16° = <span class="bg-yellow-200 px-1 rounded font-bold">28°</span></li>
+                        <li data-i18n="s1_l4">• ∠BCM = ∠BCA - ∠MCA = 44° - 30° = <span class="bg-yellow-200 px-1 rounded font-bold">14°</span></li>
+                        <li data-i18n="s1_l5">• 在△AMC中：∠AMC = 180° - 16° - 30° = <span class="bg-yellow-200 px-1 rounded font-bold">134°</span></li>
+                    </ul>
+                </div>
+
+                <div class="mt-5 space-y-2">
+                    <div class="hint-btn bg-gray-100 rounded-lg p-3" onclick="toggleHint('h1_1')">
+                        <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                        <span class="text-gray-700" data-i18n="h1_1_q">为什么要先计算这些角？</span>
+                    </div>
+                    <div id="h1_1" class="hint-content bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                        <span class="text-green-700" data-i18n="h1_1_a">✓ 明确所有已知角度后，可以确定还缺什么信息。我们发现只需要求出∠MBC（或∠ABM），就能在△BMC中用内角和得到∠BMC。</span>
+                    </div>
+                    <div class="hint-btn bg-gray-100 rounded-lg p-3" onclick="toggleHint('h1_2')">
+                        <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                        <span class="text-gray-700" data-i18n="h1_2_q">等腰三角形有什么用？</span>
+                    </div>
+                    <div id="h1_2" class="hint-content bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                        <span class="text-green-700" data-i18n="h1_2_a">✓ AB = BC 这个等边条件是后续构造辅助线和证明全等的关键。等腰三角形具有轴对称性，可以利用SSS全等。</span>
+                    </div>
+                    <div class="hint-btn bg-gray-100 rounded-lg p-3" onclick="toggleHint('h1_3')">
+                        <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                        <span class="text-gray-700" data-i18n="h1_3_q">能直接用内角和求∠BMC吗？</span>
+                    </div>
+                    <div id="h1_3" class="hint-content bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                        <span class="text-red-700" data-i18n="h1_3_a">✗ 不行！在△BMC中有两个未知角（∠MBC和∠BMC），内角和只给一个方程，不够解两个未知数。需要其他方法确定∠MBC。</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(2)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Construction -->
+        <div id="step2" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="bg-purple-500 text-white w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold mr-3">2</span>
+                    <span data-i18n="s2_title">构造辅助线：作等边三角形</span>
+                </h2>
+                <div id="board2" class="jxgbox" style="width:560px; height:560px;"></div>
+                <div class="bg-purple-50 rounded-xl p-5 mt-6">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s2_subtitle">构造方法：</p>
+                    <p class="text-gray-700" data-i18n="s2_desc">以AC为边，在AC上方（B同侧）作<strong>等边△ACE</strong>，连接BE。</p>
+                    <ul class="mt-3 space-y-1 text-gray-700">
+                        <li data-i18n="s2_l1">• AE = CE = AC（等边三角形三边相等）</li>
+                        <li data-i18n="s2_l2">• ∠EAC = ∠ECA = 60°（等边三角形每个角都是60°）</li>
+                    </ul>
+                    <p class="mt-3 text-gray-600 text-sm" data-i18n="s2_note">注意：E在B的上方（因为等边三角形的高 > △ABC的高），B在等边△ACE的内部。</p>
+                </div>
+
+                <div class="mt-5 space-y-2">
+                    <div class="hint-btn bg-gray-100 rounded-lg p-3" onclick="toggleHint('h2_1')">
+                        <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                        <span class="text-gray-700" data-i18n="h2_1_q">为什么要构造等边三角形？</span>
+                    </div>
+                    <div id="h2_1" class="hint-content bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                        <span class="text-green-700" data-i18n="h2_1_a">✓ 等边三角形的60°角与题目中的角度有巧妙关系：∠EAC - ∠BAC = 60° - 44° = 16° = ∠MAC！这个巧合是证明全等的关键。</span>
+                    </div>
+                    <div class="hint-btn bg-gray-100 rounded-lg p-3" onclick="toggleHint('h2_2')">
+                        <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                        <span class="text-gray-700" data-i18n="h2_2_q">为什么在B同侧？</span>
+                    </div>
+                    <div id="h2_2" class="hint-content bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                        <span class="text-blue-700" data-i18n="h2_2_a">在B同侧构造，B在等边三角形内部，可以利用BE把∠AEC平分（因为SSS全等），得到∠AEB = 30°，这个角恰好等于∠MCA！</span>
+                    </div>
+                    <div class="hint-btn bg-gray-100 rounded-lg p-3" onclick="toggleHint('h2_3')">
+                        <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                        <span class="text-gray-700" data-i18n="h2_3_q">怎么想到这个构造？</span>
+                    </div>
+                    <div id="h2_3" class="hint-content bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                        <span class="text-red-700" data-i18n="h2_3_a">这类"奇角"问题（角度为44°、16°、30°等不容易直接计算的值）的经典技巧就是构造等边三角形来制造全等条件。观察到60° - 44° = 16° = ∠MAC，这就暗示了构造方向。</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(3)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: SSS Congruence -->
+        <div id="step3" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="bg-green-500 text-white w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold mr-3">3</span>
+                    <span data-i18n="s3_title">证明△ABE ≅ △CBE（SSS）→ ∠AEB = 30°</span>
+                </h2>
+                <div id="board3" class="jxgbox" style="width:560px; height:560px;"></div>
+                <div class="bg-green-50 rounded-xl p-5 mt-6">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s3_subtitle">证明 △ABE ≅ △CBE（SSS）：</p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s3_l1">① AB = CB（△ABC是等腰三角形，∠BAC = ∠BCA）</li>
+                        <li data-i18n="s3_l2">② AE = CE（△ACE是等边三角形）</li>
+                        <li data-i18n="s3_l3">③ BE = BE（公共边）</li>
+                    </ul>
+                    <p class="mt-4 font-bold text-green-700" data-i18n="s3_conc">∴ △ABE ≅ △CBE（SSS）</p>
+                    <div class="mt-3 bg-white rounded-lg p-3 border border-green-200">
+                        <p class="text-gray-700" data-i18n="s3_r1">由全等得：∠AEB = ∠CEB</p>
+                        <p class="text-gray-700 mt-1" data-i18n="s3_r2">又 ∠AEB + ∠CEB = ∠AEC = 60°</p>
+                        <p class="font-bold text-green-700 mt-1" data-i18n="s3_r3">∴ ∠AEB = ∠CEB = 60° ÷ 2 = <span class="text-xl">30°</span></p>
+                    </div>
+                </div>
+
+                <div class="mt-5 space-y-2">
+                    <div class="hint-btn bg-gray-100 rounded-lg p-3" onclick="toggleHint('h3_1')">
+                        <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                        <span class="text-gray-700" data-i18n="h3_1_q">BE是什么线？</span>
+                    </div>
+                    <div id="h3_1" class="hint-content bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                        <span class="text-green-700" data-i18n="h3_1_a">✓ BE是∠AEC的角平分线！因为△ABE ≅ △CBE，所以∠AEB = ∠CEB。同时，由于E和B都在AC的垂直平分线上（AE=CE, AB=CB），BE就在AC的垂直平分线上。</span>
+                    </div>
+                    <div class="hint-btn bg-gray-100 rounded-lg p-3" onclick="toggleHint('h3_2')">
+                        <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                        <span class="text-gray-700" data-i18n="h3_2_q">30°这个角有什么用？</span>
+                    </div>
+                    <div id="h3_2" class="hint-content bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                        <span class="text-blue-700" data-i18n="h3_2_a">关键！注意到 ∠AEB = 30° 恰好等于 ∠MCA = 30°！这为下一步的ASA全等创造了条件。</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(2)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(4)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: ASA Congruence → Isosceles -->
+        <div id="step4" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="bg-orange-500 text-white w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold mr-3">4</span>
+                    <span data-i18n="s4_title">证明△ABE ≅ △AMC（ASA）→ AB = AM</span>
+                </h2>
+                <div id="board4" class="jxgbox" style="width:560px; height:560px;"></div>
+                <div class="bg-orange-50 rounded-xl p-5 mt-6">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s4_subtitle">比较△ABE和△AMC：</p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s4_l1">① ∠EAB = ∠EAC - ∠BAC = 60° - 44° = <strong>16°</strong> = ∠MAC ✓</li>
+                        <li data-i18n="s4_l2">② AE = AC（等边三角形，AE = AC）✓</li>
+                        <li data-i18n="s4_l3">③ ∠AEB = <strong>30°</strong> = ∠MCA ✓</li>
+                    </ul>
+                    <p class="mt-4 font-bold text-orange-700" data-i18n="s4_conc">∴ △ABE ≅ △AMC（ASA：角-边-角）</p>
+                    <div class="mt-3 bg-white rounded-lg p-3 border border-orange-200">
+                        <p class="font-bold text-orange-700" data-i18n="s4_result">由全等得：<span class="text-xl">AB = AM</span></p>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 rounded-xl p-5 mt-4">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s4_derive">推导∠ABM：</p>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s4_d1">• AB = AM → <strong>△ABM是等腰三角形</strong></li>
+                        <li data-i18n="s4_d2">• ∠BAM = 28°（第1步已算）</li>
+                        <li data-i18n="s4_d3">• ∠ABM = ∠AMB = (180° - 28°) ÷ 2 = <span class="bg-yellow-200 px-2 rounded font-bold text-lg">76°</span></li>
+                        <li data-i18n="s4_d4">• ∠MBC = ∠ABC - ∠ABM = 92° - 76° = <span class="bg-yellow-200 px-2 rounded font-bold text-lg">16°</span></li>
+                    </ul>
+                </div>
+
+                <div class="mt-5 space-y-2">
+                    <div class="hint-btn bg-gray-100 rounded-lg p-3" onclick="toggleHint('h4_1')">
+                        <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                        <span class="text-gray-700" data-i18n="h4_1_q">为什么是ASA？三个条件分别对应什么？</span>
+                    </div>
+                    <div id="h4_1" class="hint-content bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                        <span class="text-green-700" data-i18n="h4_1_a">✓ ASA = 角-边-角。在△ABE中：∠EAB=16°是A处的角，AE是夹边，∠AEB=30°是E处的角。在△AMC中：∠MAC=16°是A处的角，AC是夹边，∠MCA=30°是C处的角。两角及其夹边分别相等！</span>
+                    </div>
+                    <div class="hint-btn bg-gray-100 rounded-lg p-3" onclick="toggleHint('h4_2')">
+                        <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                        <span class="text-gray-700" data-i18n="h4_2_q">为什么AB = AM能推出∠ABM = 76°？</span>
+                    </div>
+                    <div id="h4_2" class="hint-content bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                        <span class="text-blue-700" data-i18n="h4_2_a">等腰三角形两底角相等！在△ABM中，AB = AM是两腰，∠BAM = 28°是顶角。两底角 = (180° - 顶角) ÷ 2 = (180° - 28°) ÷ 2 = 76°。</span>
+                    </div>
+                    <div class="hint-btn bg-gray-100 rounded-lg p-3" onclick="toggleHint('h4_3')">
+                        <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                        <span class="text-gray-700" data-i18n="h4_3_q">∠MBC = ∠MAC = 16°是巧合吗？</span>
+                    </div>
+                    <div id="h4_3" class="hint-content bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                        <span class="text-green-700" data-i18n="h4_3_a">✓ 不是巧合！这是等腰对称性和全等关系共同作用的结果。通过等边三角形的构造，我们严格证明了这个等式。</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(3)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(5)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Final Answer -->
+        <div id="step5" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="bg-red-500 text-white w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold mr-3">5</span>
+                    <span data-i18n="s5_title">计算最终答案</span>
+                </h2>
+                <div id="board5" class="jxgbox" style="width:500px; height:420px;"></div>
+                <div class="bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl p-8 mt-6">
+                    <p class="text-center text-lg mb-4" data-i18n="s5_p1">在△BMC中，由三角形内角和：</p>
+                    <p class="text-center text-lg">∠BMC + ∠MBC + ∠MCB = 180°</p>
+                    <p class="text-center text-lg mt-2">∠BMC + 16° + 14° = 180°</p>
+                    <p class="text-center text-3xl font-bold mt-4 py-2 border-t border-white/30">∠BMC = 150°</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 mt-4">
+                    <p class="text-gray-700" data-i18n="s5_verify"><strong>验证（绕M点一周 = 360°）：</strong></p>
+                    <p class="text-gray-700 mt-1 text-lg font-semibold text-center">∠AMB + ∠BMC + ∠AMC = 76° + 150° + 134° = 360° ✓</p>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(4)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(6)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="summary_btn">总结 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Summary -->
+        <div id="step6" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-emerald-500 text-white w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold mr-3">✓</span>
+                    <span data-i18n="s6_title">解题思路总结</span>
+                </h2>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-emerald-800 mb-3" data-i18n="s6_answer_label">🎯 最终答案</h3>
+                    <p class="text-2xl font-bold text-center text-emerald-700">∠BMC = 150°</p>
+                </div>
+
+                <div class="bg-blue-50 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-gray-800 mb-3" data-i18n="s6_flow_label">📋 解题流程</h3>
+                    <div class="flex flex-col space-y-3">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">1</div>
+                            <div class="ml-3 text-gray-700" data-i18n="s6_f1">计算所有已知角 → AB = BC（等腰），∠ABC = 92°，∠BAM = 28°</div>
+                        </div>
+                        <div class="w-0.5 h-4 bg-blue-300 ml-4"></div>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">2</div>
+                            <div class="ml-3 text-gray-700" data-i18n="s6_f2">以AC为边在B同侧作等边△ACE，连接BE</div>
+                        </div>
+                        <div class="w-0.5 h-4 bg-purple-300 ml-4"></div>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">3</div>
+                            <div class="ml-3 text-gray-700" data-i18n="s6_f3">△ABE ≅ △CBE (SSS) → ∠AEB = ∠CEB = 30°</div>
+                        </div>
+                        <div class="w-0.5 h-4 bg-green-300 ml-4"></div>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">4</div>
+                            <div class="ml-3 text-gray-700" data-i18n="s6_f4">△ABE ≅ △AMC (ASA) → AB = AM → △ABM等腰 → ∠ABM = 76°</div>
+                        </div>
+                        <div class="w-0.5 h-4 bg-orange-300 ml-4"></div>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">5</div>
+                            <div class="ml-3 text-gray-700" data-i18n="s6_f5">∠MBC = 16°，∠BMC = 180° - 16° - 14° = <strong>150°</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-50 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-gray-800 mb-3" data-i18n="s6_knowledge_label">📚 涉及知识点</h3>
+                    <div class="flex flex-wrap gap-2" id="knowledgeTags">
+                        <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag1">等腰三角形性质</span>
+                        <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag2">三角形内角和</span>
+                        <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag3">等边三角形性质</span>
+                        <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag4">全等三角形(SSS)</span>
+                        <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag5">全等三角形(ASA)</span>
+                        <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag6">辅助线构造</span>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="font-bold text-gray-800 mb-3" data-i18n="s6_tips_label">💡 解题技巧</h3>
+                    <ul class="space-y-2 text-gray-700">
+                        <li data-i18n="s6_tip1">• <strong>等边三角形构造</strong>：当题目出现等腰三角形且需要求复杂角度时，考虑在某条边上作等边三角形来制造全等条件</li>
+                        <li data-i18n="s6_tip2">• <strong>两次全等</strong>：第一次SSS全等得到角度（∠AEB=30°），第二次ASA全等得到边（AB=AM），层层递进</li>
+                        <li data-i18n="s6_tip3">• <strong>"奇角"问题套路</strong>：观察60°与题目角度的差值（60° - 44° = 16° = ∠MAC），这暗示了构造方向</li>
+                        <li data-i18n="s6_tip4">• <strong>验证意识</strong>：得出答案后检查绕M点一周 = 360°（76° + 150° + 134° = 360° ✓）</li>
+                    </ul>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(5)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(0)" class="nav-btn bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="restart">重新开始 ↻</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+    // ======== i18n System ========
+    let currentLang = 'zh';
+
+    const i18n = {
+        zh: {
+            title: '📐 004 - 求∠BMC的度数',
+            progress: '进度:',
+            prev: '← 上一步',
+            next: '下一步 →',
+            restart: '重新开始 ↻',
+            summary_btn: '总结 →',
+            // Step 0
+            s0_badge: '题',
+            s0_title: '题目',
+            s0_desc: '在△ABC中，∠BAC = ∠BCA = 44°，点M为△ABC内一点，且∠MCA = 30°，∠MAC = 16°。',
+            s0_ask: '求：∠BMC 的度数',
+            s0_start: '开始解题 →',
+            // Step 1
+            s1_title: '分析已知条件，计算所有已知角',
+            s1_subtitle: '从已知条件出发：',
+            s1_l1: '• ∠BAC = ∠BCA = 44° → <strong>△ABC是等腰三角形</strong>（AB = BC）',
+            s1_l2: '• ∠ABC = 180° - 44° - 44° = <span class="bg-yellow-200 px-1 rounded font-bold">92°</span>',
+            s1_l3: '• ∠BAM = ∠BAC - ∠MAC = 44° - 16° = <span class="bg-yellow-200 px-1 rounded font-bold">28°</span>',
+            s1_l4: '• ∠BCM = ∠BCA - ∠MCA = 44° - 30° = <span class="bg-yellow-200 px-1 rounded font-bold">14°</span>',
+            s1_l5: '• 在△AMC中：∠AMC = 180° - 16° - 30° = <span class="bg-yellow-200 px-1 rounded font-bold">134°</span>',
+            h1_1_q: '为什么要先计算这些角？',
+            h1_1_a: '✓ 明确所有已知角度后，可以确定还缺什么信息。我们发现只需要求出∠MBC（或∠ABM），就能在△BMC中用内角和得到∠BMC。',
+            h1_2_q: '等腰三角形有什么用？',
+            h1_2_a: '✓ AB = BC 这个等边条件是后续构造辅助线和证明全等的关键。等腰三角形具有轴对称性，可以利用SSS全等。',
+            h1_3_q: '能直接用内角和求∠BMC吗？',
+            h1_3_a: '✗ 不行！在△BMC中有两个未知角（∠MBC和∠BMC），内角和只给一个方程，不够解两个未知数。需要其他方法确定∠MBC。',
+            // Step 2
+            s2_title: '构造辅助线：作等边三角形',
+            s2_subtitle: '构造方法：',
+            s2_desc: '以AC为边，在AC上方（B同侧）作<strong>等边△ACE</strong>，连接BE。',
+            s2_l1: '• AE = CE = AC（等边三角形三边相等）',
+            s2_l2: '• ∠EAC = ∠ECA = 60°（等边三角形每个角都是60°）',
+            s2_note: '注意：E在B的上方（因为等边三角形的高 > △ABC的高），B在等边△ACE的内部。',
+            h2_1_q: '为什么要构造等边三角形？',
+            h2_1_a: '✓ 等边三角形的60°角与题目中的角度有巧妙关系：∠EAC - ∠BAC = 60° - 44° = 16° = ∠MAC！这个巧合是证明全等的关键。',
+            h2_2_q: '为什么在B同侧？',
+            h2_2_a: '在B同侧构造，B在等边三角形内部，可以利用BE把∠AEC平分（因为SSS全等），得到∠AEB = 30°，这个角恰好等于∠MCA！',
+            h2_3_q: '怎么想到这个构造？',
+            h2_3_a: '这类"奇角"问题（角度为44°、16°、30°等不容易直接计算的值）的经典技巧就是构造等边三角形来制造全等条件。观察到60° - 44° = 16° = ∠MAC，这就暗示了构造方向。',
+            // Step 3
+            s3_title: '证明△ABE ≅ △CBE（SSS）→ ∠AEB = 30°',
+            s3_subtitle: '证明 △ABE ≅ △CBE（SSS）：',
+            s3_l1: '① AB = CB（△ABC是等腰三角形，∠BAC = ∠BCA）',
+            s3_l2: '② AE = CE（△ACE是等边三角形）',
+            s3_l3: '③ BE = BE（公共边）',
+            s3_conc: '∴ △ABE ≅ △CBE（SSS）',
+            s3_r1: '由全等得：∠AEB = ∠CEB',
+            s3_r2: '又 ∠AEB + ∠CEB = ∠AEC = 60°',
+            s3_r3: '∴ ∠AEB = ∠CEB = 60° ÷ 2 = <span class="text-xl">30°</span>',
+            h3_1_q: 'BE是什么线？',
+            h3_1_a: '✓ BE是∠AEC的角平分线！因为△ABE ≅ △CBE，所以∠AEB = ∠CEB。同时，由于E和B都在AC的垂直平分线上（AE=CE, AB=CB），BE就在AC的垂直平分线上。',
+            h3_2_q: '30°这个角有什么用？',
+            h3_2_a: '关键！注意到 ∠AEB = 30° 恰好等于 ∠MCA = 30°！这为下一步的ASA全等创造了条件。',
+            // Step 4
+            s4_title: '证明△ABE ≅ △AMC（ASA）→ AB = AM',
+            s4_subtitle: '比较△ABE和△AMC：',
+            s4_l1: '① ∠EAB = ∠EAC - ∠BAC = 60° - 44° = <strong>16°</strong> = ∠MAC ✓',
+            s4_l2: '② AE = AC（等边三角形，AE = AC）✓',
+            s4_l3: '③ ∠AEB = <strong>30°</strong> = ∠MCA ✓',
+            s4_conc: '∴ △ABE ≅ △AMC（ASA：角-边-角）',
+            s4_result: '由全等得：<span class="text-xl">AB = AM</span>',
+            s4_derive: '推导∠ABM：',
+            s4_d1: '• AB = AM → <strong>△ABM是等腰三角形</strong>',
+            s4_d2: '• ∠BAM = 28°（第1步已算）',
+            s4_d3: '• ∠ABM = ∠AMB = (180° - 28°) ÷ 2 = <span class="bg-yellow-200 px-2 rounded font-bold text-lg">76°</span>',
+            s4_d4: '• ∠MBC = ∠ABC - ∠ABM = 92° - 76° = <span class="bg-yellow-200 px-2 rounded font-bold text-lg">16°</span>',
+            h4_1_q: '为什么是ASA？三个条件分别对应什么？',
+            h4_1_a: '✓ ASA = 角-边-角。在△ABE中：∠EAB=16°是A处的角，AE是夹边，∠AEB=30°是E处的角。在△AMC中：∠MAC=16°是A处的角，AC是夹边，∠MCA=30°是C处的角。两角及其夹边分别相等！',
+            h4_2_q: '为什么AB = AM能推出∠ABM = 76°？',
+            h4_2_a: '等腰三角形两底角相等！在△ABM中，AB = AM是两腰，∠BAM = 28°是顶角。两底角 = (180° - 顶角) ÷ 2 = (180° - 28°) ÷ 2 = 76°。',
+            h4_3_q: '∠MBC = ∠MAC = 16°是巧合吗？',
+            h4_3_a: '✓ 不是巧合！这是等腰对称性和全等关系共同作用的结果。通过等边三角形的构造，我们严格证明了这个等式。',
+            // Step 5
+            s5_title: '计算最终答案',
+            s5_p1: '在△BMC中，由三角形内角和：',
+            s5_verify: '<strong>验证（绕M点一周 = 360°）：</strong>',
+            // Step 6
+            s6_title: '解题思路总结',
+            s6_answer_label: '🎯 最终答案',
+            s6_flow_label: '📋 解题流程',
+            s6_f1: '计算所有已知角 → AB = BC（等腰），∠ABC = 92°，∠BAM = 28°',
+            s6_f2: '以AC为边在B同侧作等边△ACE，连接BE',
+            s6_f3: '△ABE ≅ △CBE (SSS) → ∠AEB = ∠CEB = 30°',
+            s6_f4: '△ABE ≅ △AMC (ASA) → AB = AM → △ABM等腰 → ∠ABM = 76°',
+            s6_f5: '∠MBC = 16°，∠BMC = 180° - 16° - 14° = <strong>150°</strong>',
+            s6_knowledge_label: '📚 涉及知识点',
+            tag1: '等腰三角形性质',
+            tag2: '三角形内角和',
+            tag3: '等边三角形性质',
+            tag4: '全等三角形(SSS)',
+            tag5: '全等三角形(ASA)',
+            tag6: '辅助线构造',
+            s6_tips_label: '💡 解题技巧',
+            s6_tip1: '• <strong>等边三角形构造</strong>：当题目出现等腰三角形且需要求复杂角度时，考虑在某条边上作等边三角形来制造全等条件',
+            s6_tip2: '• <strong>两次全等</strong>：第一次SSS全等得到角度（∠AEB=30°），第二次ASA全等得到边（AB=AM），层层递进',
+            s6_tip3: '• <strong>"奇角"问题套路</strong>：观察60°与题目角度的差值（60° - 44° = 16° = ∠MAC），这暗示了构造方向',
+            s6_tip4: '• <strong>验证意识</strong>：得出答案后检查绕M点一周 = 360°（76° + 150° + 134° = 360° ✓）',
+        },
+        en: {
+            title: '📐 004 - Find ∠BMC',
+            progress: 'Progress:',
+            prev: '← Prev',
+            next: 'Next →',
+            restart: 'Restart ↻',
+            summary_btn: 'Summary →',
+            // Step 0
+            s0_badge: 'Q',
+            s0_title: 'Problem',
+            s0_desc: 'In △ABC, ∠BAC = ∠BCA = 44°. Point M is inside △ABC with ∠MCA = 30° and ∠MAC = 16°.',
+            s0_ask: 'Find: the measure of ∠BMC',
+            s0_start: 'Start solving →',
+            // Step 1
+            s1_title: 'Analyze given conditions, compute all known angles',
+            s1_subtitle: 'From the given conditions:',
+            s1_l1: '• ∠BAC = ∠BCA = 44° → <strong>△ABC is isosceles</strong> (AB = BC)',
+            s1_l2: '• ∠ABC = 180° - 44° - 44° = <span class="bg-yellow-200 px-1 rounded font-bold">92°</span>',
+            s1_l3: '• ∠BAM = ∠BAC - ∠MAC = 44° - 16° = <span class="bg-yellow-200 px-1 rounded font-bold">28°</span>',
+            s1_l4: '• ∠BCM = ∠BCA - ∠MCA = 44° - 30° = <span class="bg-yellow-200 px-1 rounded font-bold">14°</span>',
+            s1_l5: '• In △AMC: ∠AMC = 180° - 16° - 30° = <span class="bg-yellow-200 px-1 rounded font-bold">134°</span>',
+            h1_1_q: 'Why compute these angles first?',
+            h1_1_a: '✓ After identifying all known angles, we can see what\'s missing. We only need ∠MBC (or ∠ABM) to find ∠BMC via the angle sum in △BMC.',
+            h1_2_q: 'What\'s the use of the isosceles triangle?',
+            h1_2_a: '✓ AB = BC is crucial for constructing auxiliary lines and proving congruence later. The isosceles triangle has axis symmetry, enabling SSS congruence.',
+            h1_3_q: 'Can we directly use angle sum to find ∠BMC?',
+            h1_3_a: '✗ No! In △BMC there are two unknowns (∠MBC and ∠BMC). The angle sum gives only one equation — not enough to solve for two unknowns. We need another method to determine ∠MBC.',
+            // Step 2
+            s2_title: 'Auxiliary construction: equilateral triangle',
+            s2_subtitle: 'Construction method:',
+            s2_desc: 'Construct <strong>equilateral △ACE</strong> on AC, on the same side as B. Connect BE.',
+            s2_l1: '• AE = CE = AC (equilateral triangle — all sides equal)',
+            s2_l2: '• ∠EAC = ∠ECA = 60° (equilateral triangle — all angles 60°)',
+            s2_note: 'Note: E is above B (since the equilateral triangle\'s height > △ABC\'s height), so B lies inside △ACE.',
+            h2_1_q: 'Why construct an equilateral triangle?',
+            h2_1_a: '✓ The 60° angle has a neat relationship with the problem: ∠EAC - ∠BAC = 60° - 44° = 16° = ∠MAC! This "coincidence" is the key to proving congruence.',
+            h2_2_q: 'Why on the same side as B?',
+            h2_2_a: 'With B inside the equilateral triangle, BE bisects ∠AEC (via SSS congruence), giving ∠AEB = 30° — exactly equal to ∠MCA!',
+            h2_3_q: 'How to think of this construction?',
+            h2_3_a: 'For "exotic angle" problems (44°, 16°, 30° — values that don\'t easily combine), a classic technique is constructing equilateral triangles to create congruence conditions. Noting 60° - 44° = 16° = ∠MAC hints at the construction.',
+            // Step 3
+            s3_title: 'Prove △ABE ≅ △CBE (SSS) → ∠AEB = 30°',
+            s3_subtitle: 'Prove △ABE ≅ △CBE (SSS):',
+            s3_l1: '① AB = CB (△ABC is isosceles, ∠BAC = ∠BCA)',
+            s3_l2: '② AE = CE (△ACE is equilateral)',
+            s3_l3: '③ BE = BE (common side)',
+            s3_conc: '∴ △ABE ≅ △CBE (SSS)',
+            s3_r1: 'By congruence: ∠AEB = ∠CEB',
+            s3_r2: 'Also ∠AEB + ∠CEB = ∠AEC = 60°',
+            s3_r3: '∴ ∠AEB = ∠CEB = 60° ÷ 2 = <span class="text-xl">30°</span>',
+            h3_1_q: 'What is line BE?',
+            h3_1_a: '✓ BE is the angle bisector of ∠AEC! Since △ABE ≅ △CBE, ∠AEB = ∠CEB. Also, since E and B both lie on the perpendicular bisector of AC (AE=CE, AB=CB), BE lies on that bisector.',
+            h3_2_q: 'What\'s the use of 30°?',
+            h3_2_a: 'Critical! Notice ∠AEB = 30° equals ∠MCA = 30°! This sets up the ASA congruence in the next step.',
+            // Step 4
+            s4_title: 'Prove △ABE ≅ △AMC (ASA) → AB = AM',
+            s4_subtitle: 'Compare △ABE and △AMC:',
+            s4_l1: '① ∠EAB = ∠EAC - ∠BAC = 60° - 44° = <strong>16°</strong> = ∠MAC ✓',
+            s4_l2: '② AE = AC (equilateral triangle, AE = AC) ✓',
+            s4_l3: '③ ∠AEB = <strong>30°</strong> = ∠MCA ✓',
+            s4_conc: '∴ △ABE ≅ △AMC (ASA: Angle-Side-Angle)',
+            s4_result: 'By congruence: <span class="text-xl">AB = AM</span>',
+            s4_derive: 'Derive ∠ABM:',
+            s4_d1: '• AB = AM → <strong>△ABM is isosceles</strong>',
+            s4_d2: '• ∠BAM = 28° (computed in Step 1)',
+            s4_d3: '• ∠ABM = ∠AMB = (180° - 28°) ÷ 2 = <span class="bg-yellow-200 px-2 rounded font-bold text-lg">76°</span>',
+            s4_d4: '• ∠MBC = ∠ABC - ∠ABM = 92° - 76° = <span class="bg-yellow-200 px-2 rounded font-bold text-lg">16°</span>',
+            h4_1_q: 'Why ASA? What do the three conditions correspond to?',
+            h4_1_a: '✓ ASA = Angle-Side-Angle. In △ABE: ∠EAB=16° at A, AE is the included side, ∠AEB=30° at E. In △AMC: ∠MAC=16° at A, AC is the included side, ∠MCA=30° at C. Two angles and included side are equal!',
+            h4_2_q: 'Why does AB = AM give ∠ABM = 76°?',
+            h4_2_a: 'Base angles of an isosceles triangle are equal! In △ABM, AB = AM are the legs, ∠BAM = 28° is the vertex angle. Base angles = (180° - vertex) ÷ 2 = (180° - 28°) ÷ 2 = 76°.',
+            h4_3_q: 'Is ∠MBC = ∠MAC = 16° a coincidence?',
+            h4_3_a: '✓ Not a coincidence! It\'s a consequence of the isosceles symmetry and congruence relations. The equilateral triangle construction rigorously proves this equality.',
+            // Step 5
+            s5_title: 'Compute the final answer',
+            s5_p1: 'In △BMC, by the angle sum property:',
+            s5_verify: '<strong>Verification (angles around M sum to 360°):</strong>',
+            // Step 6
+            s6_title: 'Solution Summary',
+            s6_answer_label: '🎯 Final Answer',
+            s6_flow_label: '📋 Solution Steps',
+            s6_f1: 'Compute all known angles → AB = BC (isosceles), ∠ABC = 92°, ∠BAM = 28°',
+            s6_f2: 'Construct equilateral △ACE on AC (same side as B), connect BE',
+            s6_f3: '△ABE ≅ △CBE (SSS) → ∠AEB = ∠CEB = 30°',
+            s6_f4: '△ABE ≅ △AMC (ASA) → AB = AM → △ABM isosceles → ∠ABM = 76°',
+            s6_f5: '∠MBC = 16°, ∠BMC = 180° - 16° - 14° = <strong>150°</strong>',
+            s6_knowledge_label: '📚 Key Concepts',
+            tag1: 'Isosceles triangle',
+            tag2: 'Angle sum property',
+            tag3: 'Equilateral triangle',
+            tag4: 'Congruence (SSS)',
+            tag5: 'Congruence (ASA)',
+            tag6: 'Auxiliary construction',
+            s6_tips_label: '💡 Problem-Solving Tips',
+            s6_tip1: '• <strong>Equilateral construction</strong>: When an isosceles triangle appears and complex angles are involved, try constructing an equilateral triangle on one side to create congruence conditions',
+            s6_tip2: '• <strong>Two congruences</strong>: First SSS gives an angle (∠AEB=30°), then ASA gives a side (AB=AM) — building progressively',
+            s6_tip3: '• <strong>"Exotic angle" pattern</strong>: Check if 60° minus a given angle yields another given angle (60° - 44° = 16° = ∠MAC) — this hints at the construction',
+            s6_tip4: '• <strong>Verification</strong>: After solving, check that angles around M sum to 360° (76° + 150° + 134° = 360° ✓)',
+        }
+    };
+
+    function setLang(lang) {
+        currentLang = lang;
+        document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+        document.getElementById('langZh').classList.toggle('active', lang === 'zh');
+        document.getElementById('langZh').classList.toggle('text-gray-600', lang !== 'zh');
+        document.getElementById('langEn').classList.toggle('active', lang === 'en');
+        document.getElementById('langEn').classList.toggle('text-gray-600', lang !== 'en');
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (i18n[lang][key] !== undefined) {
+                el.innerHTML = i18n[lang][key];
+            }
+        });
+    }
+
+    // ======== Navigation ========
+    const totalSteps = 7; // 0 to 6
+    let currentStep = 0;
+
+    function goToStep(step) {
+        if (step < 0 || step >= totalSteps) return;
+        document.querySelectorAll('.step-card').forEach(card => {
+            card.classList.remove('visible');
+            card.style.display = 'none';
+        });
+        const target = document.getElementById('step' + step);
+        target.style.display = 'block';
+        void target.offsetHeight;
+        target.classList.add('visible');
+        currentStep = step;
+        updateProgress();
+        window.scrollTo(0, 0);
+    }
+
+    function updateProgress() {
+        document.getElementById('progressText').textContent = (currentStep + 1) + '/' + totalSteps;
+        const dots = document.getElementById('progressDots');
+        dots.innerHTML = '';
+        for (let i = 0; i < totalSteps; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'w-3 h-3 rounded-full cursor-pointer transition-all ' +
+                (i === currentStep ? 'bg-indigo-500 scale-125' : i < currentStep ? 'bg-indigo-300' : 'bg-gray-300');
+            dot.onclick = () => goToStep(i);
+            dots.appendChild(dot);
+        }
+    }
+
+    function toggleHint(id) {
+        document.getElementById(id).classList.toggle('show');
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') goToStep(currentStep + 1);
+        if (e.key === 'ArrowLeft') goToStep(currentStep - 1);
+    });
+
+    // ======== Geometry Coordinates ========
+    const Ax = 0, Ay = 0;
+    const Cx = 6, Cy = 0;
+    const Bx = 3, By = 3 * Math.tan(44 * Math.PI / 180);
+
+    const t_M = 6 / (Math.cos(16*Math.PI/180) + Math.sqrt(3)*Math.sin(16*Math.PI/180));
+    const Mx = t_M * Math.cos(16 * Math.PI / 180);
+    const My = t_M * Math.sin(16 * Math.PI / 180);
+
+    const Ex = 3, Ey = 3 * Math.sqrt(3);
+
+    // ======== Board 0: Problem Statement ========
+    (function() {
+        const board = JXG.JSXGraph.initBoard('board0', {
+            boundingbox: [-1, 4, 7, -1.2],
+            keepaspectratio: true,
+            showNavigation: false,
+            showCopyright: false
+        });
+
+        const A = board.create('point', [Ax, Ay], {name: 'A', fixed: true, size: 3, label: {offset: [-15, -15], fontSize: 15}});
+        const B = board.create('point', [Bx, By], {name: 'B', fixed: true, size: 3, label: {offset: [0, 10], fontSize: 15}});
+        const C = board.create('point', [Cx, Cy], {name: 'C', fixed: true, size: 3, label: {offset: [10, -15], fontSize: 15}});
+        const M = board.create('point', [Mx, My], {name: 'M', fixed: true, size: 3, fillColor: '#e74c3c', strokeColor: '#e74c3c', label: {offset: [5, 8], fontSize: 15, color: '#e74c3c'}});
+
+        board.create('polygon', [A, B, C], {fillColor: '#e8f4fd', fillOpacity: 0.3, borders: {strokeColor: '#2c3e50', strokeWidth: 2.5}});
+        board.create('segment', [A, M], {strokeColor: '#e74c3c', strokeWidth: 1.5, dash: 2});
+        board.create('segment', [B, M], {strokeColor: '#e74c3c', strokeWidth: 1.5, dash: 2});
+        board.create('segment', [C, M], {strokeColor: '#e74c3c', strokeWidth: 1.5, dash: 2});
+
+        board.create('angle', [C, A, B], {radius: 0.6, name: '44°', label: {offset: [0, 0], fontSize: 11, color: '#2980b9'}});
+        board.create('angle', [B, C, A], {radius: 0.6, name: '44°', label: {offset: [0, 0], fontSize: 11, color: '#2980b9'}});
+        board.create('angle', [B, M, C], {radius: 0.5, name: '?', fillColor: '#e74c3c', fillOpacity: 0.2, label: {offset: [0, 0], fontSize: 14, color: '#e74c3c', fontWeight: 'bold'}});
+    })();
+
+    // ======== Board 1: Angle Analysis ========
+    (function() {
+        const board = JXG.JSXGraph.initBoard('board1', {
+            boundingbox: [-1, 4, 7, -1.2],
+            keepaspectratio: true,
+            showNavigation: false,
+            showCopyright: false
+        });
+
+        const A = board.create('point', [Ax, Ay], {name: 'A', fixed: true, size: 3, label: {offset: [-15, -15], fontSize: 15}});
+        const B = board.create('point', [Bx, By], {name: 'B', fixed: true, size: 3, label: {offset: [0, 10], fontSize: 15}});
+        const C = board.create('point', [Cx, Cy], {name: 'C', fixed: true, size: 3, label: {offset: [10, -15], fontSize: 15}});
+        const M = board.create('point', [Mx, My], {name: 'M', fixed: true, size: 3, fillColor: '#e74c3c', strokeColor: '#e74c3c', label: {offset: [5, 8], fontSize: 15, color: '#e74c3c'}});
+
+        board.create('polygon', [A, B, C], {fillColor: '#e8f4fd', fillOpacity: 0.2, borders: {strokeColor: '#2c3e50', strokeWidth: 2.5}});
+        board.create('segment', [A, M], {strokeColor: '#3498db', strokeWidth: 1.5});
+        board.create('segment', [B, M], {strokeColor: '#9b59b6', strokeWidth: 1.5});
+        board.create('segment', [C, M], {strokeColor: '#27ae60', strokeWidth: 1.5});
+
+        board.create('angle', [M, A, B], {radius: 0.8, name: '28°', fillColor: '#3498db', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 10, color: '#2980b9'}});
+        board.create('angle', [C, A, M], {radius: 0.5, name: '16°', fillColor: '#e67e22', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 10, color: '#d35400'}});
+        board.create('angle', [B, C, M], {radius: 0.8, name: '14°', fillColor: '#27ae60', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 10, color: '#27ae60'}});
+        board.create('angle', [M, C, A], {radius: 0.5, name: '30°', fillColor: '#e67e22', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 10, color: '#d35400'}});
+        board.create('angle', [A, B, C], {radius: 0.5, name: '92°', fillColor: '#9b59b6', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 11, color: '#8e44ad'}});
+
+        board.create('text', [1.2, 2.0, '||'], {fontSize: 12, color: '#e74c3c', anchorX: 'middle', anchorY: 'middle', fixed: true});
+        board.create('text', [4.8, 2.0, '||'], {fontSize: 12, color: '#e74c3c', anchorX: 'middle', anchorY: 'middle', fixed: true});
+    })();
+
+    // ======== Board 2: Construction - Equilateral Triangle ACE ========
+    (function() {
+        const board = JXG.JSXGraph.initBoard('board2', {
+            boundingbox: [-1.5, 6.8, 7.5, -1.2],
+            keepaspectratio: true,
+            showNavigation: false,
+            showCopyright: false
+        });
+
+        const A = board.create('point', [Ax, Ay], {name: 'A', fixed: true, size: 3, label: {offset: [-15, -15], fontSize: 15}});
+        const B = board.create('point', [Bx, By], {name: 'B', fixed: true, size: 3, label: {offset: [-15, 5], fontSize: 15}});
+        const C = board.create('point', [Cx, Cy], {name: 'C', fixed: true, size: 3, label: {offset: [10, -15], fontSize: 15}});
+        const M = board.create('point', [Mx, My], {name: 'M', fixed: true, size: 3, fillColor: '#e74c3c', strokeColor: '#e74c3c', label: {offset: [5, -10], fontSize: 14, color: '#e74c3c'}});
+        const E = board.create('point', [Ex, Ey], {name: 'E', fixed: true, size: 3, fillColor: '#9b59b6', strokeColor: '#9b59b6', label: {offset: [5, 10], fontSize: 15, color: '#9b59b6'}});
+
+        board.create('polygon', [A, B, C], {fillColor: '#e8f4fd', fillOpacity: 0.2, borders: {strokeColor: '#2c3e50', strokeWidth: 2.5}});
+        board.create('polygon', [A, E, C], {fillColor: '#f3e5f5', fillOpacity: 0.25, borders: {strokeColor: '#9b59b6', strokeWidth: 2.5}});
+
+        board.create('segment', [A, M], {strokeColor: '#999', strokeWidth: 1, dash: 2});
+        board.create('segment', [C, M], {strokeColor: '#999', strokeWidth: 1, dash: 2});
+        board.create('segment', [B, E], {strokeColor: '#9b59b6', strokeWidth: 2, dash: 3});
+
+        board.create('angle', [E, A, C], {radius: 0.8, name: '60°', fillColor: '#9b59b6', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 10, color: '#9b59b6'}});
+        board.create('angle', [A, C, E], {radius: 0.8, name: '60°', fillColor: '#9b59b6', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 10, color: '#9b59b6'}});
+
+        board.create('text', [0.8, 3.2, 'AE'], {fontSize: 11, color: '#9b59b6', fixed: true, fontWeight: 'bold'});
+        board.create('text', [5.0, 3.2, '=CE'], {fontSize: 11, color: '#9b59b6', fixed: true, fontWeight: 'bold'});
+        board.create('text', [3.0, -0.8, '=AC'], {fontSize: 11, color: '#9b59b6', fixed: true, fontWeight: 'bold'});
+    })();
+
+    // ======== Board 3: SSS Congruence △ABE ≅ △CBE ========
+    (function() {
+        const board = JXG.JSXGraph.initBoard('board3', {
+            boundingbox: [-1.5, 6.8, 7.5, -1.2],
+            keepaspectratio: true,
+            showNavigation: false,
+            showCopyright: false
+        });
+
+        const A = board.create('point', [Ax, Ay], {name: 'A', fixed: true, size: 3, label: {offset: [-15, -15], fontSize: 15}});
+        const B = board.create('point', [Bx, By], {name: 'B', fixed: true, size: 3, label: {offset: [-15, 5], fontSize: 15}});
+        const C = board.create('point', [Cx, Cy], {name: 'C', fixed: true, size: 3, label: {offset: [10, -15], fontSize: 15}});
+        const E = board.create('point', [Ex, Ey], {name: 'E', fixed: true, size: 3, fillColor: '#9b59b6', strokeColor: '#9b59b6', label: {offset: [5, 10], fontSize: 15, color: '#9b59b6'}});
+
+        board.create('polygon', [A, B, E], {fillColor: '#bbdefb', fillOpacity: 0.3, borders: {strokeColor: '#1565c0', strokeWidth: 2.5}});
+        board.create('polygon', [C, B, E], {fillColor: '#fff9c4', fillOpacity: 0.3, borders: {strokeColor: '#f57f17', strokeWidth: 2.5}});
+
+        board.create('segment', [A, C], {strokeColor: '#2c3e50', strokeWidth: 2.5});
+        board.create('segment', [B, E], {strokeColor: '#9b59b6', strokeWidth: 2.5});
+
+        board.create('text', [0.6, 1.8, 'AB'], {fontSize: 12, color: '#1565c0', fixed: true, fontWeight: 'bold'});
+        board.create('text', [5.2, 1.8, '=CB'], {fontSize: 12, color: '#f57f17', fixed: true, fontWeight: 'bold'});
+        board.create('text', [0.5, 3.8, 'AE'], {fontSize: 12, color: '#1565c0', fixed: true, fontWeight: 'bold'});
+        board.create('text', [5.2, 3.8, '=CE'], {fontSize: 12, color: '#f57f17', fixed: true, fontWeight: 'bold'});
+        board.create('text', [3.3, 4.2, 'BE=BE'], {fontSize: 11, color: '#9b59b6', fixed: true, fontWeight: 'bold'});
+
+        board.create('angle', [A, E, B], {radius: 0.6, name: '30°', fillColor: '#1565c0', fillOpacity: 0.2, label: {offset: [0,0], fontSize: 11, color: '#1565c0', fontWeight: 'bold'}});
+        board.create('angle', [B, E, C], {radius: 0.8, name: '30°', fillColor: '#f57f17', fillOpacity: 0.2, label: {offset: [0,0], fontSize: 11, color: '#f57f17', fontWeight: 'bold'}});
+    })();
+
+    // ======== Board 4: ASA Congruence △ABE ≅ △AMC ========
+    (function() {
+        const board = JXG.JSXGraph.initBoard('board4', {
+            boundingbox: [-1.5, 6.8, 7.5, -1.2],
+            keepaspectratio: true,
+            showNavigation: false,
+            showCopyright: false
+        });
+
+        const A = board.create('point', [Ax, Ay], {name: 'A', fixed: true, size: 3, label: {offset: [-15, -15], fontSize: 15}});
+        const B = board.create('point', [Bx, By], {name: 'B', fixed: true, size: 3, label: {offset: [-15, 5], fontSize: 15}});
+        const C = board.create('point', [Cx, Cy], {name: 'C', fixed: true, size: 3, label: {offset: [10, -15], fontSize: 15}});
+        const M = board.create('point', [Mx, My], {name: 'M', fixed: true, size: 3, fillColor: '#e74c3c', strokeColor: '#e74c3c', label: {offset: [5, 8], fontSize: 15, color: '#e74c3c'}});
+        const E = board.create('point', [Ex, Ey], {name: 'E', fixed: true, size: 3, fillColor: '#9b59b6', strokeColor: '#9b59b6', label: {offset: [5, 10], fontSize: 15, color: '#9b59b6'}});
+
+        board.create('segment', [A, C], {strokeColor: '#2c3e50', strokeWidth: 2});
+        board.create('segment', [A, B], {strokeColor: '#2c3e50', strokeWidth: 2});
+        board.create('segment', [B, C], {strokeColor: '#2c3e50', strokeWidth: 2});
+        board.create('segment', [A, E], {strokeColor: '#aaa', strokeWidth: 1.5, dash: 2});
+        board.create('segment', [C, E], {strokeColor: '#aaa', strokeWidth: 1.5, dash: 2});
+        board.create('segment', [B, E], {strokeColor: '#aaa', strokeWidth: 1, dash: 2});
+
+        board.create('polygon', [A, B, E], {fillColor: '#bbdefb', fillOpacity: 0.25, borders: {strokeColor: '#1565c0', strokeWidth: 2.5}});
+        board.create('polygon', [A, M, C], {fillColor: '#ffe0b2', fillOpacity: 0.3, borders: {strokeColor: '#e65100', strokeWidth: 2.5}});
+
+        board.create('segment', [B, M], {strokeColor: '#e74c3c', strokeWidth: 2});
+
+        board.create('angle', [B, A, E], {radius: 0.6, name: '16°', fillColor: '#1565c0', fillOpacity: 0.2, label: {offset: [0,0], fontSize: 10, color: '#1565c0'}});
+        board.create('angle', [C, A, M], {radius: 0.4, name: '16°', fillColor: '#e65100', fillOpacity: 0.2, label: {offset: [0,0], fontSize: 10, color: '#e65100'}});
+
+        board.create('angle', [A, E, B], {radius: 0.5, name: '30°', fillColor: '#1565c0', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 10, color: '#1565c0'}});
+        board.create('angle', [M, C, A], {radius: 0.5, name: '30°', fillColor: '#e65100', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 10, color: '#e65100'}});
+
+        board.create('text', [0.3, 3.0, 'AE'], {fontSize: 11, color: '#1565c0', fixed: true, fontWeight: 'bold'});
+        board.create('text', [3.0, -0.7, '=AC'], {fontSize: 11, color: '#e65100', fixed: true, fontWeight: 'bold'});
+
+        board.create('text', [0.3, 5.5, '△ABE ≅ △AMC (ASA)'], {fontSize: 12, color: '#6a1b9a', fixed: true, fontWeight: 'bold'});
+        board.create('text', [0.3, 4.9, '→ AB = AM → △ABM isosceles'], {fontSize: 11, color: '#6a1b9a', fixed: true, fontWeight: 'bold'});
+
+        const midAB_x = (Ax + Bx) / 2, midAB_y = (Ay + By) / 2;
+        const midAM_x = (Ax + Mx) / 2, midAM_y = (Ay + My) / 2;
+        board.create('text', [midAB_x - 0.4, midAB_y, '|'], {fontSize: 14, color: '#c62828', anchorX: 'middle', anchorY: 'middle', fixed: true, fontWeight: 'bold'});
+        board.create('text', [midAM_x + 0.15, midAM_y + 0.1, '|'], {fontSize: 14, color: '#c62828', anchorX: 'middle', anchorY: 'middle', fixed: true, fontWeight: 'bold'});
+    })();
+
+    // ======== Board 5: Final Answer ========
+    (function() {
+        const board = JXG.JSXGraph.initBoard('board5', {
+            boundingbox: [-1.2, 4.2, 7.2, -1.5],
+            keepaspectratio: true,
+            showNavigation: false,
+            showCopyright: false
+        });
+
+        const A = board.create('point', [Ax, Ay], {name: 'A', fixed: true, size: 3, label: {offset: [-15, -15], fontSize: 15}});
+        const B = board.create('point', [Bx, By], {name: 'B', fixed: true, size: 3, label: {offset: [0, 10], fontSize: 15}});
+        const C = board.create('point', [Cx, Cy], {name: 'C', fixed: true, size: 3, label: {offset: [10, -15], fontSize: 15}});
+        const M = board.create('point', [Mx, My], {name: 'M', fixed: true, size: 3, fillColor: '#e74c3c', strokeColor: '#e74c3c', label: {offset: [5, 8], fontSize: 15, color: '#e74c3c'}});
+
+        board.create('polygon', [A, B, C], {fillColor: '#e8f4fd', fillOpacity: 0.1, borders: {strokeColor: '#2c3e50', strokeWidth: 2}});
+        board.create('segment', [A, M], {strokeColor: '#3498db', strokeWidth: 1.5, dash: 2});
+        board.create('segment', [C, M], {strokeColor: '#27ae60', strokeWidth: 1.5, dash: 2});
+        board.create('segment', [B, M], {strokeColor: '#e74c3c', strokeWidth: 2});
+
+        board.create('polygon', [B, M, C], {fillColor: '#ffcdd2', fillOpacity: 0.25, borders: {strokeColor: '#c62828', strokeWidth: 2.5}});
+
+        board.create('angle', [M, A, B], {radius: 0.7, name: '28°', fillColor: '#3498db', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 10, color: '#2980b9'}});
+        board.create('angle', [C, A, M], {radius: 0.45, name: '16°', fillColor: '#e67e22', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 9, color: '#d35400'}});
+        board.create('angle', [A, B, M], {radius: 0.6, name: '76°', fillColor: '#3498db', fillOpacity: 0.12, label: {offset: [0,0], fontSize: 10, color: '#2980b9'}});
+        board.create('angle', [M, B, C], {radius: 0.4, name: '16°', fillColor: '#e74c3c', fillOpacity: 0.25, label: {offset: [0,0], fontSize: 10, color: '#c62828', fontWeight: 'bold'}});
+        board.create('angle', [B, C, M], {radius: 0.5, name: '14°', fillColor: '#27ae60', fillOpacity: 0.2, label: {offset: [0,0], fontSize: 10, color: '#27ae60'}});
+        board.create('angle', [M, C, A], {radius: 0.7, name: '30°', fillColor: '#e67e22', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 10, color: '#d35400'}});
+
+        board.create('angle', [A, M, B], {radius: 0.38, name: '76°', fillColor: '#9b59b6', fillOpacity: 0.15, label: {offset: [0,0], fontSize: 9, color: '#8e44ad'}});
+        board.create('angle', [C, M, B], {radius: 0.28, name: '150°', fillColor: '#ff6f00', fillOpacity: 0.3, label: {offset: [0,0], fontSize: 12, color: '#e65100', fontWeight: 'bold'}});
+        board.create('angle', [C, M, A], {radius: 0.5, name: '134°', fillColor: '#9b59b6', fillOpacity: 0.1, label: {offset: [0,0], fontSize: 9, color: '#8e44ad'}});
+
+        board.create('text', [0.3, 3.5, '76°+150°+134°=360° ✓'], {fontSize: 11, color: '#8e44ad', fixed: true, fontWeight: 'bold'});
+    })();
+
+    // Initialize
+    updateProgress();
+    </script>
+</body>
+</html>

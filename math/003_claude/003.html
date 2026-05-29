@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>003 - 直角三角形中等腰三角形的构造</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .header p {
+            opacity: 0.95;
+            font-size: 1.1em;
+        }
+        .progress-bar {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .progress-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .progress-dot.active {
+            background: white;
+            color: #11998e;
+            transform: scale(1.2);
+        }
+        .progress-dot.completed {
+            background: rgba(255,255,255,0.7);
+            color: #38ef7d;
+        }
+        .step-card {
+            display: none;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: fadeIn 0.4s ease;
+        }
+        .step-card.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .step-card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #11998e;
+        }
+        .step-card h3 {
+            color: #555;
+            margin: 18px 0 10px;
+        }
+        .step-card p, .step-card li {
+            color: #444;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+        .step-card ul, .step-card ol {
+            padding-left: 25px;
+            margin: 10px 0;
+        }
+        .step-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .highlight-box {
+            background: #e8faf5;
+            border-left: 4px solid #11998e;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .count-box {
+            background: linear-gradient(135deg, #11998e22, #38ef7d22);
+            border: 2px solid #11998e;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .count-box .count-text {
+            font-size: 1.2em;
+            color: #11998e;
+            font-weight: bold;
+        }
+        .answer-box {
+            background: linear-gradient(135deg, #11998e22, #38ef7d22);
+            border: 2px solid #11998e;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .answer-box .answer-text {
+            font-size: 1.5em;
+            color: #333;
+            font-weight: bold;
+        }
+        .answer-box .answer-number {
+            font-size: 2em;
+            color: #11998e;
+        }
+        .hint-container {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .hint-btn {
+            padding: 10px 18px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hint-btn:hover {
+            border-color: #11998e;
+            background: #e8faf5;
+        }
+        .hint-content {
+            display: none;
+            padding: 12px 18px;
+            margin-top: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            animation: fadeIn 0.3s ease;
+        }
+        .hint-content.correct {
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+        }
+        .hint-content.wrong {
+            background: #fce4ec;
+            border: 1px solid #e91e63;
+            color: #c62828;
+        }
+        .hint-content.neutral {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            color: #1565c0;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .nav-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .nav-btn.prev {
+            background: #eee;
+            color: #666;
+        }
+        .nav-btn.prev:hover {
+            background: #ddd;
+        }
+        .nav-btn.next {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+        }
+        .nav-btn.next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(17,153,142,0.4);
+        }
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .case-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .case-item {
+            background: #f8fffe;
+            border: 1px solid #11998e44;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .case-item h4 {
+            color: #11998e;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .case-item .case-count {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        .knowledge-tag {
+            display: inline-block;
+            background: #11998e22;
+            color: #11998e;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            margin: 4px;
+        }
+        .sub-case {
+            background: #f0faf8;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            border: 1px solid #11998e33;
+        }
+        .sub-case strong {
+            color: #11998e;
+        }
+        @media (max-width: 600px) {
+            .case-summary {
+                grid-template-columns: 1fr;
+            }
+            .step-card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>003 - 直角三角形中等腰三角形的构造</h1>
+            <p>在直线BC或AC上找点P，使△PAB为等腰三角形</p>
+        </div>
+
+        <div class="progress-bar" id="progressBar"></div>
+
+        <!-- Step 1: Problem -->
+        <div class="step-card active" id="step1">
+            <h2>📋 第一步：理解题目</h2>
+            <div class="highlight-box">
+                <p><strong>题目：</strong>在Rt△ABC中，∠C = 90°，∠A ≠ 30°，∠A ≠ 45°。在直线BC或AC上取一点P，使得△PAB是等腰三角形，则符合条件的点P有多少个？</p>
+            </div>
+
+            <h3>关键条件：</h3>
+            <ul>
+                <li>直角三角形ABC，C为直角顶点</li>
+                <li>P在<strong>直线</strong>BC或<strong>直线</strong>AC上（包括延长线！）</li>
+                <li>△PAB是等腰三角形（PA、PB、AB中有两边相等）</li>
+                <li>∠A ≠ 30° 且 ∠A ≠ 45°（排除特殊退化情况）</li>
+            </ul>
+
+            <img src="step1_setup.png" alt="问题示意图">
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h1_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h1_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h1_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h1_1">✓ 关键词是"直线"——P不仅可以在线段BC或AC上，还可以在它们的延长线上！这大大增加了可能的点数。</div>
+            <div class="hint-content neutral" id="h1_2">? 思考方向：△PAB有三条边 PA、PB、AB。等腰意味着其中两条相等。按"哪两条相等"分三类讨论。</div>
+            <div class="hint-content wrong" id="h1_3">✗ 常见错误：只在线段BC和AC上找P，忘记延长线上的点。"直线"和"线段"是不同的！</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" disabled>← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(2)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Classification -->
+        <div class="step-card" id="step2">
+            <h2>📐 第二步：确定分类方法</h2>
+            <p>△PAB为等腰三角形有三种情况（按"顶点"分类）：</p>
+
+            <div class="sub-case">
+                <strong>情况①：PA = PB</strong>（P是等腰三角形的顶点）<br>
+                几何含义：P到A和B的距离相等 → P在AB的<strong>垂直平分线</strong>上
+            </div>
+            <img src="step2_case1_PA_eq_PB.png" alt="情况①：PA=PB，P在垂直平分线上">
+
+            <div class="sub-case">
+                <strong>情况②：PA = AB</strong>（A是等腰三角形的顶点）<br>
+                几何含义：P到A的距离等于AB → P在以A为圆心、AB为半径的<strong>圆</strong>上
+            </div>
+            <img src="step2_case2_PA_eq_AB.png" alt="情况②：PA=AB，P在圆(A,AB)上">
+
+            <div class="sub-case">
+                <strong>情况③：PB = AB</strong>（B是等腰三角形的顶点）<br>
+                几何含义：P到B的距离等于AB → P在以B为圆心、AB为半径的<strong>圆</strong>上
+            </div>
+            <img src="step2_case3_PB_eq_AB.png" alt="情况③：PB=AB，P在圆(B,AB)上">
+
+            <p style="margin-top: 15px;">对<strong>每条直线</strong>（BC和AC），分别讨论这三种情况，看各自有多少个交点。</p>
+
+            <div class="highlight-box">
+                <p><strong>总策略：</strong>2条直线 × 3种等腰情况 = 6个子问题</p>
+            </div>
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h2_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h2_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h2_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h2_1">✓ 这道题的核心方法："直线与圆（或直线与直线）的交点个数"。会画图就能数出来！</div>
+            <div class="hint-content neutral" id="h2_2">? 对于"圆与直线的交点"：圆心到直线的距离 vs 半径决定了交点个数（0、1、2个）。</div>
+            <div class="hint-content wrong" id="h2_3">✗ 注意：找到交点后，要排除使△PAB退化的点（即P=A或P=B时不构成三角形）。</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(1)">← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(3)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Line BC -->
+        <div class="step-card" id="step3">
+            <h2>🔍 第三步：P在直线BC上</h2>
+
+            <h3>① PA = PB（P在AB的垂直平分线上）</h3>
+            <p>AB的垂直平分线是一条确定的直线。它与直线BC不平行（因为垂直平分线经过AB中点，方向垂直于AB），所以<strong>恰好有1个交点</strong>。</p>
+            <img src="step2a_BC_PA_eq_PB.png" alt="PA=PB on BC">
+            <div class="count-box"><span class="count-text">→ 1个点</span></div>
+
+            <h3>② PA = AB（A为圆心，AB为半径的圆）</h3>
+            <p>圆过B点（因为AB=半径）。直线BC经过B，且A到直线BC的距离=AC < AB（直角三角形中斜边最长），所以圆与直线BC有两个交点。</p>
+            <p>其中一个交点是B本身（排除），另一个是有效的P。</p>
+            <img src="step2b_BC_PA_eq_AB.png" alt="PA=AB on BC">
+            <div class="count-box"><span class="count-text">→ 1个点（扣除B点）</span></div>
+
+            <h3>③ PB = AB（B为圆心，AB为半径的圆）</h3>
+            <p>圆心B在直线BC上，所以直线BC是经过圆心的直线（即直径所在的直线），与圆<strong>有两个交点</strong>。</p>
+            <p>这两个交点都不是A（A不在直线BC上），都不是B（距B等于AB≠0），都有效。</p>
+            <img src="step2c_BC_PB_eq_AB.png" alt="PB=AB on BC">
+            <div class="count-box"><span class="count-text">→ 2个点</span></div>
+
+            <div class="highlight-box">
+                <p><strong>直线BC上合计：1 + 1 + 2 = 4个点</strong></p>
+            </div>
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h3_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h3_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h3_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h3_1">✓ 情况③为什么是2个？因为B是圆心且在直线上，直线穿过圆心一定截得两个交点（即直径的两个端点方向）。</div>
+            <div class="hint-content wrong" id="h3_2">✗ 情况②中，如果忘记排除B点，会多数一个。P=B时PA≠PB且三点不成三角形。</div>
+            <div class="hint-content neutral" id="h3_3">? 为什么∠A≠30°？因为当∠A=30°时，情况①和情况②的点恰好重合（可以验证），导致只有3个点。</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(2)">← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(4)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Line AC -->
+        <div class="step-card" id="step4">
+            <h2>🔍 第四步：P在直线AC上</h2>
+
+            <h3>④ PA = PB（P在AB的垂直平分线上）</h3>
+            <p>AB的垂直平分线与直线AC也不平行，所以有<strong>1个交点</strong>。</p>
+            <img src="step3a_AC_PA_eq_PB.png" alt="PA=PB on AC">
+            <div class="count-box"><span class="count-text">→ 1个点</span></div>
+
+            <h3>⑤ PA = AB（A为圆心，AB为半径的圆）</h3>
+            <p>圆心A在直线AC上，所以直线AC经过圆心，与圆有<strong>两个交点</strong>。</p>
+            <p>两个交点到A的距离都等于AB。由于B不在直线AC上，这两个点都不是B，也不是A（距A等于AB≠0），都有效。</p>
+            <img src="step3b_AC_PA_eq_AB.png" alt="PA=AB on AC">
+            <div class="count-box"><span class="count-text">→ 2个点</span></div>
+
+            <h3>⑥ PB = AB（B为圆心，AB为半径的圆）</h3>
+            <p>圆过A点（因为BA=半径）。直线AC经过A，且B到直线AC的距离=BC < AB，所以圆与直线AC有两个交点。</p>
+            <p>其中一个交点是A本身（排除），另一个有效。</p>
+            <img src="step3c_AC_PB_eq_AB.png" alt="PB=AB on AC">
+            <div class="count-box"><span class="count-text">→ 1个点（扣除A点）</span></div>
+
+            <div class="highlight-box">
+                <p><strong>直线AC上合计：1 + 2 + 1 = 4个点</strong></p>
+            </div>
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h4_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h4_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h4_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h4_1">✓ 注意对比：在直线BC上是"PA=AB给1个，PB=AB给2个"，在直线AC上是"PA=AB给2个，PB=AB给1个"。原因是圆心在不在该直线上的区别。</div>
+            <div class="hint-content neutral" id="h4_2">? 关键规律：圆心在直线上 → 2个交点（直径方向）。圆心不在直线上但直线过圆上一点 → 2个交点中1个已知（需排除）→ 1个新点。</div>
+            <div class="hint-content wrong" id="h4_3">✗ 为什么∠A≠45°？当∠A=45°时，AC=BC，点C同时在两条直线上且满足PA=PB（因为CA=CB），产生重复计数。</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(3)">← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(5)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Verify no overlap -->
+        <div class="step-card" id="step5">
+            <h2>✅ 第五步：检查无重复</h2>
+            <p>两条直线BC和AC的交点是点C。需要确认C不是任何情况的解：</p>
+
+            <div class="sub-case">
+                <strong>若 P = C：</strong><br>
+                PA = CA（不等于CB = PB，除非CA = CB即∠A = 45°，已排除）<br>
+                PA = CA ≠ AB（因为CA < AB，直角三角形中斜边最长）<br>
+                PB = CB ≠ AB（同理CB < AB）<br>
+                <strong>结论：P = C 不满足任何等腰条件 ✓</strong>
+            </div>
+
+            <p style="margin-top: 15px;">由于∠A ≠ 30° 和 ∠A ≠ 45°，所有8个点互不重合。</p>
+
+            <div class="highlight-box">
+                <p><strong>特殊角度排除的原因：</strong></p>
+                <ul>
+                    <li><strong>∠A = 30°</strong>：直线BC上"PA=PB"的点与"PA=AB"的点重合 → 只有7个</li>
+                    <li><strong>∠A = 45°</strong>：P=C满足"PA=PB"（因为CA=CB），两条直线共享此点 → 只有7个</li>
+                </ul>
+            </div>
+
+            <div class="hint-container">
+                <button class="hint-btn" onclick="toggleHint('h5_1')"><span class="icon">?</span> 提示1</button>
+                <button class="hint-btn" onclick="toggleHint('h5_2')"><span class="icon">?</span> 提示2</button>
+                <button class="hint-btn" onclick="toggleHint('h5_3')"><span class="icon">?</span> 提示3</button>
+            </div>
+            <div class="hint-content correct" id="h5_1">✓ 检查重复是分类讨论的最后一步。如果不检查，容易重复计数或者遗漏退化情况。</div>
+            <div class="hint-content neutral" id="h5_2">? 直线BC上的点形如(t, 0)，直线AC上的点形如(0, s)。它们只在原点C=(0,0)相交，而C不是解，所以不会有重复。</div>
+            <div class="hint-content wrong" id="h5_3">✗ 如果看到"∠A ≠ 30°, ∠A ≠ 45°"这些条件却不理解为什么要排除，说明对分类讨论的完整性还需加强理解。</div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(4)">← 上一步</button>
+                <button class="nav-btn next" onclick="goToStep(6)">下一步 →</button>
+            </div>
+        </div>
+
+        <!-- Step 6: Summary -->
+        <div class="step-card" id="step6">
+            <h2>🎯 总结</h2>
+
+            <div class="answer-box">
+                <p class="answer-text">符合条件的点P共有</p>
+                <p class="answer-number">8 个</p>
+            </div>
+
+            <div class="case-summary">
+                <div class="case-item">
+                    <h4>直线BC上 — PA=PB</h4>
+                    <p class="case-count">1个</p>
+                    <p style="font-size:12px;color:#888;">垂直平分线 ∩ 直线BC</p>
+                </div>
+                <div class="case-item">
+                    <h4>直线BC上 — PA=AB</h4>
+                    <p class="case-count">1个</p>
+                    <p style="font-size:12px;color:#888;">圆(A,AB) ∩ 直线BC，排除B</p>
+                </div>
+                <div class="case-item">
+                    <h4>直线BC上 — PB=AB</h4>
+                    <p class="case-count">2个</p>
+                    <p style="font-size:12px;color:#888;">圆(B,AB) ∩ 直线BC，B为圆心</p>
+                </div>
+                <div class="case-item">
+                    <h4>直线AC上 — PA=PB</h4>
+                    <p class="case-count">1个</p>
+                    <p style="font-size:12px;color:#888;">垂直平分线 ∩ 直线AC</p>
+                </div>
+                <div class="case-item">
+                    <h4>直线AC上 — PA=AB</h4>
+                    <p class="case-count">2个</p>
+                    <p style="font-size:12px;color:#888;">圆(A,AB) ∩ 直线AC，A为圆心</p>
+                </div>
+                <div class="case-item">
+                    <h4>直线AC上 — PB=AB</h4>
+                    <p class="case-count">1个</p>
+                    <p style="font-size:12px;color:#888;">圆(B,AB) ∩ 直线AC，排除A</p>
+                </div>
+            </div>
+
+            <img src="step4_summary.png" alt="8个点总览">
+
+            <h3>解题思路流程：</h3>
+            <ol>
+                <li>按等腰条件分三类：PA=PB、PA=AB、PB=AB</li>
+                <li>对两条直线分别讨论（共6个子问题）</li>
+                <li>利用"圆与直线位置关系"确定交点个数</li>
+                <li>排除使三角形退化的点（P=A或P=B）</li>
+                <li>检查两条直线之间无重复点</li>
+            </ol>
+
+            <h3>涉及知识点：</h3>
+            <div style="margin: 15px 0;">
+                <span class="knowledge-tag">垂直平分线性质</span>
+                <span class="knowledge-tag">圆与直线位置关系</span>
+                <span class="knowledge-tag">等腰三角形判定</span>
+                <span class="knowledge-tag">分类讨论</span>
+                <span class="knowledge-tag">排除退化情况</span>
+            </div>
+
+            <h3>解题技巧：</h3>
+            <ul>
+                <li><strong>几何转化</strong>：将"两边相等"转化为"垂直平分线"或"圆"</li>
+                <li><strong>快速判断交点数</strong>：圆心在直线上→2个交点；直线过圆上已知点→排除1个</li>
+                <li><strong>注意直线 vs 线段</strong>：审题时注意"直线"包含延长线</li>
+            </ul>
+
+            <div class="nav-buttons">
+                <button class="nav-btn prev" onclick="goToStep(5)">← 上一步</button>
+                <button class="nav-btn next" disabled>完成 ✓</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const totalSteps = 6;
+        let currentStep = 1;
+
+        function initProgress() {
+            const bar = document.getElementById('progressBar');
+            for (let i = 1; i <= totalSteps; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot' + (i === 1 ? ' active' : '');
+                dot.textContent = i;
+                dot.onclick = () => goToStep(i);
+                bar.appendChild(dot);
+            }
+        }
+
+        function goToStep(step) {
+            if (step < 1 || step > totalSteps) return;
+            
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.remove('active');
+                card.style.display = 'none';
+            });
+            
+            const targetCard = document.getElementById('step' + step);
+            targetCard.classList.add('active');
+            targetCard.style.display = 'block';
+            
+            document.querySelectorAll('.progress-dot').forEach((dot, idx) => {
+                dot.className = 'progress-dot';
+                if (idx + 1 === step) dot.classList.add('active');
+                else if (idx + 1 < step) dot.classList.add('completed');
+            });
+            
+            currentStep = step;
+            window.scrollTo(0, 0);
+        }
+
+        function toggleHint(id) {
+            const hint = document.getElementById(id);
+            hint.style.display = hint.style.display === 'block' ? 'none' : 'block';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') goToStep(currentStep + 1);
+            if (e.key === 'ArrowLeft') goToStep(currentStep - 1);
+        });
+
+        initProgress();
+    </script>
+</body>
+</html>

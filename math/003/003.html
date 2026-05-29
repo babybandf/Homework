@@ -5,228 +5,366 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>几何题解析 - 等腰三角形点P个数</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans SC', sans-serif; }
-        .step-card { opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out; }
-        .step-card.visible { opacity: 1; transform: translateY(0); }
-        .nav-btn { transition: all 0.3s ease; }
-        .nav-btn:hover { transform: scale(1.05); }
-        .hint-btn { transition: all 0.3s ease; cursor: pointer; }
-        .hint-btn:hover { transform: translateX(5px); }
-        .hint-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease, padding 0.5s ease; }
-        .hint-content.show { max-height: 500px; padding: 12px 16px; }
-        .hint-correct { background: #d1fae5; border-left: 4px solid #10b981; }
-        .hint-wrong { background: #fee2e2; border-left: 4px solid #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans SC', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .content-wrapper { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 30px; position: relative; }
+        .header h1 { font-size: 1.8em; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .header p { opacity: 0.95; font-size: 1.1em; }
+        .lang-switch { position: absolute; top: 0; right: 0; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5); border-radius: 25px; padding: 8px 16px; cursor: pointer; color: white; font-size: 14px; transition: all 0.3s; }
+        .lang-switch:hover { background: rgba(255,255,255,0.3); border-color: white; }
+        .progress-bar { display: flex; justify-content: center; gap: 8px; margin-bottom: 30px; flex-wrap: wrap; }
+        .progress-dot { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .progress-dot.active { background: white; color: #764ba2; transform: scale(1.2); }
+        .progress-dot.completed { background: rgba(255,255,255,0.7); color: #667eea; }
+        .step-card { display: none; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: fadeIn 0.4s ease; margin-bottom: 30px; padding: 50px 40px; }
+        .step-card.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .step-card h2 { color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }
+        .step-card h3 { color: #555; margin: 18px 0 10px; }
+        .step-card p, .step-card li { color: #444; line-height: 1.8; font-size: 16px; }
+        .step-card ul, .step-card ol { padding-left: 25px; margin: 10px 0; }
+        .step-card img { max-width: 100%; height: auto; border-radius: 8px; margin: 15px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .highlight-box { background: #f0f4ff; border-left: 4px solid #667eea; padding: 15px 20px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+        .case-box { background: #f8f9ff; border: 1px solid #e0e4ff; border-radius: 12px; padding: 18px; margin: 12px 0; }
+        .case-box h4 { color: #5b6abf; margin-bottom: 8px; }
+        .answer-box { background: linear-gradient(135deg, #667eea22, #764ba222); border: 2px solid #667eea; border-radius: 12px; padding: 25px; margin: 20px 0; text-align: center; }
+        .answer-box .answer-text { font-size: 2.5em; color: #333; font-weight: bold; }
+        .hint-container { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+        .hint-btn { padding: 10px 18px; border: 2px solid #ddd; border-radius: 25px; background: white; cursor: pointer; font-size: 14px; transition: all 0.3s; display: flex; align-items: center; gap: 6px; }
+        .hint-btn:hover { border-color: #667eea; background: #f8f9ff; }
+        .hint-content { display: none; padding: 12px 18px; margin-top: 10px; border-radius: 8px; font-size: 14px; line-height: 1.6; animation: fadeIn 0.3s ease; }
+        .hint-content.correct { background: #e8f5e9; border: 1px solid #4caf50; color: #2e7d32; }
+        .hint-content.wrong { background: #fce4ec; border: 1px solid #e91e63; color: #c62828; }
+        .hint-content.neutral { background: #e3f2fd; border: 1px solid #2196f3; color: #1565c0; }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        .nav-btn { padding: 12px 30px; border: none; border-radius: 25px; font-size: 16px; cursor: pointer; transition: all 0.3s; font-weight: bold; }
+        .nav-btn.prev { background: #eee; color: #666; }
+        .nav-btn.prev:hover { background: #ddd; }
+        .nav-btn.next { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .nav-btn.next:hover { transform: scale(1.05); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        @media (max-width: 768px) { .lang-switch { position: static; margin-bottom: 15px; display: inline-block; } }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <header class="bg-white shadow-md sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold text-gray-800">📐 几何题解析</h1>
-                <div class="flex items-center space-x-2">
-                    <span class="text-sm text-gray-600">进度:</span>
-                    <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                    <span id="progressText" class="text-sm font-medium text-gray-700">0/4</span>
-                </div>
-            </div>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="lang-switch" onclick="toggleLanguage()">🌐 English</button>
+            <h1 data-zh="几何题解析 003" data-en="Geometry Problem 003">几何题解析 003</h1>
+            <p data-zh="直角三角形中等腰三角形点P的个数" data-en="Counting Points P in Right Triangle">直角三角形中等腰三角形点P的个数</p>
         </div>
-    </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-8">
+        <div class="progress-bar">
+            <div class="progress-dot active" onclick="showStep(0)">1</div>
+            <div class="progress-dot" onclick="showStep(1)">2</div>
+            <div class="progress-dot" onclick="showStep(2)">3</div>
+            <div class="progress-dot" onclick="showStep(3)">4</div>
+        </div>
+
         <!-- Step 0: Problem -->
-        <div id="step0" class="step-card visible mb-8">
-            <div class="bg-white rounded-2xl shadow-lg p-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">🎯 题目</h2>
-                <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-6 text-lg leading-relaxed">
-                    <p class="text-center">
-                        在 Rt△ABC 中，<strong>∠C=90°</strong>，∠A≠30°，∠A≠45°，<br>
-                        在<strong>直线 BC 或 AC</strong> 上取一点 P，<br>
-                        使得<strong>△PAB 是等腰三角形</strong>，<br>
-                        则符合条件的点 P 有多少个？
+        <div id="step0" class="step-card active">
+            <div class="content-wrapper">
+                <h2 data-zh="题目" data-en="Problem">题目</h2>
+                <div class="highlight-box">
+                    <p data-zh="在 Rt△ABC 中，<strong>∠C = 90°</strong>，∠A ≠ 30°，∠A ≠ 45°，在<strong>直线 BC 或直线 AC</strong> 上取一点 P，使得 <strong>△PAB 是等腰三角形</strong>，则符合条件的点 P 有多少个？"
+                       data-en="In right triangle ABC, <strong>∠C = 90°</strong>, ∠A ≠ 30°, ∠A ≠ 45°. Point P is taken on <strong>line BC or line AC</strong> such that <strong>△PAB is isosceles</strong>. How many such points P exist?">
+                        在 Rt△ABC 中，<strong>∠C = 90°</strong>，∠A ≠ 30°，∠A ≠ 45°，在<strong>直线 BC 或直线 AC</strong> 上取一点 P，使得 <strong>△PAB 是等腰三角形</strong>，则符合条件的点 P 有多少个？
                     </p>
                 </div>
-                <div class="mt-6 text-center">
-                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full font-semibold text-lg shadow-lg">开始解题 →</button>
+                <img src="step1_setup.png" alt="Problem Setup">
+                
+                <div class="hint-container">
+                    <button class="hint-btn" onclick="toggleHint('hint0-1')">
+                        <span>?</span> <span data-zh="&quot;直线&quot;是什么意思？" data-en='What does "line" mean?'">"直线"是什么意思？</span>
+                    </button>
+                    <button class="hint-btn" onclick="toggleHint('hint0-2')">
+                        <span>?</span> <span data-zh="等腰三角形有几种情况？" data-en="How many cases for isosceles?">等腰三角形有几种情况？</span>
+                    </button>
+                    <button class="hint-btn" onclick="toggleHint('hint0-3')">
+                        <span>?</span> <span data-zh="可以用什么工具来找点？" data-en="What tools can we use?">可以用什么工具来找点？</span>
+                    </button>
+                </div>
+                <div id="hint0-1" class="hint-content neutral">
+                    <span data-zh="<strong>提示：</strong>&quot;直线&quot;指无限延伸的直线，不只是线段。点P可以在AC或BC的延长线上。"
+                          data-en="<strong>Hint:</strong> 'Line' means the infinite line, not just the segment. Point P can be on extensions of AC or BC.">
+                        <strong>提示：</strong>"直线"指无限延伸的直线，不只是线段。点P可以在AC或BC的延长线上。
+                    </span>
+                </div>
+                <div id="hint0-2" class="hint-content neutral">
+                    <span data-zh="<strong>提示：</strong>△PAB是等腰三角形有三种情况：PA=PB、PA=AB 或 PB=AB。"
+                          data-en="<strong>Hint:</strong> △PAB being isosceles has three cases: PA=PB, PA=AB, or PB=AB.">
+                        <strong>提示：</strong>△PAB是等腰三角形有三种情况：PA=PB、PA=AB 或 PB=AB。
+                    </span>
+                </div>
+                <div id="hint0-3" class="hint-content neutral">
+                    <span data-zh="<strong>提示：</strong>可以使用垂直平分线和圆来找到满足条件的点。"
+                          data-en="<strong>Hint:</strong> Use perpendicular bisectors and circles to find points satisfying the conditions.">
+                        <strong>提示：</strong>可以使用垂直平分线和圆来找到满足条件的点。
+                    </span>
+                </div>
+
+                <div class="nav-buttons">
+                    <div></div>
+                    <button class="nav-btn next" onclick="nextStep()" data-zh="开始解题 →" data-en="Start Solving →">开始解题 →</button>
                 </div>
             </div>
         </div>
 
         <!-- Step 1: Understanding -->
-        <div id="step1" class="step-card mb-8">
-            <div class="bg-white rounded-2xl shadow-lg p-8">
-                <div class="flex items-center mb-4">
-                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">1</span>
-                    <h2 class="text-2xl font-bold text-gray-800">理解题意</h2>
+        <div id="step1" class="step-card">
+            <div class="content-wrapper">
+                <h2 data-zh="步骤1：理解题意" data-en="Step 1: Understanding">步骤1：理解题意</h2>
+                <p data-zh="△PAB 是等腰三角形意味着以下三种情况之一：" data-en="△PAB being isosceles means one of the following:">△PAB 是等腰三角形意味着以下三种情况之一：</p>
+                
+                <div class="case-box">
+                    <h4 data-zh="情况1：PA = PB" data-en="Case 1: PA = PB">情况1：PA = PB</h4>
+                    <p data-zh="点 P 在 AB 的垂直平分线上" data-en="P lies on the perpendicular bisector of AB">点 P 在 AB 的垂直平分线上</p>
                 </div>
-                <p class="text-gray-700 mb-4 text-lg">△PAB 是等腰三角形有三种情况：</p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="bg-red-50 rounded-lg p-4 text-center">
-                        <p class="text-red-600 font-bold">情况1</p>
-                        <p class="text-gray-700">PA = PB</p>
-                        <p class="text-sm text-gray-500">P在AB垂直平分线上</p>
-                    </div>
-                    <div class="bg-green-50 rounded-lg p-4 text-center">
-                        <p class="text-green-600 font-bold">情况2</p>
-                        <p class="text-gray-700">PA = AB</p>
-                        <p class="text-sm text-gray-500">以A为圆心，AB为半径</p>
-                    </div>
-                    <div class="bg-blue-50 rounded-lg p-4 text-center">
-                        <p class="text-blue-600 font-bold">情况3</p>
-                        <p class="text-gray-700">PB = AB</p>
-                        <p class="text-sm text-gray-500">以B为圆心，AB为半径</p>
-                    </div>
+                <div class="case-box">
+                    <h4 data-zh="情况2：PA = AB" data-en="Case 2: PA = AB">情况2：PA = AB</h4>
+                    <p data-zh="点 P 在以 A 为圆心、AB 为半径的圆上" data-en="P lies on circle centered at A with radius AB">点 P 在以 A 为圆心、AB 为半径的圆上</p>
                 </div>
-                <div class="image-container mb-6 rounded-xl overflow-hidden shadow-lg">
-                    <img src="step1_setup.png" alt="题目设置" class="w-full max-w-2xl mx-auto">
+                <div class="case-box">
+                    <h4 data-zh="情况3：PB = AB" data-en="Case 3: PB = AB">情况3：PB = AB</h4>
+                    <p data-zh="点 P 在以 B 为圆心、AB 为半径的圆上" data-en="P lies on circle centered at B with radius AB">点 P 在以 B 为圆心、AB 为半径的圆上</p>
                 </div>
-                <div class="flex justify-between mt-6">
-                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">← 上一步</button>
-                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">下一步 →</button>
+
+                <img src="step1_setup.png" alt="Right Triangle ABC">
+
+                <div class="hint-container">
+                    <button class="hint-btn" onclick="toggleHint('hint1-1')">
+                        <span>?</span> <span data-zh="为什么用垂直平分线？" data-en="Why perpendicular bisector?">为什么用垂直平分线？</span>
+                    </button>
+                    <button class="hint-btn" onclick="toggleHint('hint1-2')">
+                        <span>?</span> <span data-zh="直线与圆最多几个交点？" data-en="Line-circle intersections?">直线与圆最多几个交点？</span>
+                    </button>
+                </div>
+                <div id="hint1-1" class="hint-content correct">
+                    <span data-zh="<strong>正确！</strong>AB的垂直平分线由所有到A、B距离相等的点组成，所以上面的任意点P都满足PA = PB。"
+                          data-en="<strong>Correct!</strong> The perpendicular bisector of AB consists of all points equidistant from A and B, so any point P on it satisfies PA = PB.">
+                        <strong>正确！</strong>AB的垂直平分线由所有到A、B距离相等的点组成，所以上面的任意点P都满足PA = PB。
+                    </span>
+                </div>
+                <div id="hint1-2" class="hint-content correct">
+                    <span data-zh="<strong>正确！</strong>一条直线与一个圆最多有2个交点。两条直线如果不平行，恰好有1个交点。"
+                          data-en="<strong>Correct!</strong> A line can intersect a circle at most 2 points. Two non-parallel lines intersect at exactly 1 point.">
+                        <strong>正确！</strong>一条直线与一个圆最多有2个交点。两条直线如果不平行，恰好有1个交点。
+                    </span>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="nav-btn prev" onclick="prevStep()" data-zh="← 上一步" data-en="← Back">← 上一步</button>
+                    <button class="nav-btn next" onclick="nextStep()" data-zh="分类讨论 →" data-en="Case Analysis →">分类讨论 →</button>
                 </div>
             </div>
         </div>
 
-        <!-- Step 2: Analysis -->
-        <div id="step2" class="step-card mb-8">
-            <div class="bg-white rounded-2xl shadow-lg p-8">
-                <div class="flex items-center mb-4">
-                    <span class="bg-purple-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">2</span>
-                    <h2 class="text-2xl font-bold text-gray-800">分类讨论</h2>
+        <!-- Step 2: Case Analysis -->
+        <div id="step2" class="step-card">
+            <div class="content-wrapper">
+                <h2 data-zh="步骤2：分类讨论" data-en="Step 2: Case Analysis">步骤2：分类讨论</h2>
+                
+                <h3 data-zh="情况1：PA = PB（AB的垂直平分线）" data-en="Case 1: PA = PB (Perpendicular Bisector)">情况1：PA = PB（AB的垂直平分线）</h3>
+                <p data-zh="AB的垂直平分线与两条直线的交点：" data-en="The perpendicular bisector of AB intersects:">AB的垂直平分线与两条直线的交点：</p>
+                <ul>
+                    <li data-zh="与直线 AC 交于 <strong>1个点</strong>（在延长线上）" data-en="Line AC at <strong>1 point</strong> (on extension)">与直线 AC 交于 <strong>1个点</strong>（在延长线上）</li>
+                    <li data-zh="与直线 BC 交于 <strong>1个点</strong>（在延长线上）" data-en="Line BC at <strong>1 point</strong> (on extension)">与直线 BC 交于 <strong>1个点</strong>（在延长线上）</li>
+                </ul>
+                <p><strong data-zh="情况1总计：2个点" data-en="Case 1 Total: 2 points">情况1总计：2个点</strong></p>
+                <img src="step3_case1.png" alt="Case 1: PA = PB">
+
+                <h3 data-zh="情况2：PA = AB（以A为圆心的圆）" data-en="Case 2: PA = AB (Circle at A)">情况2：PA = AB（以A为圆心的圆）</h3>
+                <p data-zh="以 A 为圆心、AB 为半径的圆与直线的交点：" data-en="Circle centered at A with radius AB intersects:">以 A 为圆心、AB 为半径的圆与直线的交点：</p>
+                <ul>
+                    <li data-zh="与直线 AC 交于 <strong>2个点</strong>（C点上方和下方各1个）" data-en="Line AC at <strong>2 points</strong> (above and below C)">与直线 AC 交于 <strong>2个点</strong>（C点上方和下方各1个）</li>
+                    <li data-zh="与直线 BC 交于 <strong>1个点</strong>（B点本身舍去）" data-en="Line BC at <strong>1 point</strong> (excluding B)">与直线 BC 交于 <strong>1个点</strong>（B点本身舍去）</li>
+                </ul>
+                <p><strong data-zh="情况2总计：3个点" data-en="Case 2 Total: 3 points">情况2总计：3个点</strong></p>
+                <img src="step3_case2.png" alt="Case 2: PA = AB">
+
+                <h3 data-zh="情况3：PB = AB（以B为圆心的圆）" data-en="Case 3: PB = AB (Circle at B)">情况3：PB = AB（以B为圆心的圆）</h3>
+                <p data-zh="以 B 为圆心、AB 为半径的圆与直线的交点：" data-en="Circle centered at B with radius AB intersects:">以 B 为圆心、AB 为半径的圆与直线的交点：</p>
+                <ul>
+                    <li data-zh="与直线 AC 交于 <strong>1个点</strong>（A点本身舍去）" data-en="Line AC at <strong>1 point</strong> (excluding A)">与直线 AC 交于 <strong>1个点</strong>（A点本身舍去）</li>
+                    <li data-zh="与直线 BC 交于 <strong>2个点</strong>（C点左右各1个）" data-en="Line BC at <strong>2 points</strong> (left and right of C)">与直线 BC 交于 <strong>2个点</strong>（C点左右各1个）</li>
+                </ul>
+                <p><strong data-zh="情况3总计：3个点" data-en="Case 3 Total: 3 points">情况3总计：3个点</strong></p>
+                <img src="step3_case3.png" alt="Case 3: PB = AB">
+
+                <div class="hint-container">
+                    <button class="hint-btn" onclick="toggleHint('hint2-1')">
+                        <span>?</span> <span data-zh="为什么要舍去A和B？" data-en="Why exclude A and B?">为什么要舍去A和B？</span>
+                    </button>
+                    <button class="hint-btn" onclick="toggleHint('hint2-2')">
+                        <span>?</span> <span data-zh="点会不会重合？" data-en="Could points overlap?">点会不会重合？</span>
+                    </button>
                 </div>
-                <div class="image-container mb-6 rounded-xl overflow-hidden shadow-lg">
-                    <img src="step2_cases.png" alt="三种情况" class="w-full max-w-2xl mx-auto">
+                <div id="hint2-1" class="hint-content correct">
+                    <span data-zh="<strong>正确！</strong>点A和B是原三角形的顶点，不是直线AC或BC上的点P，不能构成△PAB。"
+                          data-en="<strong>Correct!</strong> Points A and B are vertices of the original triangle, not point P on lines AC or BC, so they don't form valid △PAB.">
+                        <strong>正确！</strong>点A和B是原三角形的顶点，不是直线AC或BC上的点P，不能构成△PAB。
+                    </span>
                 </div>
-                <div class="space-y-4">
-                    <div class="bg-red-50 rounded-xl p-4">
-                        <p class="font-bold text-red-700">情况1：PA = PB</p>
-                        <p class="text-gray-700">AB的垂直平分线与直线AC交于1点，与直线BC交于1点</p>
-                        <p class="text-red-600 font-bold">共2个点</p>
-                    </div>
-                    <div class="bg-green-50 rounded-xl p-4">
-                        <p class="font-bold text-green-700">情况2：PA = AB</p>
-                        <p class="text-gray-700">以A为圆心的圆与直线AC交于2点，与直线BC交于1点（B点舍去）</p>
-                        <p class="text-green-600 font-bold">共3个点</p>
-                    </div>
-                    <div class="bg-blue-50 rounded-xl p-4">
-                        <p class="font-bold text-blue-700">情况3：PB = AB</p>
-                        <p class="text-gray-700">以B为圆心的圆与直线AC交于1点（A点舍去），与直线BC交于2点</p>
-                        <p class="text-blue-600 font-bold">共3个点</p>
-                    </div>
+                <div id="hint2-2" class="hint-content neutral">
+                    <span data-zh="<strong>提示：</strong>如果某个点同时满足多个条件，就会重合。需要检查这种情况！"
+                          data-en="<strong>Hint:</strong> Points could overlap if they satisfy multiple conditions. We need to check this!">
+                        <strong>提示：</strong>如果某个点同时满足多个条件，就会重合。需要检查这种情况！
+                    </span>
                 </div>
-                <div class="flex justify-between mt-6">
-                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">← 上一步</button>
-                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">下一步 →</button>
+
+                <div class="nav-buttons">
+                    <button class="nav-btn prev" onclick="prevStep()" data-zh="← 上一步" data-en="← Back">← 上一步</button>
+                    <button class="nav-btn next" onclick="nextStep()" data-zh="验证与答案 →" data-en="Verify & Answer →">验证与答案 →</button>
                 </div>
             </div>
         </div>
 
-        <!-- Step 3: Solution -->
-        <div id="step3" class="step-card mb-8">
-            <div class="bg-white rounded-2xl shadow-lg p-8">
-                <div class="flex items-center mb-4">
-                    <span class="bg-green-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">3</span>
-                    <h2 class="text-2xl font-bold text-gray-800">最终答案</h2>
+        <!-- Step 3: Final Answer -->
+        <div id="step3" class="step-card">
+            <div class="content-wrapper">
+                <h2 data-zh="步骤3：验证与最终答案" data-en="Step 3: Verify & Final Answer">步骤3：验证与最终答案</h2>
+                
+                <h3 data-zh="检查重合情况" data-en="Checking for Overlaps">检查重合情况</h3>
+                <p data-zh="如果某个点满足 PA = PB = AB，则 △PAB 是<strong>等边三角形</strong>。"
+                   data-en="If a point satisfies PA = PB = AB, then △PAB is <strong>equilateral</strong>.">如果某个点满足 PA = PB = AB，则 △PAB 是<strong>等边三角形</strong>。</p>
+                
+                <div class="highlight-box">
+                    <p data-zh="<strong>当 P 在 AC 上时：</strong>∠A = 60°" data-en="<strong>When P is on AC:</strong> ∠A = 60°"><strong>当 P 在 AC 上时：</strong>∠A = 60°</p>
+                    <p data-zh="<strong>当 P 在 BC 上时：</strong>∠B = 60°，则 ∠A = 30°" data-en="<strong>When P is on BC:</strong> ∠B = 60°, so ∠A = 30°"><strong>当 P 在 BC 上时：</strong>∠B = 60°，则 ∠A = 30°</p>
                 </div>
-                <div class="image-container mb-6 rounded-xl overflow-hidden shadow-lg">
-                    <img src="step3_solution.png" alt="最终答案" class="w-full max-w-2xl mx-auto">
+                
+                <p data-zh="题目条件：∠A ≠ 30°，所以第二种情况不会发生。" data-en="Given: ∠A ≠ 30°, so the second case doesn't occur.">题目条件：∠A ≠ 30°，所以第二种情况不会发生。</p>
+                <p data-zh="一般情况下（∠A ≠ 60°），<strong>8个点互不重合</strong>。" data-en="In general (∠A ≠ 60°), all <strong>8 points are distinct</strong>.">一般情况下（∠A ≠ 60°），<strong>8个点互不重合</strong>。</p>
+
+                <img src="step3_solution.png" alt="All 8 Points">
+
+                <div class="answer-box">
+                    <p style="font-size: 1.2em; color: #666; margin-bottom: 10px;" data-zh="符合条件的点 P 总数" data-en="Total Number of Points P">符合条件的点 P 总数</p>
+                    <p class="answer-text">2 + 3 + 3 = 8</p>
                 </div>
-                <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-xl p-6 text-center mb-6">
-                    <p class="text-lg mb-2">总计</p>
-                    <p class="text-5xl font-bold">2 + 3 + 3 = 8</p>
-                    <p class="text-2xl mt-2">8个点</p>
-                </div>
-                <div class="bg-yellow-50 rounded-xl p-4">
-                    <p class="text-gray-700"><strong>注意：</strong>题目条件∠A≠30°且∠A≠45°是为了避免某些特殊情况下的点重合。在一般情况下，8个点互不重合。</p>
-                </div>
-                <div class="flex justify-between mt-6">
-                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">← 上一步</button>
-                    <button onclick="nextStep()" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium">总结 →</button>
+
+                <div class="nav-buttons">
+                    <button class="nav-btn prev" onclick="prevStep()" data-zh="← 上一步" data-en="← Back">← 上一步</button>
+                    <button class="nav-btn next" onclick="nextStep()" data-zh="总结 →" data-en="Summary →">总结 →</button>
                 </div>
             </div>
         </div>
 
         <!-- Step 4: Summary -->
-        <div id="step4" class="step-card mb-8">
-            <div class="bg-white rounded-2xl shadow-lg p-8">
-                <div class="flex items-center mb-4">
-                    <span class="bg-indigo-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">4</span>
-                    <h2 class="text-2xl font-bold text-gray-800">总结</h2>
-                </div>
-                <div class="bg-indigo-50 rounded-xl p-6 mb-6">
-                    <h3 class="font-bold text-indigo-700 mb-4">🎯 解题思路</h3>
-                    <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                        <li>分类讨论三种等腰情况（PA=PB, PA=AB, PB=AB）</li>
-                        <li>情况1：垂直平分线与两直线交于2点</li>
-                        <li>情况2：以A为圆心的圆与两直线交于3点</li>
-                        <li>情况3：以B为圆心的圆与两直线交于3点</li>
-                        <li>总计：2 + 3 + 3 = 8个点</li>
+        <div id="step4" class="step-card">
+            <div class="content-wrapper">
+                <h2 data-zh="总结" data-en="Summary">总结</h2>
+                
+                <div class="highlight-box">
+                    <h3 data-zh="关键知识点" data-en="Key Concepts">关键知识点</h3>
+                    <ol>
+                        <li data-zh="<strong>等腰三角形判定：</strong>两边相等或两角相等" data-en="<strong>Isosceles Criterion:</strong> Two sides equal or two angles equal"></li>
+                        <li data-zh="<strong>垂直平分线性质：</strong>垂直平分线上的点到线段两端距离相等" data-en="<strong>Perpendicular Bisector:</strong> Points equidistant from segment endpoints"></li>
+                        <li data-zh="<strong>圆的定义：</strong>到定点距离等于定长的点的轨迹" data-en="<strong>Circle Definition:</strong> Locus of points at fixed distance from center"></li>
+                        <li data-zh="<strong>分类讨论思想：</strong>不重不漏地列举所有情况" data-en="<strong>Classification:</strong> Enumerate all cases without omission"></li>
+                        <li data-zh="<strong>直线与圆的交点：</strong>最多2个交点" data-en="<strong>Line-Circle:</strong> At most 2 intersection points"></li>
                     </ol>
                 </div>
-                <div class="bg-yellow-50 rounded-xl p-6">
-                    <h3 class="font-bold text-yellow-700 mb-4">💡 解题技巧</h3>
-                    <ul class="list-disc list-inside space-y-2 text-gray-700">
-                        <li>看到等腰三角形 → 立即分类讨论三种情况</li>
-                        <li>看到"直线" → 注意可以在延长线上</li>
-                        <li>数形结合 → 用圆和垂直平分线找点</li>
-                        <li>验证重合 → 考虑特殊角度是否会导致点重合</li>
+
+                <div class="case-box">
+                    <h3 data-zh="解题技巧" data-en="Problem Solving Techniques">解题技巧</h3>
+                    <ul>
+                        <li data-zh="看到等腰三角形 → 立即分类讨论三种情况" data-en="See isosceles → Consider three cases immediately"></li>
+                        <li data-zh="看到&quot;直线&quot; → 注意可以在延长线上" data-en="See 'line' → Note point can be on extension"></li>
+                        <li data-zh="数形结合 → 用圆和垂直平分线找点" data-en="Combine numbers & shapes → Use circles and bisectors"></li>
+                        <li data-zh="验证重合 → 考虑特殊角度是否会导致点重合" data-en="Verify overlaps → Check if special angles cause coincidences"></li>
                     </ul>
                 </div>
-                <div class="flex justify-between mt-6">
-                    <button onclick="prevStep()" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium hover:bg-gray-300">← 上一步</button>
-                    <button onclick="resetSteps()" class="nav-btn bg-gradient-to-r from-green-500 to-teal-600 text-white px-6 py-2 rounded-full font-medium">🔄 重新开始</button>
+
+                <div class="answer-box">
+                    <p style="font-size: 1.2em; color: #666; margin-bottom: 10px;" data-zh="最终答案" data-en="Final Answer">最终答案</p>
+                    <p class="answer-text" data-zh="8 个" data-en="8 points">8 个</p>
+                </div>
+
+                <div class="nav-buttons">
+                    <button class="nav-btn prev" onclick="prevStep()" data-zh="← 上一步" data-en="← Back">← 上一步</button>
+                    <button class="nav-btn next" onclick="resetSteps()" data-zh="🔄 重新开始" data-en="🔄 Restart">🔄 重新开始</button>
                 </div>
             </div>
         </div>
-    </main>
-
-    <footer class="bg-gray-800 text-white py-6 mt-12">
-        <div class="max-w-6xl mx-auto px-4 text-center">
-            <p class="text-gray-400">七年级几何题解析 | 等腰三角形点P个数</p>
-        </div>
-    </footer>
+    </div>
 
     <script>
         let currentStep = 0;
-        const totalSteps = 5;
-        
-        function updateProgress() {
-            const progress = (currentStep / (totalSteps - 1)) * 100;
-            document.getElementById('progressBar').style.width = progress + '%';
-            document.getElementById('progressText').textContent = currentStep + '/' + (totalSteps - 1);
-        }
-        
+        const totalSteps = 4;
+        let currentLang = 'zh';
+
         function showStep(step) {
             for (let i = 0; i < totalSteps; i++) {
-                const stepEl = document.getElementById('step' + i);
-                if (stepEl) stepEl.classList.remove('visible');
+                document.getElementById('step' + i).classList.remove('active');
             }
-            const currentEl = document.getElementById('step' + step);
-            if (currentEl) {
-                currentEl.classList.add('visible');
-                currentEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            document.getElementById('step' + step).classList.add('active');
+            
+            const dots = document.querySelectorAll('.progress-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active', 'completed');
+                if (index === step) {
+                    dot.classList.add('active');
+                } else if (index < step) {
+                    dot.classList.add('completed');
+                }
+            });
+            
             currentStep = step;
-            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        
+
         function nextStep() {
-            if (currentStep < totalSteps - 1) showStep(currentStep + 1);
+            if (currentStep < totalSteps - 1) {
+                showStep(currentStep + 1);
+            }
         }
-        
+
         function prevStep() {
-            if (currentStep > 0) showStep(currentStep - 1);
+            if (currentStep > 0) {
+                showStep(currentStep - 1);
+            }
         }
-        
+
         function resetSteps() {
             showStep(0);
         }
-        
-        updateProgress();
-        
+
+        function toggleHint(hintId) {
+            const hint = document.getElementById(hintId);
+            const allHints = document.querySelectorAll('.hint-content');
+            
+            allHints.forEach(h => {
+                if (h.id !== hintId) {
+                    h.style.display = 'none';
+                }
+            });
+            
+            if (hint.style.display === 'block') {
+                hint.style.display = 'none';
+            } else {
+                hint.style.display = 'block';
+            }
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            const btn = document.querySelector('.lang-switch');
+            btn.textContent = currentLang === 'zh' ? '🌐 English' : '🌐 中文';
+            
+            const elements = document.querySelectorAll('[data-zh][data-en]');
+            elements.forEach(el => {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = el.getAttribute('data-' + currentLang);
+                } else {
+                    el.innerHTML = el.getAttribute('data-' + currentLang);
+                }
+            });
+        }
+
         document.addEventListener('keydown', function(e) {
             if (e.key === 'ArrowRight' || e.key === ' ') {
                 e.preventDefault();

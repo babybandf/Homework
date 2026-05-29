@@ -1,106 +1,107 @@
-# 几何题解析
+# Geometry Problem 003 Solution
 
-## 题目
+## Problem
 
-如图所示，在 Rt△ABC 中，∠C=90°，∠A≠30°，∠A≠45°，在直线 BC 或 AC 上取一点 P，使得△PAB 是等腰三角形，则符合条件的点 P 有多少个？
-
----
-
-## 解题思路
-
-### 第一步：理解题意
-
-- Rt△ABC，∠C = 90°
-- P 在直线 BC 或直线 AC 上（可以在延长线上）
-- △PAB 是等腰三角形
-
-△PAB 是等腰三角形有三种情况：
-1. PA = PB（P 在 AB 的垂直平分线上）
-2. PA = AB（以 A 为圆心，AB 为半径）
-3. PB = AB（以 B 为圆心，AB 为半径）
-
-![题目设置](step1_setup.png)
+In right triangle ABC, angle C = 90°, angle A ≠ 30°, angle A ≠ 45°. Point P is taken on line BC or line AC such that triangle PAB is isosceles. How many such points P exist?
 
 ---
 
-### 第二步：分类讨论
+## Solution
 
-#### 情况1：PA = PB（P 在 AB 的垂直平分线上）
+### Step 1: Understanding the Problem
 
-AB 的垂直平分线与直线 AC 和 BC 的交点：
-- 与直线 AC 的交点：1个（在 AC 延长线上）
-- 与直线 BC 的交点：1个（在 BC 延长线上）
+Given:
+- Right triangle ABC with angle C = 90°
+- Point P lies on line BC or line AC (can be on extensions)
+- Triangle PAB is isosceles
 
-**情况1总计：2个点**
+Triangle PAB being isosceles has three cases:
+1. PA = PB (P lies on perpendicular bisector of AB)
+2. PA = AB (P lies on circle centered at A with radius AB)
+3. PB = AB (P lies on circle centered at B with radius AB)
 
-#### 情况2：PA = AB（以 A 为圆心，AB 为半径画圆）
-
-- 与直线 AC 的交点：2个（一个在 C 上方，一个在 C 下方）
-- 与直线 BC 的交点：1个（在 C 左侧，B 点本身舍去）
-
-**情况2总计：3个点**
-
-#### 情况3：PB = AB（以 B 为圆心，AB 为半径画圆）
-
-- 与直线 AC 的交点：1个（在 C 下方，A 点本身舍去）
-- 与直线 BC 的交点：2个（一个在 C 右侧，一个在 C 左侧）
-
-**情况3总计：3个点**
-
-![三种情况](step2_cases.png)
+![Step 1](step1_setup.png)
 
 ---
 
-### 第三步：验证是否有重合
+### Step 2: Case Analysis
 
-需要检查三种情况的点是否有重合：
-- 如果有重合，说明该点同时满足两个条件
-- 重合的条件是：PA = PB = AB，即△PAB 是等边三角形
+#### Case 1: PA = PB (Perpendicular Bisector of AB)
 
-当△PAB 是等边三角形时：
-- 若 P 在 AC 上，则∠A = 60°
-- 若 P 在 BC 上，则∠B = 60°，即∠A = 30°
+The perpendicular bisector of AB intersects:
+- Line AC at 1 point (on extension of AC)
+- Line BC at 1 point (on extension of BC)
 
-题目条件：∠A ≠ 30°，所以第二种情况不发生。
+**Case 1 Total: 2 points**
 
-如果∠A = 60°，则会有重合，但题目未排除此情况。在一般情况下（∠A ≠ 60°），8个点都不重合。
+#### Case 2: PA = AB (Circle centered at A with radius AB)
 
-**总计：2 + 3 + 3 = 8个点**
+A circle centered at A with radius AB intersects:
+- Line AC at 2 points (one above C, one below C)
+- Line BC at 1 point (on extension of BC, excluding point B itself)
 
-![最终答案](step3_solution.png)
+**Case 2 Total: 3 points**
 
----
+#### Case 3: PB = AB (Circle centered at B with radius AB)
 
-## 最终答案
+A circle centered at B with radius AB intersects:
+- Line AC at 1 point (on extension of AC, excluding point A itself)
+- Line BC at 2 points (one to the right of C, one to the left of C)
 
-> **8个**
+**Case 3 Total: 3 points**
 
----
-
-## 关键知识点总结
-
-1. **等腰三角形的判定**：两边相等或两角相等
-2. **垂直平分线性质**：垂直平分线上的点到线段两端距离相等
-3. **圆的定义**：到定点距离等于定长的点的轨迹
-4. **分类讨论思想**：不重不漏地列举所有情况
-5. **直线与圆的交点**：最多2个交点
+![Step 2](step2_cases.png)
 
 ---
 
-## 完整解题思路梳理
+### Step 3: Verify No Overlaps
 
-1. **确定分类标准**：△PAB 是等腰三角形有三种情况（PA=PB, PA=AB, PB=AB）
-2. **情况1分析**：P 在 AB 垂直平分线上，与两直线各交于1点，共2点
-3. **情况2分析**：以 A 为圆心 AB 为半径画圆，与 AC 交于2点，与 BC 交于1点，共3点
-4. **情况3分析**：以 B 为圆心 AB 为半径画圆，与 AC 交于1点，与 BC 交于2点，共3点
-5. **验证重合**：在一般情况（∠A ≠ 60°）下，8个点互不重合
+We need to check if any points from different cases coincide:
+- If a point satisfies PA = PB = AB, then triangle PAB is equilateral
+
+When triangle PAB is equilateral:
+- If P is on AC, then angle A = 60°
+- If P is on BC, then angle B = 60°, which means angle A = 30°
+
+Given condition: angle A ≠ 30°, so the second case does not occur.
+
+If angle A = 60°, there would be overlaps, but this is not excluded by the problem. In general cases (angle A ≠ 60°), all 8 points are distinct.
+
+**Total: 2 + 3 + 3 = 8 points**
+
+![Step 3](step3_solution.png)
 
 ---
 
-## 解题技巧总结
+## Final Answer
 
-- **看到等腰三角形** → 立即分类讨论三种情况
-- **看到"直线"** → 注意可以在延长线上，不只是线段上
-- **数形结合** → 画图帮助理解，用圆和垂直平分线找点
-- **验证重合** → 考虑特殊角度是否会导致点重合
-- **排除特殊情况** → 题目给出∠A ≠ 30° 和 ∠A ≠ 45° 是为了避免重合
+> **8 points**
+
+---
+
+## Key Concepts Summary
+
+1. **Isosceles Triangle Criterion**: Two sides equal or two angles equal
+2. **Perpendicular Bisector Property**: Points on perpendicular bisector are equidistant from segment endpoints
+3. **Circle Definition**: Locus of points at fixed distance from a center
+4. **Classification Discussion**: Enumerate all cases without omission or duplication
+5. **Line-Circle Intersections**: At most 2 intersection points
+
+---
+
+## Complete Solution Process
+
+1. **Establish Classification Criteria**: Triangle PAB isosceles has three cases (PA=PB, PA=AB, PB=AB)
+2. **Case 1 Analysis**: P on perpendicular bisector of AB, intersects two lines at 2 points
+3. **Case 2 Analysis**: Circle centered at A with radius AB, intersects AC at 2 points, BC at 1 point, total 3 points
+4. **Case 3 Analysis**: Circle centered at B with radius AB, intersects AC at 1 point, BC at 2 points, total 3 points
+5. **Verify Overlaps**: In general case (angle A ≠ 60°), all 8 points are distinct
+
+---
+
+## Problem Solving Techniques
+
+- **See isosceles triangle** → Immediately consider three cases
+- **See "line"** → Note that point can be on extension
+- **Combine numbers and shapes** → Use circles and perpendicular bisectors to find points
+- **Verify overlaps** → Consider if special angles cause point coincidences
