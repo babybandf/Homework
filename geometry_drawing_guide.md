@@ -79,6 +79,18 @@ def draw_angle_arc(ax, center, p1, p2, radius=0.3, color='blue', label=None):
                 label, ha='center', va='center', fontsize=10, color=color)
 ```
 
+**参数几何含义**：
+
+| 参数 | 几何含义 | 示例 |
+|------|----------|------|
+| `center` | **角的顶点** | 标 ∠ABC 时传入 `B` |
+| `p1` | 角的一条边上的另一点（非顶点） | 标 ∠ABC 时传入 `A`（代表边BA） |
+| `p2` | 角的另一条边上的另一点（非顶点） | 标 ∠ABC 时传入 `C`（代表边BC） |
+
+> ⚠️ **调用规律**：`draw_angle_arc(ax, vertex, point_on_side1, point_on_side2, ...)` 对应几何角 ∠(point_on_side1 - vertex - point_on_side2)。中间参数永远是**角的顶点**。
+>
+> **常见错误**：容易把 p1、p2 误当作弧的两个端点。例如 `draw_angle_arc(ax, A, B, C)` 画出的是 **∠BAC**（顶点A，边AB和AC），而不是从B到C的弧。
+
 ### 顶点标签智能定位
 
 基于三角形重心计算偏移方向，确保标签始终在外部：
@@ -119,9 +131,77 @@ def mark_equal_sides(ax, p1, p2, num_marks=1, color='red'):
                 color=color, linewidth=2)
 ```
 
+### 多角度标注策略（006实践，核心最佳实践）
+
+当同一顶点或相邻顶点有多个角度需标注时，需通过**半径分层 + 颜色区分**避免视觉混乱：
+
+**原则零（首要原则）：先写注释再写代码**
+
+在写 `draw_angle_arc` 之前，先列出所有要标注的角的参数对应关系：
+
+```
+∠BMC → draw_angle_arc(ax, M, B, C, ...)  # 顶点M，边MB和MC，角∠BMC
+∠ABM → draw_angle_arc(ax, B, A, M, ...)  # 顶点B，边BA和BM，角∠ABM
+∠MBC → draw_angle_arc(ax, B, M, C, ...)  # 顶点B，边BM和BC，角∠MBC
+```
+
+**规律**：三个参数就是几何角的三个点，中间是顶点 — `(顶点, 边1上另一点, 边2上另一点)`。
+
+**每条 `draw_angle_arc` 调用必须加注释标明实际的几何角**，格式为 `# ∠XXX at V`（V是顶点）。
+
+错误的注释还不如不写，例如 `# 角ACD` 就很有误导性，因为它没说明谁是顶点。
+正确的注释 `# ∠ACD at C` 清楚表明顶点是C。
+
+**原则一：同一顶点多角度用不同半径分层**
+
+```python
+# 顶点C被cevian分成两个角，用不同半径区分
+draw_angle_arc(ax, C, A, D, radius=0.4, color='blue', label='36°')    # ∠ACD at C
+draw_angle_arc(ax, C, D, B, radius=0.55, color='purple', label='36°')  # ∠DCB at C
+```
+
+**原则二：每个角度赋予独立颜色，表达归属关系**
+
+```python
+# 不同颜色对应不同子三角形的角，每条调用都标明几何角
+draw_angle_arc(ax, A, B, C, radius=0.5, color='red', label='36°')      # ∠BAC at A（顶角A）
+draw_angle_arc(ax, C, A, D, radius=0.4, color='blue', label='36°')     # ∠ACD at C（属于△ACD）
+draw_angle_arc(ax, C, D, B, radius=0.55, color='purple', label='36°')  # ∠DCB at C（属于△BCD）
+draw_angle_arc(ax, B, C, A, radius=0.4, color='orange', label='72°')   # ∠CBA at C（底角C）
+```
+
+**原则三：半径选择策略**
+
+| 场景 | 推荐半径 | 说明 |
+|------|----------|------|
+| 主角/特征角 | 0.5 | 视觉突出 |
+| 普通标注 | 0.4 | 基准大小 |
+| 同顶点第二个角 | 0.55~0.6 | 与第一个角拉开层次 |
+| 小角度（<30°） | 0.5~0.6 | 较大半径避免标签重叠 |
+| 大角度（>90°） | 0.3~0.4 | 较小半径保持紧凑 |
+
+**原则四：颜色与几何元素一致性映射**
+
+- 主角/顶角：红色 — 最醒目，突出核心条件
+- 属于子三角形1的角：蓝色 — 与该子三角形填充色系一致
+- 属于子三角形2的角：紫色或橙色 — 与另一子三角形填充色系一致
+- 底角：橙色 — 与侧边/底边相关
+
+**完整示例（006核心模式）**：
+
+```python
+# 主三角形ABC中，cevian CD将其分为△ACD和△BCD
+# 角度标注按归属和层次组织
+draw_angle_arc(ax, A, B, C, radius=0.5, color='red', label='36°')       # 顶角A - 题目核心
+draw_angle_arc(ax, C, A, D, radius=0.4, color='blue', label='36°')      # △ACD中C的角
+draw_angle_arc(ax, C, D, B, radius=0.55, color='purple', label='36°')   # △BCD中C的角（同顶点，大半径）
+draw_angle_arc(ax, B, C, A, radius=0.4, color='orange', label='72°')    # 底角B
+```
+
 ### 颜色语义统一化
 
-- 角度标注：红色 (`color='red'`)
+- 角度标注（单角场景）：红色 (`color='red'`)
+- 角度标注（多角场景）：按归属分色（见上节）
 - 等边标记第一组：红色 (`color='red'`)
 - 等边标记第二组：绿色 (`color='green'`)
 - 辅助线/cevian：蓝色 (`'b-'` 或 `'b--'`)
