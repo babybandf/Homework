@@ -10,10 +10,42 @@
 - 图片命名规范：`step{序号}_{描述}.png`
 - 保存路径：与题目图片同名的文件夹内
 - **插图文字规范**：
-  - 使用英文标签，避免中文字体显示问题
+  - 优先使用英文标签（避免字体兼容问题）
+  - 如需中文，需配置中文字体支持（详见下方"中文字体支持"章节）
   - 几何元素标注：Apex（顶角）、Base（底角）、Line AC（直线AC）等
   - 标题使用英文：Step 1、Case 1、Final Answer等
   - 确保所有文字在英文环境下清晰可读
+- **中文字体支持**：
+  - 适用场景：解题说明、技巧总结等需要中文展示的插图
+  - **优先使用项目目录中的字体文件**，确保跨环境兼容
+  - 项目 `font/` 目录已放置字体文件：`STHeiti Medium.ttc`、`STHeiti Light.ttc`
+  - 配置方法：通过 `font_manager.addfont()` 加载项目内字体
+    ```python
+    from matplotlib import font_manager
+    font_manager.fontManager.addfont('font/STHeiti Medium.ttc')
+    plt.rcParams['font.family'] = 'Heiti TC'
+    plt.rcParams['axes.unicode_minus'] = False
+    ```
+  - 需确保运行时 **当前工作目录为项目根目录**，或使用绝对路径：
+    ```python
+    import os
+    from matplotlib import font_manager
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    font_path = os.path.join(base_dir, 'font', 'STHeiti Medium.ttc')
+    font_manager.fontManager.addfont(font_path)
+    plt.rcParams['font.family'] = 'Heiti TC'
+    ```
+  - 系统字体检测方法（备选，依赖系统安装的字体）：
+    ```python
+    import matplotlib.font_manager as fm
+    fonts = [f.name for f in fm.fontManager.ttflist]
+    chinese_fonts = [f for f in fonts if any(k in f for k in ['Ping', 'Heiti', 'Song', 'STHeiti'])]
+    print(sorted(set(chinese_fonts)))
+    ```
+  - ⚠️ 注意事项：
+    - `STHeiti` 字体缺少数学符号 `≅`（全等号），需用 `=` 或文字描述替代
+    - 设置中文字体后，英文字母和数字仍可正常显示
+    - 设置 `axes.unicode_minus = False` 可解决负号 `−` 显示为方块的问题
 - **坐标范围设置规范（重要）**：
   - 必须先计算图形关键点的实际坐标，确保坐标范围足够大
   - 例如：等腰三角形顶点C的y坐标 = 底边长度/2 × tan(顶角)，需确保ylim上限大于此值

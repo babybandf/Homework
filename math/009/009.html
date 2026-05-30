@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">009题：等腰三角形旋转问题</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .step-card { display: none; }
+        .step-card.visible { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hint-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid #0ea5e9;
+        }
+        .answer-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+        }
+        .lang-btn { cursor: pointer; transition: all 0.2s; }
+        .lang-btn:hover { transform: scale(1.05); }
+        .lang-btn.active { background-color: #4f46e5; color: white; }
+        .hint-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s ease; }
+        .hint-content.show { max-height: 300px; padding: 12px 16px; margin-top: 8px; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="sticky top-0 z-50 bg-white shadow-md">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-800" data-i18n="title">009题：等腰三角形旋转</h1>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center bg-gray-100 rounded-full p-0.5">
+                    <button onclick="setLang('zh')" class="lang-btn active px-3 py-1 rounded-full text-xs font-medium" id="langZh">中文</button>
+                    <button onclick="setLang('en')" class="lang-btn px-3 py-1 rounded-full text-xs font-medium text-gray-600" id="langEn">EN</button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-600" data-i18n="progress">进度:</span>
+                    <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div id="progressBar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <span id="progressText" class="text-sm text-gray-600">0/6</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6">
+
+        <!-- Step 0: Problem -->
+        <div id="step0" class="step-card visible mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">1</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s0_title">题目</h2>
+                </div>
+                <div class="prose max-w-none text-gray-700 leading-relaxed">
+                    <p class="mb-4" data-i18n="s0_p">已知△ABC和△EDF都是等腰三角形，且△ABC ≅ △FED，顶角∠C = 36°，等腰△EDF的顶点D在AC边上滑动，点E在BA边的延长线上滑动。将线段DA绕点D逆时针旋转36°得到线段DG，连接EG、FG，若△EGF是以FG为腰的等腰三角形，则∠FGE = ______。</p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg mt-4">
+                    <p class="font-semibold text-blue-800 mb-2" data-i18n="s0_conds_title">📋 已知条件梳理：</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                        <li data-i18n="s0_c1">△ABC是等腰三角形，顶角∠C = 36°，底角∠A = ∠B = 72°</li>
+                        <li data-i18n="s0_c2">△EDF是等腰三角形，△ABC ≅ △FED，所以∠D = 36°，∠E = ∠F = 72°</li>
+                        <li data-i18n="s0_c3">D在AC上，E在BA延长线上</li>
+                        <li data-i18n="s0_c4">DA绕D逆时针旋转36°得到DG</li>
+                        <li data-i18n="s0_c5">△EGF是以FG为腰的等腰三角形</li>
+                    </ul>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mt-6">
+                    <img src="step1_setup.png" alt="Problem Setup" class="w-full max-w-2xl mx-auto">
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button onclick="goToStep(1)" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors" data-i18n="start">开始解题 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Triangle Properties -->
+        <div id="step1" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">2</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s1_title">分析三角形性质</h2>
+                </div>
+                <div class="hint-box p-4 rounded-lg mb-4">
+                    <p class="font-semibold text-blue-800 mb-2" data-i18n="s1_hint_title">💡 关键信息</p>
+                    <p data-i18n="s1_hint">从全等关系和等腰性质推导出所有角度。</p>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-4">
+                    <img src="step1_setup.png" alt="Triangle Properties" class="w-full max-w-xl mx-auto">
+                </div>
+                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-bold text-gray-800 mb-2" data-i18n="s1_abc_title">△ABC中：</p>
+                        <ul class="list-disc list-inside space-y-1 text-gray-700">
+                            <li data-i18n="s1_abc_l1">∠C = 36°（顶角）</li>
+                            <li data-i18n="s1_abc_l2">∠A = ∠B = 72°（底角）</li>
+                            <li data-i18n="s1_abc_l3">AC = BC</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-bold text-gray-800 mb-2" data-i18n="s1_edf_title">△EDF中：</p>
+                        <ul class="list-disc list-inside space-y-1 text-gray-700">
+                            <li data-i18n="s1_edf_l1">∠D = 36°（顶角）</li>
+                            <li data-i18n="s1_edf_l2">∠E = ∠F = 72°（底角）</li>
+                            <li data-i18n="s1_edf_l3">ED = FD</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <p class="font-semibold text-yellow-800" data-i18n="s1_note_title">📝 注意对应关系</p>
+                    <p class="text-gray-700" data-i18n="s1_note">△ABC ≅ △FED 意味着：A↔F, B↔E, C↔D</p>
+                </div>
+                <div class="mt-4 space-y-2">
+                    <div class="bg-gray-50 rounded-lg">
+                        <button onclick="toggleHint('h1_1')" class="w-full p-3 text-left font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">🤔 <span data-i18n="h1_q">提示：如何计算底角？</span></button>
+                        <div id="h1_1" class="hint-content"><span class="text-gray-600" data-i18n="h1_a">等腰三角形底角 = (180° - 顶角) / 2 = (180° - 36°) / 2 = 72°</span></div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(0)" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-semibold transition-colors" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(2)" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Congruent Triangles -->
+        <div id="step2" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-green-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">3</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s2_title">寻找全等三角形</h2>
+                </div>
+                <div class="hint-box p-4 rounded-lg mb-4">
+                    <p class="font-semibold text-blue-800 mb-2" data-i18n="s2_hint_title">💡 核心突破</p>
+                    <p data-i18n="s2_hint">DA旋转36°得到DG，而∠EDF = 36°，这提示我们可以构造全等！</p>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-4">
+                    <img src="step2_congruent.png" alt="Congruent Triangles" class="w-full max-w-xl mx-auto">
+                </div>
+                <div class="space-y-4 text-gray-700">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-semibold mb-2" data-i18n="s2_proof_title">证明 △ADE ≅ △GDF：</p>
+                        <p class="mb-2"><strong data-i18n="s2_cond1">条件1：</strong><span data-i18n="s2_cond1_t">DA = DG（旋转性质）</span></p>
+                        <p class="mb-2"><strong data-i18n="s2_cond2">条件2：</strong><span data-i18n="s2_cond2_t">DE = DF（等腰△EDF）</span></p>
+                        <p class="mb-2"><strong data-i18n="s2_cond3">条件3：</strong><span data-i18n="s2_cond3_t">∠ADE = ∠GDF</span></p>
+                        <p class="ml-4 text-sm text-gray-600" data-i18n="s2_cond3_exp1">∵ ∠ADG = 36° = ∠EDF</p>
+                        <p class="ml-4 text-sm text-gray-600" data-i18n="s2_cond3_exp2">∴ ∠ADG - ∠EDG = ∠EDF - ∠EDG</p>
+                        <p class="ml-4 text-sm text-gray-600" data-i18n="s2_cond3_exp3">即 ∠ADE = ∠GDF</p>
+                        <p class="mt-2 text-green-700 font-semibold" data-i18n="s2_conc">∴ △ADE ≅ △GDF（SAS）</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-semibold mb-2" data-i18n="s2_ded_title">全等推论：</p>
+                        <ul class="list-disc list-inside space-y-1 ml-4">
+                            <li data-i18n="s2_ded_l1">AE = GF</li>
+                            <li data-i18n="s2_ded_l2">∠DAE = ∠DGF</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-4 space-y-2">
+                    <div class="bg-gray-50 rounded-lg">
+                        <button onclick="toggleHint('h2_1')" class="w-full p-3 text-left font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">🤔 <span data-i18n="h2_q">提示：为什么∠ADE = ∠GDF？</span></button>
+                        <div id="h2_1" class="hint-content"><span class="text-gray-600" data-i18n="h2_a">两个角都等于36°减去同一个角∠EDG，所以相等。</span></div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(1)" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-semibold transition-colors" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(3)" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Calculate Angle DAE -->
+        <div id="step3" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-purple-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">4</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s3_title">计算∠DAE</h2>
+                </div>
+                <div class="hint-box p-4 rounded-lg mb-4">
+                    <p class="font-semibold text-blue-800 mb-2" data-i18n="s3_hint_title">💡 关键观察</p>
+                    <p data-i18n="s3_hint">E在BA的延长线上，所以∠DAE与∠BAC互补。</p>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-4">
+                    <img src="step3_solution.png" alt="Angle DAE" class="w-full max-w-xl mx-auto">
+                </div>
+                <div class="space-y-4 text-gray-700">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-semibold mb-2" data-i18n="s3_calc_title">计算过程：</p>
+                        <p class="mb-2" data-i18n="s3_calc_l1">∵ E在BA的延长线上</p>
+                        <p class="mb-2" data-i18n="s3_calc_l2">∴ ∠DAE = 180° - ∠BAC</p>
+                        <p class="mb-2" data-i18n="s3_calc_l3">∵ ∠BAC = 72°</p>
+                        <p class="mb-2" data-i18n="s3_calc_l4">∴ ∠DAE = 180° - 72° = 108°</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="font-semibold mb-2" data-i18n="s3_ded_title">推论：</p>
+                        <p data-i18n="s3_ded">由△ADE ≅ △GDF，得∠DGF = ∠DAE = 108°</p>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(2)" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-semibold transition-colors" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(4)" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Analyze Isosceles Triangle EGF -->
+        <div id="step4" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-orange-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">5</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s4_title">分析等腰△EGF</h2>
+                </div>
+                <div class="hint-box p-4 rounded-lg mb-4">
+                    <p class="font-semibold text-blue-800 mb-2" data-i18n="s4_hint_title">💡 分类讨论</p>
+                    <p data-i18n="s4_hint">"以FG为腰"意味着FG = EG 或 FG = EF，两种情况。</p>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-4">
+                    <img src="step3_solution.png" alt="Isosceles Triangle" class="w-full max-w-xl mx-auto">
+                </div>
+                <div class="grid md:grid-cols-2 gap-4 text-gray-700">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <p class="font-bold text-blue-800 mb-2" data-i18n="s4_case1">情况一：FG = EG</p>
+                        <p class="mb-2" data-i18n="s4_case1_l1">∵ AE = GF（全等）且 FG = EG</p>
+                        <p class="mb-2" data-i18n="s4_case1_l2">∴ AE = EG</p>
+                        <p class="mb-2" data-i18n="s4_case1_l3">∠EAG = ∠DAE-∠DAG = 108°-72°=36°</p>
+                        <p class="mb-2" data-i18n="s4_case1_l4">AE=EG,△AEG顶角在E:∠AEG=108°,底角∠EAG=∠EGA=36°</p>
+                        <p data-i18n="s4_case1_l5">∠FGE = 360°-108°-72°-36° = <strong>144°</strong></p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <p class="font-bold text-green-800 mb-2" data-i18n="s4_case2">情况二：FG = EF</p>
+                        <p class="mb-2" data-i18n="s4_case2_l1">∵ AE = GF（全等）且 FG = EF</p>
+                        <p class="mb-2" data-i18n="s4_case2_l2">∴ AE = EF（△AEF等腰）</p>
+                        <p class="mb-2" data-i18n="s4_case2_l3">关键：A、G、F三点共线</p>
+                        <p class="mb-2" data-i18n="s4_case2_l4">∴ ∠GFE = ∠AFE = ∠GAE</p>
+                        <p class="mb-2" data-i18n="s4_case2_l5">∠GAE = ∠DAE−∠DAG = 108°−72° = 36°</p>
+                        <p data-i18n="s4_case2_l6">△EGF等腰⇒∠FGE=(180°−36°)/2 = <strong>72°</strong></p>
+                    </div>
+                </div>
+                <div class="answer-box p-4 rounded-lg mt-4 text-center">
+                    <p class="text-lg font-bold text-amber-800" data-i18n="s4_conc">情况一(FG=EG):∠FGE=144° | 情况二(FG=EF):∠FGE=72°</p>
+                </div>
+                <div class="mt-4 space-y-2">
+                    <div class="bg-gray-50 rounded-lg">
+                        <button onclick="toggleHint('h4_1')" class="w-full p-3 text-left font-semibold text-gray-700 hover:bg-gray-100 rounded-lg">🤔 <span data-i18n="h4_q">提示：如何推导∠FGE？</span></button>
+                        <div id="h4_1" class="hint-content"><span class="text-gray-600" data-i18n="h4_a">情况一：利用G点处射线排序 GF→GD→GA→GE，∠FGE=360°-108°-72°-36°=144°。情况二：A、G、F共线⇒∠GFE=∠GAE=36°，△EGF等腰⇒∠FGE=(180°-36°)/2=72°。</span></div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(3)" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-semibold transition-colors" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(5)" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold transition-colors" data-i18n="next">查看答案 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Answer -->
+        <div id="step5" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">6</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s5_title">答案与总结</h2>
+                </div>
+                <div class="answer-box p-6 rounded-lg text-center mb-6">
+                    <p class="text-2xl font-bold text-amber-800" data-i18n="s5_answer">∠FGE = 144°（FG=EG时）或 72°（FG=EF时）</p>
+                </div>
+                <div class="space-y-6 mb-6">
+                    <div class="overflow-hidden rounded-xl shadow-lg bg-blue-50 p-3">
+                        <p class="text-center font-bold text-blue-800 mb-2 text-lg" data-i18n="s5_case1_label">情况一：FG = EG</p>
+                        <img src="case1_detail.png" alt="Case 1: FG=EG" class="w-full max-w-3xl mx-auto">
+                    </div>
+                    <div class="overflow-hidden rounded-xl shadow-lg bg-green-50 p-3">
+                        <p class="text-center font-bold text-green-800 mb-2 text-lg" data-i18n="s5_case2_label">情况二：FG = EF</p>
+                        <img src="case2_detail.png" alt="Case 2: FG=EF" class="w-full max-w-3xl mx-auto">
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="font-bold text-blue-800 mb-2" data-i18n="s5_t1_title">🎯 解题关键</h3>
+                        <ul class="list-disc list-inside space-y-1 text-gray-700">
+                            <li data-i18n="s5_t1_l1">利用旋转构造全等三角形</li>
+                            <li data-i18n="s5_t1_l2">36°角的巧妙运用</li>
+                            <li data-i18n="s5_t1_l3">等腰三角形的分类讨论</li>
+                        </ul>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h3 class="font-bold text-green-800 mb-2" data-i18n="s5_t2_title">📐 角度关系</h3>
+                        <ul class="list-disc list-inside space-y-1 text-gray-700">
+                            <li data-i18n="s5_t2_l1">36°-72°-72°黄金三角形</li>
+                            <li data-i18n="s5_t2_l2">补角关系：108° = 180° - 72°</li>
+                            <li data-i18n="s5_t2_l3">等腰三角形底角相等</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-6 bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-gray-800 mb-2" data-i18n="s5_tags_title">📚 涉及知识点</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm" data-i18n="tag1">全等三角形（SAS）</span>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm" data-i18n="tag2">等腰三角形性质</span>
+                        <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm" data-i18n="tag3">旋转性质</span>
+                        <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm" data-i18n="tag4">角度计算</span>
+                        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm" data-i18n="tag5">分类讨论</span>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(4)" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-semibold transition-colors" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(0)" class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors" data-i18n="restart">🔄 重新学习</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentStep = 0;
+        const totalSteps = 6;
+        let currentLang = 'zh';
+
+        const i18n = {
+            zh: {
+                title: '009题：等腰三角形旋转问题',
+                progress: '进度:',
+                start: '开始解题 →',
+                prev: '← 上一步',
+                next: '下一步 →',
+                restart: '🔄 重新学习',
+                s0_title: '题目',
+                s0_p: '已知△ABC和△EDF都是等腰三角形，且△ABC ≅ △FED，顶角∠C = 36°，等腰△EDF的顶点D在AC边上滑动，点E在BA边的延长线上滑动。将线段DA绕点D逆时针旋转36°得到线段DG，连接EG、FG，若△EGF是以FG为腰的等腰三角形，则∠FGE = ______。',
+                s0_conds_title: '📋 已知条件梳理：',
+                s0_c1: '△ABC是等腰三角形，顶角∠C = 36°，底角∠A = ∠B = 72°',
+                s0_c2: '△EDF是等腰三角形，△ABC ≅ △FED，所以∠D = 36°，∠E = ∠F = 72°',
+                s0_c3: 'D在AC上，E在BA延长线上',
+                s0_c4: 'DA绕D逆时针旋转36°得到DG',
+                s0_c5: '△EGF是以FG为腰的等腰三角形',
+                s1_title: '分析三角形性质',
+                s1_hint_title: '💡 关键信息',
+                s1_hint: '从全等关系和等腰性质推导出所有角度。',
+                s1_abc_title: '△ABC中：',
+                s1_abc_l1: '∠C = 36°（顶角）',
+                s1_abc_l2: '∠A = ∠B = 72°（底角）',
+                s1_abc_l3: 'AC = BC',
+                s1_edf_title: '△EDF中：',
+                s1_edf_l1: '∠D = 36°（顶角）',
+                s1_edf_l2: '∠E = ∠F = 72°（底角）',
+                s1_edf_l3: 'ED = FD',
+                s1_note_title: '📝 注意对应关系',
+                s1_note: '△ABC ≅ △FED 意味着：A↔F, B↔E, C↔D',
+                h1_q: '提示：如何计算底角？',
+                h1_a: '等腰三角形底角 = (180° - 顶角) / 2 = (180° - 36°) / 2 = 72°',
+                s2_title: '寻找全等三角形',
+                s2_hint_title: '💡 核心突破',
+                s2_hint: 'DA旋转36°得到DG，而∠EDF = 36°，这提示我们可以构造全等！',
+                s2_proof_title: '证明 △ADE ≅ △GDF：',
+                s2_cond1: '条件1：',
+                s2_cond1_t: 'DA = DG（旋转性质）',
+                s2_cond2: '条件2：',
+                s2_cond2_t: 'DE = DF（等腰△EDF）',
+                s2_cond3: '条件3：',
+                s2_cond3_t: '∠ADE = ∠GDF',
+                s2_cond3_exp1: '∵ ∠ADG = 36° = ∠EDF',
+                s2_cond3_exp2: '∴ ∠ADG - ∠EDG = ∠EDF - ∠EDG',
+                s2_cond3_exp3: '即 ∠ADE = ∠GDF',
+                s2_conc: '∴ △ADE ≅ △GDF（SAS）',
+                s2_ded_title: '全等推论：',
+                s2_ded_l1: 'AE = GF',
+                s2_ded_l2: '∠DAE = ∠DGF',
+                h2_q: '提示：为什么∠ADE = ∠GDF？',
+                h2_a: '两个角都等于36°减去同一个角∠EDG，所以相等。',
+                s3_title: '计算∠DAE',
+                s3_hint_title: '💡 关键观察',
+                s3_hint: 'E在BA的延长线上，所以∠DAE与∠BAC互补。',
+                s3_calc_title: '计算过程：',
+                s3_calc_l1: '∵ E在BA的延长线上',
+                s3_calc_l2: '∴ ∠DAE = 180° - ∠BAC',
+                s3_calc_l3: '∵ ∠BAC = 72°',
+                s3_calc_l4: '∴ ∠DAE = 180° - 72° = 108°',
+                s3_ded_title: '推论：',
+                s3_ded: '由△ADE ≅ △GDF，得∠DGF = ∠DAE = 108°',
+                s4_title: '分析等腰△EGF',
+                s4_hint_title: '💡 分类讨论',
+                s4_hint: '"以FG为腰"意味着FG = EG 或 FG = EF，两种情况。',
+                s4_case1: '情况一：FG = EG',
+                s4_case1_l1: '∵ AE = GF（全等）且 FG = EG',
+                s4_case1_l2: '∴ AE = EG',
+                s4_case1_l3: '∠EAG = ∠DAE-∠DAG = 108°-72°=36°',
+                s4_case1_l4: 'AE=EG,△AEG顶角在E:∠AEG=108°,底角∠EAG=∠EGA=36°',
+                s4_case1_l5: '∠FGE = 360°-108°-72°-36° = 144°',
+                s4_case2: '情况二：FG = EF',
+                s4_case2_l1: '∵ AE = GF（全等）且 FG = EF',
+                s4_case2_l2: '∴ AE = EF（△AEF等腰）',
+                s4_case2_l3: '关键：A、G、F三点共线',
+                s4_case2_l4: '∴ ∠GFE = ∠AFE = ∠GAE',
+                s4_case2_l5: '∠GAE = ∠DAE−∠DAG = 108°−72° = 36°',
+                s4_case2_l6: '△EGF等腰⇒∠FGE=(180°−36°)/2 = 72°',
+                s4_conc: '情况一(FG=EG):∠FGE=144° | 情况二(FG=EF):∠FGE=72°',
+                h4_q: '提示：如何推导∠FGE？',
+                h4_a: '情况一：射线排序GF→GD→GA→GE，∠FGE=360°-108°-72°-36°=144°。情况二：A、G、F共线⇒∠GFE=∠GAE=36°，△EGF等腰⇒∠FGE=(180°-36°)/2=72°。',
+                s5_title: '答案与总结',
+                s5_answer: '∠FGE = 144°（FG=EG时）或 72°（FG=EF时）',
+                s5_case1_label: '情况一：FG = EG',
+                s5_case2_label: '情况二：FG = EF',
+                s5_t1_title: '🎯 解题关键',
+                s5_t1_l1: '利用旋转构造全等三角形',
+                s5_t1_l2: '36°角的巧妙运用',
+                s5_t1_l3: '等腰三角形的分类讨论',
+                s5_t2_title: '📐 角度关系',
+                s5_t2_l1: '36°-72°-72°黄金三角形',
+                s5_t2_l2: '补角关系：108° = 180° - 72°',
+                s5_t2_l3: '等腰三角形底角相等',
+                s5_tags_title: '📚 涉及知识点',
+                tag1: '全等三角形（SAS）',
+                tag2: '等腰三角形性质',
+                tag3: '旋转性质',
+                tag4: '角度计算',
+                tag5: '分类讨论'
+            },
+            en: {
+                title: 'Problem 009: Isosceles Triangle Rotation',
+                progress: 'Progress:',
+                start: 'Start →',
+                prev: '← Prev',
+                next: 'Next →',
+                restart: '🔄 Restart',
+                s0_title: 'Problem',
+                s0_p: 'Given isosceles triangles ABC and EDF with △ABC ≅ △FED, apex angle ∠C = 36°. Vertex D of isosceles △EDF slides along AC, and point E slides along the extension of BA. Rotate DA 36° counterclockwise around D to get DG, then connect EG and FG. If △EGF is isosceles with FG as a leg, find ∠FGE.',
+                s0_conds_title: '📋 Known Conditions:',
+                s0_c1: '△ABC is isosceles, ∠C = 36° (apex), ∠A = ∠B = 72° (base angles)',
+                s0_c2: '△EDF is isosceles, △ABC ≅ △FED, so ∠D = 36°, ∠E = ∠F = 72°',
+                s0_c3: 'D is on AC, E is on the extension of BA',
+                s0_c4: 'DA rotated 36° counterclockwise around D gives DG',
+                s0_c5: '△EGF is isosceles with FG as a leg',
+                s1_title: 'Triangle Properties',
+                s1_hint_title: '💡 Key Information',
+                s1_hint: 'Deduce all angles from congruence and isosceles properties.',
+                s1_abc_title: 'In △ABC:',
+                s1_abc_l1: '∠C = 36° (apex)',
+                s1_abc_l2: '∠A = ∠B = 72° (base angles)',
+                s1_abc_l3: 'AC = BC',
+                s1_edf_title: 'In △EDF:',
+                s1_edf_l1: '∠D = 36° (apex)',
+                s1_edf_l2: '∠E = ∠F = 72° (base angles)',
+                s1_edf_l3: 'ED = FD',
+                s1_note_title: '📝 Note on Correspondence',
+                s1_note: '△ABC ≅ △FED means: A↔F, B↔E, C↔D',
+                h1_q: 'Hint: How to find base angles?',
+                h1_a: 'Base angle = (180° - apex angle) / 2 = (180° - 36°) / 2 = 72°',
+                s2_title: 'Finding Congruent Triangles',
+                s2_hint_title: '💡 Key Breakthrough',
+                s2_hint: 'DA rotates 36° to get DG, and ∠EDF = 36° — this hints at congruence!',
+                s2_proof_title: 'Prove △ADE ≅ △GDF:',
+                s2_cond1: 'Condition 1:',
+                s2_cond1_t: 'DA = DG (rotation property)',
+                s2_cond2: 'Condition 2:',
+                s2_cond2_t: 'DE = DF (isosceles △EDF)',
+                s2_cond3: 'Condition 3:',
+                s2_cond3_t: '∠ADE = ∠GDF',
+                s2_cond3_exp1: '∵ ∠ADG = 36° = ∠EDF',
+                s2_cond3_exp2: '∴ ∠ADG - ∠EDG = ∠EDF - ∠EDG',
+                s2_cond3_exp3: 'i.e. ∠ADE = ∠GDF',
+                s2_conc: '∴ △ADE ≅ △GDF (SAS)',
+                s2_ded_title: 'Conclusions:',
+                s2_ded_l1: 'AE = GF',
+                s2_ded_l2: '∠DAE = ∠DGF',
+                h2_q: 'Hint: Why is ∠ADE = ∠GDF?',
+                h2_a: 'Both angles equal 36° minus the same angle ∠EDG, so they are equal.',
+                s3_title: 'Calculate ∠DAE',
+                s3_hint_title: '💡 Key Observation',
+                s3_hint: 'E is on the extension of BA, so ∠DAE and ∠BAC are supplementary.',
+                s3_calc_title: 'Calculation:',
+                s3_calc_l1: '∵ E is on the extension of BA',
+                s3_calc_l2: '∴ ∠DAE = 180° - ∠BAC',
+                s3_calc_l3: '∵ ∠BAC = 72°',
+                s3_calc_l4: '∴ ∠DAE = 180° - 72° = 108°',
+                s3_ded_title: 'Conclusion:',
+                s3_ded: 'From △ADE ≅ △GDF, ∠DGF = ∠DAE = 108°',
+                s4_title: 'Analyze Isosceles △EGF',
+                s4_hint_title: '💡 Case Analysis',
+                s4_hint: '"FG as a leg" means FG = EG or FG = EF.',
+                s4_case1: 'Case 1: FG = EG',
+                s4_case1_l1: '∵ AE = GF (congruence) and FG = EG',
+                s4_case1_l2: '∴ AE = EG',
+                s4_case1_l3: '∠EAG = ∠DAE-∠DAG = 108°-72°=36°',
+                s4_case1_l4: 'AE=EG, apex at E:∠AEG=108°, base ∠EAG=∠EGA=36°',
+                s4_case1_l5: '∠FGE = 360°-108°-72°-36° = 144°',
+                s4_case2: 'Case 2: FG = EF',
+                s4_case2_l1: '∵ AE = GF (congruence) and FG = EF',
+                s4_case2_l2: '∴ AE = EF (△AEF is isosceles)',
+                s4_case2_l3: 'Key: A, G, F are collinear',
+                s4_case2_l4: '∴ ∠GFE = ∠AFE = ∠GAE',
+                s4_case2_l5: '∠GAE = ∠DAE−∠DAG = 108°−72° = 36°',
+                s4_case2_l6: '△EGF isos⇒∠FGE=(180°−36°)/2 = 72°',
+                s4_conc: 'Case1(FG=EG):∠FGE=144° | Case2(FG=EF):∠FGE=72°',
+                h4_q: 'Hint: How to derive ∠FGE?',
+                h4_a: 'Case1: ray order GF→GD→GA→GE, ∠FGE=360°-108°-72°-36°=144°. Case2: A,G,F collinear⇒∠GFE=∠GAE=36°, △EGF isos⇒∠FGE=(180°-36°)/2=72°.',
+                s5_answer: '∠FGE = 144° (if FG=EG) or 72° (if FG=EF)',
+                s5_case1_label: 'Case 1: FG = EG',
+                s5_case2_label: 'Case 2: FG = EF',
+                s5_title: 'Answer & Summary',
+                s5_t1_title: '🎯 Key Steps',
+                s5_t1_l1: 'Use rotation to create congruent triangles',
+                s5_t1_l2: 'Clever use of the 36° angle',
+                s5_t1_l3: 'Case analysis for isosceles triangles',
+                s5_t2_title: '📐 Angle Relations',
+                s5_t2_l1: '36°-72°-72° golden triangle',
+                s5_t2_l2: 'Supplementary: 108° = 180° - 72°',
+                s5_t2_l3: 'Equal base angles in isosceles triangles',
+                s5_tags_title: '📚 Knowledge Points',
+                tag1: 'Congruence (SAS)',
+                tag2: 'Isosceles Triangle',
+                tag3: 'Rotation',
+                tag4: 'Angle Calculation',
+                tag5: 'Case Analysis'
+            }
+        };
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+            document.getElementById('langZh').classList.toggle('active', lang === 'zh');
+            document.getElementById('langZh').classList.toggle('text-gray-600', lang !== 'zh');
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            document.getElementById('langEn').classList.toggle('text-gray-600', lang !== 'en');
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang][key] !== undefined) {
+                    el.innerHTML = i18n[lang][key];
+                }
+            });
+        }
+
+        function toggleHint(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('show');
+        }
+
+        function updateProgress() {
+            const progress = ((currentStep + 1) / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressText').textContent = (currentStep + 1) + '/' + totalSteps;
+        }
+
+        function goToStep(step) {
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.remove('visible');
+                card.style.display = 'none';
+            });
+            const target = document.getElementById('step' + step);
+            target.style.display = 'block';
+            void target.offsetHeight;
+            target.classList.add('visible');
+            currentStep = step;
+            updateProgress();
+            window.scrollTo(0, 0);
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([target]);
+            }
+        }
+
+        window.onload = function() {
+            updateProgress();
+        };
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' && currentStep < totalSteps - 1) {
+                goToStep(currentStep + 1);
+            } else if (e.key === 'ArrowLeft' && currentStep > 0) {
+                goToStep(currentStep - 1);
+            }
+        });
+    </script>
+</body>
+</html>
