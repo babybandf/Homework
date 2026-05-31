@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Project fonts (large binary files)
+#font/*.ttc
+
+# Python
+__pycache__/
+*.pyc
