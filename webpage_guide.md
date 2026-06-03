@@ -1,7 +1,19 @@
 # 交互式网页生成规范
 
-> 本文档定义了解题过程中生成交互式HTML网页的完整技术规范。
-> 基于001/004等实际项目验证的最佳实践。
+> ⚠️ 本文档为**实现细节参考**。硬性约束以 [AGENT.MD](AGENT.MD) 为准。
+
+## ⚠️ 本文档的 MUST 条款（其他为参考）
+
+- **M1** HTML MUST 从 `templates/_template.html` 复制后填充，MUST NOT 从零编写。
+- **M2** Header MUST 含双语切换按钮（id=`langZh`、`langEn`）+ `setLang()` 函数 + 完整 `i18n = { zh, en }` 字典。
+- **M3** 所有可见文本元素 MUST 带 `data-i18n="..."` 属性；新增键 MUST 同时在 `zh` 与 `en` 中填充。
+- **M4** MUST 含步骤卡片系统（`.step-card` + `goToStep`）+ 进度指示器（`N/总数`）+ 键盘 ←/→ 导航。
+- **M5** 每个解题关键步骤 MUST 提供 ≥ 2 个可展开提示问答。
+- **M6** 末尾 MUST 含思路梳理 / 总结页（最终答案 + 解题流程 + 知识点 + 解题技巧）。
+- **M7** MathJax / TailwindCSS / JSXGraph（如使用）MUST 通过 CDN 引入。
+
+---
+
 
 ## 技术栈
 

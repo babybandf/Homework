@@ -1,7 +1,18 @@
 # 几何图形绘制规范
 
-> 本文档定义了解题过程中生成几何图形的完整技术规范和最佳实践。
-> 默认使用 Python matplotlib，备选方案（JSXGraph、Manim）需用户明确指定。
+> ⚠️ 本文档为**实现细节参考**。硬性约束以 [AGENT.MD](AGENT.MD) 为准。
+
+## ⚠️ 本文档的 MUST 条款（其他为参考）
+
+- **M1** MUST 使用 Python matplotlib 输出 PNG。MUST NOT 用 SVG / Mermaid / ASCII / 内联 HTML 绘图替代。
+- **M2** 中文字体 MUST 通过 `font/STHeiti Medium.ttc` 以**绝对路径**加载（见下方"中文字体支持"章节）。
+- **M3** 坐标范围 MUST 在所有关键点计算完成后再设置，并留 10–20% 边距。
+- **M4** `draw_angle_arc` 调用 MUST 在上方加 `# ∠XXX at V` 注释标明实际几何角。
+- **M5** 脚本末尾 MUST 输出 `print("All figures generated successfully!")` 用于自检。
+- **M6** 备选方案（JSXGraph / Manim）仅当用户在本轮显式覆盖时启用。
+
+---
+
 
 ## 基本规范
 

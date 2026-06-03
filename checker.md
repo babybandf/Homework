@@ -55,3 +55,67 @@
   ├─ 逐一修复
   └─ 全部重新检查 → 通过 → 结束
 ```
+
+---
+
+## 自检报告模板（MUST，最终回复必须原样贴出）
+
+> 此模板由 [AGENT.MD](AGENT.MD) §R6 强制要求。
+> **每个**条目都 MUST 填写 `PASS` 或 `FAIL`（FAIL 必须附原因）。
+> MUST NOT 用 "全部通过 / OK / ✓" 等概括语代替逐项填写。
+
+```text
+=== 解题任务自检报告 ===
+题号: 0XX
+目录: math/0XX/
+
+[文件清单]
+- [ ] math/0XX/0XX_solution.md
+- [ ] math/0XX/0XX.html
+- [ ] math/0XX/geometry_figures.py
+- [ ] math/0XX/step*.png（列出全部，每个独立打勾）
+
+[R1 知识范围]
+  - 不超纲:                       PASS / FAIL（说明）
+
+[R2 技术栈合规]
+  - 使用 matplotlib 输出 PNG:     PASS / FAIL
+  - 中文字体走 font/ 绝对路径:    PASS / FAIL
+  - HTML 引入 Tailwind+MathJax:   PASS / FAIL
+  - Markdown 公式为纯文本:        PASS / FAIL
+
+[R3 文件齐全]
+  - 四类文件全部存在:             PASS / FAIL
+  - 无并列变体目录:               PASS / FAIL
+  - 命名符合附表:                 PASS / FAIL
+  - geometry_figures.py 可执行:   PASS / FAIL
+
+[R4 网页组件齐全]
+  - langZh / langEn 按钮:         PASS / FAIL
+  - i18n.zh 与 i18n.en 字典完整: PASS / FAIL
+  - 全部可见文本带 data-i18n:     PASS / FAIL（漏掉的 key 列表）
+  - 步骤卡片 + goToStep:          PASS / FAIL
+  - 进度指示器 + N/总数:          PASS / FAIL
+  - 键盘 ←/→ 导航:                PASS / FAIL
+  - 每步 ≥2 提示问答:             PASS / FAIL
+  - 末尾思路梳理页:               PASS / FAIL
+
+[R5 一致性]
+  - MD↔HTML 题目/步骤/公式/答案: PASS / FAIL
+  - 所有图片引用文件真实存在:     PASS / FAIL
+  - data-i18n 键全部有翻译:       PASS / FAIL
+
+[R7 模板溯源]
+  - 从 templates/ 骨架复制构建:   PASS / FAIL
+
+[结论]
+  全部 PASS ? YES / NO
+  若 NO，已修复并重新自检? YES / NO
+=== 报告结束 ===
+```
+
+### 报告判定规则
+
+- 必须 `[结论]` 行 = `YES` 且第二行 = `YES` 任务方可宣告完成。
+- 任一 FAIL：MUST 立即修复，然后**重新执行整张清单**并贴出新报告，旧报告保留以体现修复轨迹。
+- 缺少本报告 = 任务未完成。
