@@ -10,6 +10,216 @@
 - **M4** `draw_angle_arc` 调用 MUST 在上方加 `# ∠XXX at V` 注释标明实际几何角。
 - **M5** 脚本末尾 MUST 输出 `print("All figures generated successfully!")` 用于自检。
 - **M6** 备选方案（JSXGraph / Manim）仅当用户在本轮显式覆盖时启用。
+- **M7** 点名、线段名、角标、直角符号 MUST 保持清晰可读；MUST NOT 与线段、辅助线、点标记或其他标签明显重叠。
+- **M8** 关键辅助线（如角平分线、垂线、构造线）在交点附近 MUST 连续可见；若虚线节距导致视觉断裂，MUST 调整 dash pattern 或局部补短实线。
+- **M9** 点标记、标签、直角符号、辅助线 MUST 显式考虑图层顺序（`zorder`）；关键线段 MUST NOT 被点标记或直角符号盖住。
+- **M10** 所有可见图元（直角符号、角弧、等边 tick、标签偏移）MUST 按下方"绘图执行标准（G-标准）"以图幅 `L_ref` 归一，MUST NOT 直接写绝对坐标经验值。
+- **M11** 每张图 MUST 在绘图前 `set_active_auditor(auditor)`、绘图后 `check()`（模板提供，自动登记+bbox 感知）；`check()` 返回非空即 FAIL，MUST 修复到空列表后再保存。MUST NOT 把违规当 warning 打印后照常保存。
+- **M12** 每个 `step*.png` MUST 只显式高亮"该步骤新增/讨论"的几何对象；前置上下文（已在前一步建立的元素）MUST 用 `alpha ≤ 0.35` 淡显或省略。
+- **M13** 说明框 / 公式框 MUST 放在空白区（用 `place_legend_auto`），MUST NOT 压住几何；高亮已有线段 MUST 改造原线（加粗/变色/平行偏移），MUST NOT 叠加穿过端点的双向箭头。
+
+---
+
+## 绘图执行标准（G-标准，MUST，量化可执行）
+
+> 所有 G-标准都用图幅参考长度 `L_ref` 归一，避免在小图（短边=1）和大图（短边=10）上共用同一组绝对值。
+> MUST 在 `set_xlim` / `set_ylim` 之后再放置任何视觉元素；MUST 用工具函数 `compute_visual_scale(ax)` 取得 `L_ref`。
+
+```python
+def compute_visual_scale(ax):
+    """返回图幅参考长度 L_ref = min(xrange, yrange)。
+    MUST 在所有图元尺寸计算前调用。"""
+    x0, x1 = ax.get_xlim()
+    y0, y1 = ax.get_ylim()
+    return min(abs(x1 - x0), abs(y1 - y0))
+```
+
+### G1 直角符号 size
+
+- `size = 0.035 × L_ref`（推荐区间 `[0.025, 0.05] × L_ref`）。
+- MUST NOT 超过其所在两条线段中较短者的 **8%**。
+- `zorder` MUST ≤ 普通线段 zorder（即 ≤ 2），不得遮挡关键辅助线。
+
+### G2 角弧半径
+
+- 单角：`r ∈ [0.08, 0.14] × L_ref`，默认 `0.10 × L_ref`。
+- 同顶点多角分层：相邻两弧半径差 `Δr ≥ 0.05 × L_ref`。
+- 弧外标签距离弧的额外偏移：`0.045 × L_ref`。
+- 大角（>120°）取下限，小角（<30°）取上限以避免标签贴线。
+
+### G3 等边 tick
+
+- 单 tick 长度：`tick_len = 0.040 × L_ref`，且 MUST ≤ 该线段长度的 12%。
+- 多 tick（num_marks≥2）间距：`0.025 × L_ref`，单 tick 长度同步缩短为 `0.030 × L_ref` 以避免视觉过重。
+- tick 颜色第一组红、第二组绿、第三组橙（与等边语义一致即可）。
+
+### G4 点标记与点标签
+
+- 点标记 `markersize ≤ 5`（约 `0.006 × L_ref` 视觉半径）。
+- 点标签到点心距离 `d_label ∈ [0.04, 0.08] × L_ref`，默认 `0.055 × L_ref`。
+- 点标签 MUST 带白底 bbox（`facecolor='white', alpha=0.78`）。
+- 点标签方向选择 MUST 满足 G6 的避碰约束，禁止整张图共用一组 `dx, dy`。
+
+### G5 线段标签
+
+- 沿法向偏移 `offset ∈ [0.04, 0.08] × L_ref`，默认 `0.055 × L_ref`。
+- 偏移方向 MUST 取"远离其他线段"的一侧；若两侧都贴线，MUST 减小 offset 而不是改方向到两线之间。
+- 线段标签 MUST 带白底 bbox。
+
+### G5b 线段标签 MUST 贴近其主线段（防漂离）
+
+- 线段标签 bbox 到**其所标注的那条线段**的距离 MUST `≤ 0.12 × L_ref`。
+  超出即视为"漂离"——读者无法判断它标的是哪条线（auditor 报 `G5b`）。
+- 因此 `offset_ratio` 不得无脑放大来躲避碰撞；若标签既要躲开别的线（G6）又要贴近主线（G5b）发生冲突，
+  MUST 改用更短的引线/换标签位置，而不是把标签甩到远处。
+- `place_segment_label(...)` 会自动登记 `owner_seg`，auditor 据此判定 G5b，无需手动。
+
+### G6 几何避碰阈值（核心）
+
+定义"安全距离" `δ_safe = 0.025 × L_ref`。MUST 满足（auditor 用**真实 bbox 矩形**判定，非中心点）：
+
+| 对 | 距离要求 |
+|---|---|
+| 标签 bbox ↔ 任意非自身相关线段 | 矩形到线段距离 `≥ δ_safe` |
+| 标签 bbox ↔ 任意其他标签 bbox（G6b） | 矩形 MUST NOT 相交（含 `0.3·δ_safe` 外扩） |
+| 直角符号外缘 ↔ 任意非垂足相关线段 | `≥ 0.5·δ_safe` |
+| 角弧 ↔ 邻近角弧（同顶点） | 半径差 `Δr ≥ 0.05 × L_ref`（见 G2） |
+| 说明框 bbox ↔ 任意几何线段（G12） | 矩形到线段距离 `≥ δ_safe` |
+
+### G7 点群密集规则
+
+若任意两个被标注点 `P, Q` 满足 `|P − Q| < 0.15 × L_ref`：
+- 二者点标签方向（`dx, dy` 单位向量）夹角 MUST ≥ 90°；
+- 二者 MUST NOT 同时使用同一颜色文字框。
+- 推荐：先在脚本里写出 `cluster = {'D': (+1,-1), 'H': (-1,+1), 'O': (+1,+1)}`，再传给 `label_point`。
+
+### G7b 极密点群（< 5%·L_ref）禁止双标（MUST）
+
+- 若两个**几何上需要的**点 `P, Q` 在当前图坐标中 `|P − Q| < 0.05 × L_ref`（如 010 中 D 与 H2 仅相距 ~3.5%·L_ref）：
+  即便方向夹角 ≥ 90°，标签 bbox + 点标记仍会不可避免地视觉粘连，G7 不再够。
+- MUST 选其一：
+  1. 当前 step 只标注其中一个点（另一个不调用 `label_point`），或
+  2. 把另一个点 `alpha ≤ 0.35` 淡显（包括其点标记和标签），或
+  3. 用引线 callout 把其中一个标签拉到远处空白区。
+- auditor 已实现 G7b 自动检查；触发时 `check()` 会列出 `G7b extreme cluster ...`。
+
+### G8 zorder 分层（默认值，禁止跳层）
+
+| 层级 | 元素 |
+|---|---|
+| 1 | 区域填充、直角符号 |
+| 2 | 普通边、普通辅助线 |
+| 3 | 等边 tick、角弧 |
+| 4 | 关键辅助线虚线主体（如 `AO`） |
+| 5 | 关键辅助线"补缺"实线段、点标记 |
+| 6 | 文字标签（点名、线段名、角标） |
+
+### G9 字号约束
+
+- 顶点名：12–14。
+- 线段名 / 角标：10–12。
+- 标题：13–15。
+- 字号上限：`fontsize ≤ 28 × (L_ref / 总图幅短边像素长 inch)`，不要在小图上用 16+ 字号。
+
+### G10 步骤元素隔离
+
+- 每个 `step*.png` MUST 只**强调**当前步骤新增或讨论的几何对象。
+- 前置上下文（前一步已建立、当前步骤不直接讨论的元素）MUST 满足以下其一：
+  - `alpha ≤ 0.35` 淡显，或
+  - 直接省略（仅保留必要的形状骨架）。
+- 反例（010 step1）：同时画了 ∠A/∠B/∠C/AO/l/D/M/H/N/E 全部，导致 H/D/M 三点拥挤。
+
+### G11 自检（每张图必须执行，自动登记 + bbox 感知）
+
+> ⚠️ **教训（010 deepseek 重写）**：旧版 `LayoutAuditor` 是"手动登记制"——模型只 `add_point` 了点，
+> 没登记自由文字框 / 段标签 / 角标，于是 `check()` 报 0 违规却放过了真实重叠（假 PASS）。
+> 新版改为**自动登记 + 真实 bbox 矩形相交**，从源头消除"忘记登记"。
+
+> ⚠️ **教训补充（010 第二轮）**：DS 把 `LayoutAuditor` 创建在**绘图之后**，
+> 导致 `set_active_auditor(auditor)` 调用时所有 `label_point` / `place_segment_label`
+> / `annotate_box` 已经画完，自动登记从未触发，`auditor.texts` 永远是空——
+> `check()` 仍假 PASS。新增 **G0** 检查会立刻判 FAIL。
+
+- **G0 MUST 严格遵守的构造顺序**：
+
+  ```text
+  fig, ax = plt.subplots(...)
+  autoscale(ax, key_points)                # 先固定坐标范围
+  L = compute_visual_scale(ax)             # 再算 L_ref
+  auditor = LayoutAuditor(ax, name)        # ① 创建 auditor
+  set_active_auditor(auditor)              # ② 开启自动登记
+  draw_triangle / draw_aux_line / draw_ao  # ③ 在激活窗口内绘几何
+  draw_right_angle(...)                    #    （记住把返回 size 给 add_right_angle）
+  label_point / place_segment_label / draw_angle_arc(label=) / place_legend_auto
+  auditor.add_segment(... owner_points=...)# ④ 几何线段 / 直角符号手动登记
+  set_active_auditor(None)                 # ⑤ 关闭自动登记
+  violations = auditor.check()             # ⑥ 自检
+  assert not violations, violations
+  fig.savefig(...)                         # ⑦ 保存
+  ```
+
+  把 ① ② 放在 ③ 之后是常见错误——auditor 看不到任何文字，所有 G6/G6b/G7b/G14
+  会"假 PASS"。auditor 的 `check()` 已能识别"ax 上有文字 artist 但 auditor.texts 为空"
+  这种异常并报 G0。
+
+- 开启活动 auditor 后，`label_point` / `place_segment_label` / `draw_angle_arc(label=...)` / `annotate_box` 的文字**自动登记**，模型 MUST NOT 依赖手动登记每个标签。
+- 几何标记（线段 `add_segment`、直角符号 `add_right_angle`）仍 MUST 手动登记，因为它们不产生文字。
+- `check()` 用 matplotlib renderer 取得每段文字的**真实包围盒**，按矩形相交判断重叠（取代旧的中心点距离）。
+- **`check()` 返回非空即判 FAIL**：MUST 修复到返回空列表后再 `savefig`；MUST NOT 把违规当 warning 打印后照常保存。
+
+```python
+fig, ax = plt.subplots(...); autoscale(ax, key_points)
+L = compute_visual_scale(ax)
+auditor = LayoutAuditor(ax, 'step1')
+set_active_auditor(auditor)             # ★ 必须在所有 draw_*/label_* 之前
+draw_triangle(ax, A, B, C, names=('A','B','C'))
+sz = draw_right_angle(ax, H, (1,0), (0,1), scale=L)
+auditor.add_right_angle(H, sz)
+label_point(ax, A, 'A', direction=(-1, -1), scale=L)   # 文字自动登记
+# ... 其他绘图 ...
+set_active_auditor(None)
+violations = auditor.check()
+assert not violations, f'step1 layout VIOLATIONS: {violations}'
+```
+
+### G14 直角符号方框 ↔ 其他已标注点（MUST）
+
+- `draw_right_angle` 在 H 处占据约 `size × size` 的方形区域。
+- 该方形 MUST NOT 套住或贴近**另一个**已 `label_point` 的点（除 H 自身/重合垂足外）。
+- 命中即为 G14 违规，处理：减小 `size_ratio`（最低 0.025），或把另一点淡显，或选 G7b 的方案 1。
+
+### G6b 文字 ↔ 文字（bbox 矩形相交，MUST）
+
+- 任意两段文字的**真实包围盒** MUST NOT 相交（含 `0.3·δ_safe` 外扩）。
+- 这条专治"中心点不近但宽标签实际压住"的情况，如 `C(M)`、`△AHC≡△AHN`、`BN+CE=CD`。
+- auditor 已自动覆盖；模型只需保证 `check()` 无 G6b 项。
+
+### G12 说明框 / 公式框置于空白区（MUST）
+
+- 大注解框（全等结论框、公式框、图例）MUST NOT 与任何几何线段相交。
+- MUST 用 `place_legend_auto(ax, text, segments=[...], scale=L)` 自动在四角中选"离所有线段最远"的位置；或手动放在已验证为空白的区域。
+- MUST NOT 随手丢在图正中（010 step2 的 `△AHC≡△AHN` 框压住三角形/角弧/H 点即为反例）。
+- auditor 对 `is_box=True` 的文字做专门的 G12 检查。
+
+### G13 高亮已有线段：改造原线，不叠加箭头（MUST）
+
+- 高亮一条**已经画出**的线段（如 `CD`、`CE`、`BN`）时，MUST 通过以下手段之一：
+  - 加粗 / 改高亮色重画该线段；
+  - 或沿法向**平行偏移**一条高亮线，不覆盖原线。
+- MUST NOT 用 `ax.annotate('', xytext=..., arrowprops=dict(arrowstyle='<->'))` 在原线正上方叠加双向箭头——箭头会穿过端点（如 `D`、`H`）和其它标注，等于再加一层遮挡。
+- 反例（010 step3/step5）：CD/CE/BN 全用双向箭头叠加，箭头穿过 D/H 点。
+
+### G9 字号约束
+
+- 顶点名：12–14。
+- 线段名 / 角标：10–12。
+- 标题：13–15。
+- 字号上限：`fontsize ≤ 28 × (L_ref / 总图幅短边像素长 inch)`，不要在小图上用 16+ 字号。
+
+> 模板 `_template_geometry_figures.py` 已提供 `LayoutAuditor`（自动登记+bbox）、`compute_visual_scale`、
+> `set_active_auditor`、`annotate_box`、`place_legend_auto`。
+> 其他工具函数（`draw_right_angle` / `mark_equal_sides` / `place_segment_label` / `label_point` / `draw_angle_arc`）
+> MUST 通过 `scale=L_ref` 参数调用，不再接受写死的 0.18 / 0.08 类绝对值。
 
 ---
 
@@ -149,6 +359,164 @@ def label_vertices(ax, vertices_dict, triangle_points, offset=0.25):
             direction = direction / np.linalg.norm(direction) * offset
         ax.text(point[0] + direction[0], point[1] + direction[1], name,
                 ha='center', va='center', fontsize=14, fontweight='bold')
+```
+
+### 标注与图层避碰（011实践，后续默认遵循）
+
+这部分是 011 题里真实踩坑后总结出来的规则，默认适用于所有 `geometry_figures.py`。
+
+**问题类型清单**：
+
+- 点名压在线段上，例如 `N`、`H` 与蓝色直线重叠。
+- 线段名离目标线段太远，例如 `BN` 虽不重叠，但阅读时不容易判断归属。
+- 局部区域标签过密，例如 `D/H/O` 全部堆在垂足附近。
+- 直角符号盖住辅助线末端，导致 `AH` 或 `AO` 在交点附近看似断裂。
+- 虚线节距刚好落在关键点附近，造成“其实没被遮挡，但视觉上断掉”的错觉。
+
+**原则一：标签优先沿法向偏移，而不是固定只往上/下挪**
+
+线段名应沿线段法向偏移，这样既贴近对象，又不容易压线：
+
+```python
+def place_segment_label(ax, p1, p2, text, color, offset=0.24):
+    mid = (p1 + p2) / 2
+    d = p2 - p1
+    L = np.linalg.norm(d)
+    perp = np.array([-d[1], d[0]]) / (L + 1e-9)
+    if perp[1] < 0:
+        perp = -perp
+    ax.text(mid[0] + offset * perp[0], mid[1] + offset * perp[1], text,
+            color=color, ha='center', va='center', fontsize=12,
+            bbox=dict(facecolor='white', edgecolor='none', alpha=0.78, pad=0.12))
+```
+
+**经验值**：
+
+- 短线段标签（如 `BN`）偏移宜小，通常 `0.12 ~ 0.18`。
+- 中长线段标签（如 `CD`、`CE`）偏移可用 `0.22 ~ 0.30`。
+- 如果标签虽不重叠但“离得太远”，优先减小法向偏移，而不是改成别的方向。
+
+**原则二：点名与点本体分开处理，必要时单独指定偏移**
+
+不要指望一个统一的 `dx/dy` 适用于所有点。像 `D/H/O` 这种局部密集区，必须单独摆位。
+
+推荐做法：
+
+- `D`：优先放在点的右下或右侧，避开角平分线。
+- `H`：优先放在点的左下，避开直角符号和过点直线。
+- `O`：若只是表示在线 `AO` 上，不必紧贴 `D`；可沿 `AO` 再下移一段，避免与 `D/H` 扎堆。
+
+**011 的直接教训**：`D/H/O` 都靠近垂足区域时，不要只做“微调 0.03”；应先把三者职责分开，再决定谁靠近点、谁沿辅助线远离。
+
+**原则三：文字必须有白底容错层**
+
+对于点名、线段名、关键角标，默认使用浅白底文字框：
+
+```python
+TEXT_BOX = dict(facecolor='white', edgecolor='none', alpha=0.78, pad=0.12)
+ax.text(x, y, 'D', bbox=TEXT_BOX)
+```
+
+这不是美观问题，而是容错问题。示意图里线多、色多、交点密时，没有白底就很容易出现“明明没重合，但看不清”。
+
+**原则四：图层顺序必须显式写出，不要依赖 matplotlib 默认顺序**
+
+推荐图层：
+
+- 底层：填充区域、直角符号
+- 中层：普通边、普通辅助线、点标记
+- 上层：关键辅助线（如 `AO`）、高亮线段
+- 最上层：文字标签
+
+可直接按这个顺序控制：
+
+```python
+ax.plot(..., zorder=1)   # 直角符号
+ax.plot(..., zorder=2)   # 普通线
+ax.plot(..., zorder=4)   # 关键辅助线 AO
+ax.text(..., zorder=6)   # 标签
+```
+
+**011 的直接教训**：
+
+- 把 `AO` 提高图层仍不一定够，因为点标记本身也可能盖住 `AO`。
+- `H` 这种落在关键辅助线上的点，点标记层级应低于关键辅助线，文字层级再高于线。
+
+**原则五：虚线辅助线要额外检查“视觉断裂”**
+
+虚线有一个特有风险：
+
+- 实际上线没问题；
+- 但 dash gap 正好落在关键交点附近；
+- 用户会感觉“末端没画出来”。
+
+推荐做法二选一：
+
+1. 调整 `linestyle` / dash pattern，让空档不要落在关键点附近。
+2. 在关键点附近沿同方向补一小段实线。
+
+011 最稳定的方案是第 2 种：整条 `AO` 保持虚线，但在 `H` 附近补一小段实线，保证 `AH` 末端连续可见。
+
+```python
+def draw_ao(ax, A, D, H, ao_dir, color='#9b59b6'):
+    AO_end = A + 1.05 * (D - A)
+    ax.plot([A[0], AO_end[0]], [A[1], AO_end[1]],
+            color=color, linewidth=1.6, linestyle='--', zorder=4)
+    cap = 0.22
+    p_start = H - cap * ao_dir
+    p_end = H + cap * ao_dir
+    ax.plot([p_start[0], p_end[0]], [p_start[1], p_end[1]],
+            color=color, linewidth=1.8, zorder=5)
+```
+
+**原则六：直角符号不要压住关键辅助线**
+
+直角符号是“说明性标记”，不是主角。默认应满足：
+
+- 直角符号层级低于关键辅助线；
+- 直角符号大小只够表达垂直关系，不要大到侵占邻域；
+- 若直角符号与点名冲突，先保留点名和关键辅助线，再缩小或下沉直角符号。
+
+**原则六补充：所有几何线段 MUST 登记到 auditor（含辅助线/构造线）**
+
+> 这是和"忘记登记文字"同类的隐患：auditor 只能检查它知道的线段。
+
+- 三角形三边：用 `draw_triangle(ax, A, B, C, names=('A','B','C'))`，会自动登记三条边。
+- 关键辅助线 `AO`：用 `draw_ao(...)`（已自动登记），或显式传 `owners`。
+- 其它构造线/辅助线（如垂线 `l`、中线、延长线）：**MUST NOT 直接 `ax.plot` 画几何线**，
+  改用 `draw_aux_line(ax, p1, p2, owners={...})`，它在绘制的同时把线段登记给 auditor。
+- 反例：DeepSeek 在 010 用裸 `ax.plot` 画 `AO`/`l`，导致 `?` 角标恰好压在 `AO` 上而 auditor 报 0 违规。
+  根因不是"模型不小心"，而是"画几何线的入口没有强制登记"——已用 `draw_aux_line`/`draw_ao` 堵住。
+
+```python
+# ✅ 自动登记：
+draw_triangle(ax, A, B, C, names=('A', 'B', 'C'))   # 三边
+draw_ao(ax, A, D, H, ao_dir, scale=L)               # AO（默认 owners={'A','D'}）
+draw_aux_line(ax, B, foot, owners={'B', 'F'},        # 垂线 l 等
+              color='#e74c3c', linestyle='-')
+# ❌ 禁止：ax.plot([A[0],D[0]],[A[1],D[1]], '--')  # 几何线未登记，避碰检查失效
+```
+
+**原则七：每次改图后必须做“局部可读性复查”**
+
+不要只检查“图生成成功”。至少要人工复查以下项目：
+
+- `N/H/D/O` 是否压线。
+- 线段名是否明显对应到正确线段。
+- `AO`、垂线、构造线在关键点附近是否连续可见。
+- 改动一处后，是否在其他图引入回归（例如全局偏移影响 step1 但 step4 更差）。
+
+建议顺序：先看最拥挤的图（通常是 general proof figure / midpoint figure），再抽查其余图。
+
+**一个可复用的检查清单**：
+
+```text
+[ ] 点名不压线
+[ ] 线段名贴近目标线段
+[ ] D/H/O 等密集区域已疏开
+[ ] 直角符号不盖住关键辅助线
+[ ] 虚线在关键点附近不出现视觉断裂
+[ ] 调整后无跨图片回归
 ```
 
 ### 等边标记专业化

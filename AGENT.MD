@@ -26,6 +26,12 @@
 - 几何绘图：**Python matplotlib**，输出 PNG。
   - MUST NOT 用 SVG / Mermaid / ASCII art / 手绘文字示意 替代 PNG。
   - MUST NOT 把绘图代码内联在 HTML 里替代 `geometry_figures.py`。
+  - 生成的 PNG 中，点名/线段名/角标/直角符号 MUST 清晰可读；MUST NOT 与线段、虚线辅助线、点标记或其他标签发生明显遮挡或重叠。关键辅助线（如角平分线、垂线）在交点附近 MUST 连续可见，不得因虚线空档或图层顺序看似“断掉”。
+  - **MUST 遵循 [geometry_drawing_guide.md](geometry_drawing_guide.md) 的"绘图执行标准（G-标准）"**，所有视觉元素（直角符号尺寸、角弧半径、等边 tick、点/线标签偏移）MUST 按图幅参考长度 `L_ref` 归一；MUST NOT 直接写绝对坐标经验值（如 `size=0.18`、`offset=0.24`）。
+  - 每张图 MUST 在绘图前 `set_active_auditor(auditor)`、绘图后 `LayoutAuditor.check()`（自动登记全部文字 + 真实 bbox 相交判定）；`check()` 返回非空即 FAIL，MUST 修复到空列表后再保存，MUST NOT 把违规当 warning 打印后照常保存。**构造顺序 MUST 是**：`autoscale → compute_visual_scale → LayoutAuditor(...) → set_active_auditor(auditor) → 绘几何/标签 → set_active_auditor(None) → check()`，把 auditor 创建/激活放在绘图后会被新增 G0 自检立即判 FAIL（`auditor.texts` 为空但 ax 已有文字）。
+  - 说明框 / 公式框 MUST 用 `place_legend_auto` 放在空白区，MUST NOT 压住几何对象（G12）；高亮已有线段 MUST 改造原线（加粗/变色/平行偏移），MUST NOT 叠加穿过端点的双向箭头（G13）。
+  - 所有几何线段（含辅助线/构造线 AO、垂线 l 等）MUST 登记到 auditor：三边用 `draw_triangle(..., names=('A','B','C'))`，辅助线用 `draw_aux_line(ax,p1,p2,owners=...)` 或 `draw_ao(...)`；MUST NOT 用裸 `ax.plot` 画几何线（否则压在该线上的标签 auditor 查不到）。线段标签 MUST 贴近其主线段（距离 ≤ 0.12·`L_ref`），不得为躲避碰撞而把标签甩到远处（G5b）。
+  - 每个 `step*.png` MUST 只显式高亮当前步骤新增/讨论的几何对象；前置上下文 MUST 用 `alpha ≤ 0.35` 淡显或省略。
 - 网页：**TailwindCSS + MathJax 3 + JSXGraph 1.8.0**，全部通过 CDN 引入。
 - 中文字体：MUST 通过项目内 `font/STHeiti Medium.ttc` 以**绝对路径**加载（参见 [geometry_drawing_guide.md](geometry_drawing_guide.md) 字体章节）。
 - Markdown 公式：MUST 使用纯文本格式（如 `(1/2)`、`S△ABC`、`²`），MUST NOT 使用 `$...$` / `$$...$$`（HTML 内 MathJax 除外）。
@@ -85,6 +91,19 @@ HTML 文件 MUST 包含以下全部组件：
 ## 常见违规（出现即 FAIL）
 
 - ❌ 用 SVG / Mermaid / ASCII / Markdown 表格 替代 matplotlib PNG
+- ❌ 图片中标签与线段、虚线、直角符号、点标记明显重叠，或关键辅助线在交点附近看似断裂
+- ❌ 直角符号尺寸 > 图幅参考长度 `L_ref` 的 5%，或 > 最近邻线段长度的 8%（违反 G1）
+- ❌ 视觉元素用绝对坐标经验值（如 `size=0.18`、`offset=0.24`），未按 `L_ref` 归一（违反 G-标准前置规则）
+- ❌ 同一 `step*.png` 同时显示当前步骤无关的几何对象，且未做 `alpha ≤ 0.35` 淡显（违反 G10）
+- ❌ 局部点群（两点距离 < 0.15·`L_ref`）的标签方向夹角 < 90°（违反 G7）
+- ❌ 极密点群（< 0.05·`L_ref`）仍同时全 alpha 标注两个点，标签和点标记视觉粘连（违反 G7b）——MUST 只标一个 / 另一个淡显 / 用引线 callout
+- ❌ 直角符号方框套住或贴近另一个已标注点（违反 G14）——缩小 size_ratio 或淡显另一点
+- ❌ 说明框 / 公式框压住几何对象，未用 `place_legend_auto` 放到空白区（违反 G12）
+- ❌ 用双向箭头叠加在已有线段上做高亮，箭头穿过已标注点（违反 G13）
+- ❌ 几何辅助线/构造线（AO、垂线 l）用裸 `ax.plot` 绘制未登记，导致标签压在该线上但 auditor 未报警（违反原则六补充）
+- ❌ 线段标签漂离其主线段（距离 > 0.12·`L_ref`），读者无法判断它标的是哪条线（违反 G5b）
+- ❌ 几何图脚本未 `set_active_auditor` 自动登记，或 `check()` 返回非空仍直接保存（违反 G11）
+- ❌ `LayoutAuditor` 创建/激活在绘图**之后**调用，导致 `auditor.texts` 为空、所有 bbox 检查假 PASS（违反 G0；正确顺序：autoscale → 创建 auditor → set_active → 绘图 → set_active(None) → check）
 - ❌ 网页只有中文，没有 `setLang` / `data-i18n` / `langZh` / `langEn`
 - ❌ HTML 内嵌 LaTeX 公式但未引入 MathJax
 - ❌ Markdown 中 `![](stepX.png)` 引用了未生成的图片文件

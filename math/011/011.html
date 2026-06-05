@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">📐 011 - 角平分线与垂线的等量关系</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']],
+                   displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; }
+        .step-card { display: none; }
+        .step-card.visible { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .nav-btn { transition: all 0.3s ease; }
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .lang-btn { cursor: pointer; transition: all 0.2s; }
+        .lang-btn:hover { transform: scale(1.05); }
+        .lang-btn.active { background-color: #4f46e5; color: white; }
+        .hint-btn { transition: all 0.3s ease; cursor: pointer; }
+        .hint-btn:hover { transform: translateX(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .hint-content {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+        }
+        .hint-content.show { max-height: 500px; padding: 12px 16px; margin-top: 8px; }
+        .hint-correct { background: #d1fae5; border-left: 4px solid #10b981; border-radius: 0 8px 8px 0; }
+        .hint-wrong   { background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; }
+        .hint-neutral { background: #e0e7ff; border-left: 4px solid #6366f1; border-radius: 0 8px 8px 0; }
+        .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; transition: background 0.3s; }
+        .progress-dot.active { background: #4f46e5; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-2">
+            <h1 class="text-xl font-bold text-gray-800" data-i18n="title">📐 011 - 角平分线与垂线的等量关系</h1>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center bg-gray-100 rounded-full p-0.5">
+                    <button onclick="setLang('zh')" class="lang-btn active px-3 py-1 rounded-full text-xs font-medium" id="langZh">中文</button>
+                    <button onclick="setLang('en')" class="lang-btn px-3 py-1 rounded-full text-xs font-medium text-gray-600" id="langEn">EN</button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600" data-i18n="progress">进度:</span>
+                    <div class="flex space-x-1" id="progressDots"></div>
+                    <span id="progressText" class="text-sm font-medium text-gray-700 ml-2">1/7</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- step0：题目 -->
+        <div id="step0" class="step-card visible mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">📋</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s0_title">题目</h2>
+                </div>
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl p-6 text-base leading-relaxed">
+                    <p data-i18n="s0_problem">如图1，在 △ABC 中，∠ACB = 2∠B，∠BAC 的平分线 AO 交 BC 于点 D。点 H 为 AO 上一动点，过点 H 作直线 l ⊥ AO 于 H，分别交直线 AB、AC、BC 于 N、E、M。</p>
+                    <ul class="mt-4 space-y-2 list-none">
+                        <li data-i18n="s0_q1">(1) 当直线 l 经过点 C 时（如图2），求证：∠B = 2∠NMB；</li>
+                        <li data-i18n="s0_q2">(2) 当 M 是 BC 中点时，写出 CE 和 CD 之间的等量关系，并证明；</li>
+                        <li data-i18n="s0_q3">(3) 请直接写出 BN、CE、CD 之间的等量关系。</li>
+                    </ul>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow mt-6">
+                    <img src="step1_setup.png" alt="setup" class="w-full max-w-2xl mx-auto">
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- step1：思路概览 -->
+        <div id="step1" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">1</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s1_title">解题思路：两条主线</h2>
+                </div>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4 mb-4">
+                    <p class="font-semibold mb-2" data-i18n="s1_key1_h">🔑 主线 A：对称模型</p>
+                    <p data-i18n="s1_key1_b">AO 平分 ∠BAC，且 l ⊥ AO ⇒ N、E 关于 AO 对称 ⇒ <strong>AN = AE</strong>。</p>
+                </div>
+                <div class="bg-orange-50 border-l-4 border-orange-500 rounded-r-lg p-4 mb-4">
+                    <p class="font-semibold mb-2" data-i18n="s1_key2_h">🔑 主线 B：经典模型（截长补短）</p>
+                    <p data-i18n="s1_key2_b">∠ACB = 2∠B，AD 平分 ∠BAC ⇒ <strong>AB = AC + CD</strong>。</p>
+                </div>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h1_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h1_1_q">为什么 l ⊥ AO 一定能给 AN = AE？</span>
+                        </div>
+                        <div id="h1_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h1_1_a">✓ △ANH ≌ △AEH（ASA：∠NAH = ∠EAH，AH 公共，∠AHN = ∠AHE = 90°），所以对应边 AN = AE。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h1_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h1_2_q">"∠ACB = 2∠B"这个条件强不强？它能推出什么？</span>
+                        </div>
+                        <div id="h1_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h1_2_a">配上"AD 平分 ∠A"就能得到 AB = AC + CD。这是七年级"截长补短"的经典图形。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(2)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- step2：引理 AB = AC + CD -->
+        <div id="step2" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">2</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s2_title">引理：AB = AC + CD</h2>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow mb-4">
+                    <img src="step4b_lemma_AB_AC_CD.png" alt="lemma" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <p class="text-gray-700 mb-3" data-i18n="s2_setup">设 ∠B = β，则 ∠ACB = 2β，∠BAC = 180° − 3β。</p>
+
+                <div class="bg-orange-50 rounded-xl p-5">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s2_proof_h">证明（截长法）：在 AB 上截取 AF = AC，连 DF。</p>
+                    <ul class="space-y-2 text-gray-700 list-none">
+                        <li data-i18n="s2_l1">① △AFD ≌ △ACD（SAS：AF = AC，∠FAD = ∠CAD，AD 公共）</li>
+                        <li data-i18n="s2_l2">② 由全等得：DF = DC，∠AFD = ∠ACD = 2β</li>
+                        <li data-i18n="s2_l3">③ ∠AFD 是 △BFD 在 F 处的外角 ⇒ 2β = ∠B + ∠BDF = β + ∠BDF</li>
+                        <li data-i18n="s2_l4">④ 解得 ∠BDF = β = ∠B ⇒ △BDF 等腰 ⇒ BF = DF</li>
+                        <li data-i18n="s2_l5">⑤ 综合：BF = DF = DC，从而 AB = AF + FB = AC + DC</li>
+                    </ul>
+                    <p class="mt-4 font-bold text-orange-700 text-center text-lg" data-i18n="s2_concl">∴ AB = AC + CD ∎</p>
+                </div>
+
+                <div class="bg-gray-100 rounded-xl p-4 mt-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_1_q">为什么取 F 在 AB 上而不是别的位置？</span>
+                        </div>
+                        <div id="h2_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h2_1_a">✓ 因为我们想证 AB = AC + 某段，所以"截长"成 AC + FB，再设法证 FB 等于我们想要的 CD。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_2_q">外角定理在哪一步起了关键作用？</span>
+                        </div>
+                        <div id="h2_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h2_2_a">第③步。把 ∠AFD 看作 △BFD 的外角 ⇒ 2β = β + ∠BDF，得 ∠BDF = β = ∠B。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(3)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- step3：第(1)问 -->
+        <div id="step3" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">3</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s3_title">第(1)问：l 过 C 时，证 ∠B = 2∠NMB</h2>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow mb-4">
+                    <img src="step2_part1_throughC.png" alt="part1" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <p class="text-gray-700 mb-3" data-i18n="s3_obs">l 过 C ⇒ E = M = C。由对称模型，AN = AE = AC，所以 △ANC 是等腰三角形。</p>
+
+                <div class="overflow-hidden rounded-xl shadow mb-4">
+                    <img src="step2b_part1_proof.png" alt="part1 proof" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <div class="bg-orange-50 rounded-xl p-5">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s3_proof_h">证明：</p>
+                    <ul class="space-y-2 text-gray-700 list-none">
+                        <li data-i18n="s3_l1">① AN = AC ⇒ △ANC 等腰，∠ANC = ∠ACN</li>
+                        <li data-i18n="s3_l2">② △ANC 中：∠ANC + ∠ACN + ∠NAC = 180°，∠NAC = ∠BAC = 180° − 3β</li>
+                        <li data-i18n="s3_l3">③ ∴ ∠ANC = (180° − (180° − 3β)) / 2 = 3β/2</li>
+                        <li data-i18n="s3_l4">④ N 在线段 AB 内 ⇒ ∠BNC = 180° − ∠ANC = 180° − 3β/2</li>
+                        <li data-i18n="s3_l5">⑤ 在 △BNC 中：∠NCB = 180° − ∠B − ∠BNC = 180° − β − (180° − 3β/2) = β/2</li>
+                        <li data-i18n="s3_l6">⑥ M = C ⇒ ∠NMB = ∠NCB = β/2 = (1/2)∠B</li>
+                    </ul>
+                    <p class="mt-4 font-bold text-orange-700 text-center text-lg" data-i18n="s3_concl">∴ ∠B = 2∠NMB ∎</p>
+                </div>
+
+                <div class="bg-gray-100 rounded-xl p-4 mt-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h3_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h3_1_q">为什么 l 过 C 立刻得到 △ANC 等腰？</span>
+                        </div>
+                        <div id="h3_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h3_1_a">✓ 由对称模型 AN = AE，而 l 过 C 时 E = C，所以 AN = AC，△ANC 是等腰三角形（AO 是底 NC 的中垂线）。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h3_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h3_2_q">∠ANC 与 ∠BNC 是什么关系？</span>
+                        </div>
+                        <div id="h3_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h3_2_a">N 在线段 AB 上，A、B 在 N 异侧，所以 ∠ANC 与 ∠BNC 互为邻补角，两者之和为 180°。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(2)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(4)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- step4：第(3)问（先做恒等式 BN+CE=CD） -->
+        <div id="step4" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">4</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s4_title">先证恒等式：BN + CE = CD（第3问）</h2>
+                </div>
+
+                <p class="text-gray-700 mb-3" data-i18n="s4_lead">第 (3) 问看似最难，但其实是 (2) 的"母题"。先把它做出来，(2) 立刻可解。</p>
+
+                <div class="overflow-hidden rounded-xl shadow mb-4">
+                    <img src="step4_part3_general.png" alt="part3" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <div class="bg-orange-50 rounded-xl p-5">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s4_proof_h">证明（截长补短 + 对称）：</p>
+                    <p class="text-gray-700 mb-3" data-i18n="s4_construct">在 AB 上截取 AF = AC，连接 DF。</p>
+
+                    <div class="overflow-hidden rounded-xl shadow mb-4">
+                        <img src="step4c_part3_proof.png" alt="part3 proof with F" class="w-full max-w-2xl mx-auto">
+                    </div>
+
+                    <p class="font-semibold text-gray-800 mt-4 mb-2" data-i18n="s4_step1_h">第一步：BF = CD</p>
+                    <ul class="space-y-1 text-gray-700 list-none ml-2">
+                        <li data-i18n="s4_l1">① △AFD 与 △ACD：AF = AC，∠FAD = ∠CAD（角平分线），AD 公共 ⇒ △AFD ≌ △ACD（SAS）</li>
+                        <li data-i18n="s4_l2">② 由全等：DF = DC，∠AFD = ∠ACD = 2β</li>
+                        <li data-i18n="s4_l3">③ 外角定理：∠AFD = ∠B + ∠FDB ⇒ 2β = β + ∠FDB ⇒ ∠FDB = β = ∠B</li>
+                        <li data-i18n="s4_l4">④ ∴ △BDF 等腰，BF = DF = DC，即 BF = CD</li>
+                    </ul>
+
+                    <p class="font-semibold text-gray-800 mt-4 mb-2" data-i18n="s4_step2_h">第二步：NF = CE（用对称模型）</p>
+                    <ul class="space-y-1 text-gray-700 list-none ml-2">
+                        <li data-i18n="s4_l5">⑤ 由 AN = AE（对称模型）；F 在 N 与 A 之间（因 AF = AC ＜ AE = AN）</li>
+                        <li data-i18n="s4_l6">⑥ NF = AN − AF = AE − AC = CE，即 NF = CE</li>
+                    </ul>
+
+                    <p class="font-semibold text-gray-800 mt-4 mb-2" data-i18n="s4_step3_h">第三步：拼接</p>
+                    <ul class="space-y-1 text-gray-700 list-none ml-2">
+                        <li data-i18n="s4_l7">⑦ N、F 都在 AB 上，顺序 B—N—F—A，所以 BN + NF = BF</li>
+                        <li data-i18n="s4_l8">⑧ 代入：BN + CE = BF = CD</li>
+                    </ul>
+
+                    <p class="mt-4 font-bold text-orange-700 text-center text-lg" data-i18n="s4_concl">∴ BN + CE = CD ∎</p>
+                </div>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4 mt-4">
+                    <p data-i18n="s4_remark"><strong>注</strong>：本证法把三段的关系直接落到一条直线 AB 上的拼接 BN + NF = BF，比用代数式 (AB−AN)+(AE−AC) 两边相加更直观，也不必先单独证明引理 AB = AC + CD（本证法的第一步即为该引理的等价构造）。当 H 在 AO 不同位置使 N、E 落在不同区段时，相应得到 BN − CE = CD 等变体，思路一致。</p>
+                </div>
+
+                <div class="bg-gray-100 rounded-xl p-4 mt-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h4_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h4_1_q">为什么要在 AB 上截 AF = AC，而不是别的长度？</span>
+                        </div>
+                        <div id="h4_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h4_1_a">✓ 因为我们要把"两边的关系"集中到 AB 上：AF = AC 配合 AO 平分 ∠BAC 立刻得到 △AFD ≌ △ACD（截长补短模型），从而 BF = CD；再加上对称 AN = AE，NF 自动等于 CE。这样 BN、NF、BF 同在 AB 上拼起来。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h4_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h4_2_q">怎么判断点的顺序是 B—N—F—A？</span>
+                        </div>
+                        <div id="h4_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h4_2_a">由于 AC ＜ AE（E 在 CA 延长线上），所以 AF = AC ＜ AE = AN，即 F 比 N 离 A 更近、离 B 更远，故顺序为 B—N—F—A，BN + NF = BF。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(3)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(5)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- step5：第(2)问 -->
+        <div id="step5" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">5</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s5_title">第(2)问：M 中点时，CD = 2·CE</h2>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow mb-4">
+                    <img src="step3_part2_midpoint.png" alt="part2" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <div class="bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl p-6 text-center mb-4">
+                    <p class="text-lg" data-i18n="s5_concl_lead">结论</p>
+                    <p class="text-3xl font-bold mt-2" data-i18n="s5_concl">CD = 2·CE</p>
+                </div>
+
+                <p class="text-gray-700 mb-3" data-i18n="s5_strategy">策略：由恒等式 BN + CE = CD（第3问），只要再证 <strong>BN = CE</strong>，就能得到 2CE = CD。</p>
+
+                <div class="overflow-hidden rounded-xl shadow mb-4">
+                    <img src="step3b_part2_double_median.png" alt="double median" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <div class="bg-orange-50 rounded-xl p-5">
+                    <p class="font-semibold text-gray-800 mb-3" data-i18n="s5_proof_h">证明 BN = CE（倍长中线）：</p>
+                    <ul class="space-y-2 text-gray-700 list-none">
+                        <li data-i18n="s5_l1">① 延长 NM 至 G，使 MG = MN，连 CG</li>
+                        <li data-i18n="s5_l2">② △BNM ≌ △CGM（SAS：BM = CM 中点；∠BMN = ∠CMG 对顶角；NM = GM 构造）</li>
+                        <li data-i18n="s5_l3">③ ⇒ CG = BN，∠GCM = ∠NBM = β</li>
+                        <li data-i18n="s5_l4">④ 在 △ABD 中：∠ADB = 180° − β − (180° − 3β)/2 = 90° + β/2</li>
+                        <li data-i18n="s5_l5">⑤ l ⊥ AO ⇒ l 与 BC 在 M 处的夹角 = β/2，即 ∠NMB = ∠EMC = β/2</li>
+                        <li data-i18n="s5_l6">⑥ △BNM 中：∠BNM = 180° − β − β/2 = 180° − 3β/2 ⇒ ∠CGM = 180° − 3β/2</li>
+                        <li data-i18n="s5_l7">⑦ G、E 在直线 l 上 M 的两侧 ⇒ ∠CGE = 180° − ∠CGM = 3β/2</li>
+                        <li data-i18n="s5_l8">⑧ 在 △CEM 中：∠ECM = 180° − 2β（E 在 AC 延长线外），∠EMC = β/2 ⇒ ∠CEM = 3β/2</li>
+                        <li data-i18n="s5_l9">⑨ ∴ △CGE 中 ∠CGE = ∠CEG = 3β/2 ⇒ 等腰 ⇒ CG = CE</li>
+                        <li data-i18n="s5_l10">⑩ 综合 ③⑨：BN = CG = CE</li>
+                    </ul>
+                    <p class="mt-4 font-bold text-orange-700" data-i18n="s5_concl_step">代入 BN + CE = CD：CE + CE = CD ⇒ CD = 2·CE ∎</p>
+                </div>
+
+                <div class="bg-gray-100 rounded-xl p-4 mt-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h5_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h5_1_q">看到"中点"为什么想到倍长中线？</span>
+                        </div>
+                        <div id="h5_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h5_1_a">✓ 倍长中线把"中点"转化为对顶角的两个全等三角形，是把分散在两侧的边"搬到一起"的标准技巧。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h5_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h5_2_q">为什么不直接证明 BN = CE 而要绕道 CG？</span>
+                        </div>
+                        <div id="h5_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h5_2_a">BN 与 CE 在图中相距很远，不易找全等。倍长中线把 BN "复制"到 C 附近变成 CG，再用角度相等证 CG = CE。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(4)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(6)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- step6：思路梳理 -->
+        <div id="step6" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-emerald-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">🎯</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s6_title">思路梳理</h2>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-emerald-800 mb-3" data-i18n="s6_answer_label">最终答案</h3>
+                    <ul class="space-y-2 text-emerald-700 text-lg list-none">
+                        <li data-i18n="s6_a1">(1) <strong>∠B = 2∠NMB</strong></li>
+                        <li data-i18n="s6_a2">(2) <strong>CD = 2·CE</strong>（即 CE = CD/2）</li>
+                        <li data-i18n="s6_a3">(3) <strong>BN + CE = CD</strong></li>
+                    </ul>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="s6_flow_label">解题流程</h3>
+                <div class="flex flex-col space-y-2 mb-6">
+                    <div class="flex items-center"><div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">1</div><div class="ml-3 text-gray-700" data-i18n="s6_f1">识别两条主线：对称模型 AN = AE；经典模型 AB = AC + CD</div></div>
+                    <div class="w-0.5 h-3 bg-blue-300 ml-4"></div>
+                    <div class="flex items-center"><div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">2</div><div class="ml-3 text-gray-700" data-i18n="s6_f2">用截长法证明引理 AB = AC + CD</div></div>
+                    <div class="w-0.5 h-3 bg-blue-300 ml-4"></div>
+                    <div class="flex items-center"><div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">3</div><div class="ml-3 text-gray-700" data-i18n="s6_f3">第(1)问：l 过 C ⇒ E = C ⇒ AN = AC，等腰算角</div></div>
+                    <div class="w-0.5 h-3 bg-blue-300 ml-4"></div>
+                    <div class="flex items-center"><div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">4</div><div class="ml-3 text-gray-700" data-i18n="s6_f4">第(3)问恒等式：用 AN = AE 抵消，得 BN + CE = AB − AC = CD</div></div>
+                    <div class="w-0.5 h-3 bg-blue-300 ml-4"></div>
+                    <div class="flex items-center"><div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">5</div><div class="ml-3 text-gray-700" data-i18n="s6_f5">第(2)问：倍长中线证 BN = CE，再代入恒等式得 CD = 2·CE</div></div>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="s6_tags_label">知识点</h3>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag1">角平分线 + 垂线 → 对称</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag2">截长补短</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag3">倍长中线</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag4">三角形外角定理</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag5">等腰三角形判定</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag6">SAS / ASA 全等</span>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="s6_tips_label">解题技巧</h3>
+                <ul class="space-y-2 text-gray-700 list-none">
+                    <li data-i18n="s6_tip1">• <strong>看到角平分线 + 垂线</strong>：立即联想 AN = AE 对称。</li>
+                    <li data-i18n="s6_tip2">• <strong>看到 ∠C = 2∠B + 角平分线</strong>：立即联想 AB = AC + CD。</li>
+                    <li data-i18n="s6_tip3">• <strong>由特殊到一般</strong>：第(3)问的恒等式其实是母题，做完它会让(1)(2)瞬间清晰。</li>
+                    <li data-i18n="s6_tip4">• <strong>看到中点 + 跨三角形的边</strong>：尝试倍长中线。</li>
+                    <li data-i18n="s6_tip5">• <strong>位置讨论</strong>：N、E 在线段内还是延长线上会改变加减号方向，做题时画图明确。</li>
+                </ul>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(5)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="restart">重新开始 ↻</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let currentLang = 'zh';
+        const i18n = {
+            zh: {
+                title: '📐 011 - 角平分线与垂线的等量关系',
+                progress: '进度:',
+                prev: '← 上一步',
+                next: '下一步 →',
+                restart: '重新开始 ↻',
+                hint_label: '💭 思考问题',
+
+                s0_title: '题目',
+                s0_problem: '如图1，在 △ABC 中，∠ACB = 2∠B，∠BAC 的平分线 AO 交 BC 于点 D。点 H 为 AO 上一动点，过点 H 作直线 l ⊥ AO 于 H，分别交直线 AB、AC、BC 于 N、E、M。',
+                s0_q1: '(1) 当直线 l 经过点 C 时（如图2），求证：∠B = 2∠NMB；',
+                s0_q2: '(2) 当 M 是 BC 中点时，写出 CE 和 CD 之间的等量关系，并证明；',
+                s0_q3: '(3) 请直接写出 BN、CE、CD 之间的等量关系。',
+
+                s1_title: '解题思路：两条主线',
+                s1_key1_h: '🔑 主线 A：对称模型',
+                s1_key1_b: 'AO 平分 ∠BAC，且 l ⊥ AO ⇒ N、E 关于 AO 对称 ⇒ <strong>AN = AE</strong>。',
+                s1_key2_h: '🔑 主线 B：经典模型（截长补短）',
+                s1_key2_b: '∠ACB = 2∠B，AD 平分 ∠BAC ⇒ <strong>AB = AC + CD</strong>。',
+                h1_1_q: '为什么 l ⊥ AO 一定能给 AN = AE？',
+                h1_1_a: '✓ △ANH ≌ △AEH（ASA：∠NAH = ∠EAH，AH 公共，∠AHN = ∠AHE = 90°），所以对应边 AN = AE。',
+                h1_2_q: '"∠ACB = 2∠B"这个条件强不强？它能推出什么？',
+                h1_2_a: '配上"AD 平分 ∠A"就能得到 AB = AC + CD。这是七年级"截长补短"的经典图形。',
+
+                s2_title: '引理：AB = AC + CD',
+                s2_setup: '设 ∠B = β，则 ∠ACB = 2β，∠BAC = 180° − 3β。',
+                s2_proof_h: '证明（截长法）：在 AB 上截取 AF = AC，连 DF。',
+                s2_l1: '① △AFD ≌ △ACD（SAS：AF = AC，∠FAD = ∠CAD，AD 公共）',
+                s2_l2: '② 由全等得：DF = DC，∠AFD = ∠ACD = 2β',
+                s2_l3: '③ ∠AFD 是 △BFD 在 F 处的外角 ⇒ 2β = ∠B + ∠BDF = β + ∠BDF',
+                s2_l4: '④ 解得 ∠BDF = β = ∠B ⇒ △BDF 等腰 ⇒ BF = DF',
+                s2_l5: '⑤ 综合：BF = DF = DC，从而 AB = AF + FB = AC + DC',
+                s2_concl: '∴ AB = AC + CD ∎',
+                h2_1_q: '为什么取 F 在 AB 上而不是别的位置？',
+                h2_1_a: '✓ 因为我们想证 AB = AC + 某段，所以"截长"成 AC + FB，再设法证 FB 等于我们想要的 CD。',
+                h2_2_q: '外角定理在哪一步起了关键作用？',
+                h2_2_a: '第③步。把 ∠AFD 看作 △BFD 的外角 ⇒ 2β = β + ∠BDF，得 ∠BDF = β = ∠B。',
+
+                s3_title: '第(1)问：l 过 C 时，证 ∠B = 2∠NMB',
+                s3_obs: 'l 过 C ⇒ E = M = C。由对称模型，AN = AE = AC，所以 △ANC 是等腰三角形。',
+                s3_proof_h: '证明：',
+                s3_l1: '① AN = AC ⇒ △ANC 等腰，∠ANC = ∠ACN',
+                s3_l2: '② △ANC 中：∠ANC + ∠ACN + ∠NAC = 180°，∠NAC = ∠BAC = 180° − 3β',
+                s3_l3: '③ ∴ ∠ANC = (180° − (180° − 3β)) / 2 = 3β/2',
+                s3_l4: '④ N 在线段 AB 内 ⇒ ∠BNC = 180° − ∠ANC = 180° − 3β/2',
+                s3_l5: '⑤ 在 △BNC 中：∠NCB = 180° − ∠B − ∠BNC = 180° − β − (180° − 3β/2) = β/2',
+                s3_l6: '⑥ M = C ⇒ ∠NMB = ∠NCB = β/2 = (1/2)∠B',
+                s3_concl: '∴ ∠B = 2∠NMB ∎',
+                h3_1_q: '为什么 l 过 C 立刻得到 △ANC 等腰？',
+                h3_1_a: '✓ 由对称模型 AN = AE，而 l 过 C 时 E = C，所以 AN = AC，△ANC 是等腰三角形（AO 是底 NC 的中垂线）。',
+                h3_2_q: '∠ANC 与 ∠BNC 是什么关系？',
+                h3_2_a: 'N 在线段 AB 上，A、B 在 N 异侧，所以 ∠ANC 与 ∠BNC 互为邻补角，两者之和为 180°。',
+
+                s4_title: '先证恒等式：BN + CE = CD（第3问）',
+                s4_lead: '第 (3) 问看似最难，但其实是 (2) 的"母题"。先把它做出来，(2) 立刻可解。',
+                s4_proof_h: '证明（截长补短 + 对称）：',
+                s4_construct: '在 AB 上截取 AF = AC，连接 DF。',
+                s4_step1_h: '第一步：BF = CD',
+                s4_l1: '① △AFD 与 △ACD：AF = AC，∠FAD = ∠CAD（角平分线），AD 公共 ⇒ △AFD ≌ △ACD（SAS）',
+                s4_l2: '② 由全等：DF = DC，∠AFD = ∠ACD = 2β',
+                s4_l3: '③ 外角定理：∠AFD = ∠B + ∠FDB ⇒ 2β = β + ∠FDB ⇒ ∠FDB = β = ∠B',
+                s4_l4: '④ ∴ △BDF 等腰，BF = DF = DC，即 BF = CD',
+                s4_step2_h: '第二步：NF = CE（用对称模型）',
+                s4_l5: '⑤ 由 AN = AE（对称模型）；F 在 N 与 A 之间（因 AF = AC ＜ AE = AN）',
+                s4_l6: '⑥ NF = AN − AF = AE − AC = CE，即 NF = CE',
+                s4_step3_h: '第三步：拼接',
+                s4_l7: '⑦ N、F 都在 AB 上，顺序 B—N—F—A，所以 BN + NF = BF',
+                s4_l8: '⑧ 代入：BN + CE = BF = CD',
+                s4_concl: '∴ BN + CE = CD ∎',
+                s4_remark: '<strong>注</strong>：本证法把三段的关系直接落到一条直线 AB 上的拼接 BN + NF = BF，比用代数式 (AB−AN)+(AE−AC) 两边相加更直观，也不必先单独证明引理 AB = AC + CD（本证法的第一步即为该引理的等价构造）。当 H 在 AO 不同位置使 N、E 落在不同区段时，相应得到 BN − CE = CD 等变体，思路一致。',
+                h4_1_q: '为什么要在 AB 上截 AF = AC，而不是别的长度？',
+                h4_1_a: '✓ 因为我们要把"两边的关系"集中到 AB 上：AF = AC 配合 AO 平分 ∠BAC 立刻得到 △AFD ≌ △ACD（截长补短模型），从而 BF = CD；再加上对称 AN = AE，NF 自动等于 CE。这样 BN、NF、BF 同在 AB 上拼起来。',
+                h4_2_q: '怎么判断点的顺序是 B—N—F—A？',
+                h4_2_a: '由于 AC ＜ AE（E 在 CA 延长线上），所以 AF = AC ＜ AE = AN，即 F 比 N 离 A 更近、离 B 更远，故顺序为 B—N—F—A，BN + NF = BF。',
+
+                s5_title: '第(2)问：M 中点时，CD = 2·CE',
+                s5_concl_lead: '结论',
+                s5_concl: 'CD = 2·CE',
+                s5_strategy: '策略：由恒等式 BN + CE = CD（第3问），只要再证 <strong>BN = CE</strong>，就能得到 2CE = CD。',
+                s5_proof_h: '证明 BN = CE（倍长中线）：',
+                s5_l1: '① 延长 NM 至 G，使 MG = MN，连 CG',
+                s5_l2: '② △BNM ≌ △CGM（SAS：BM = CM 中点；∠BMN = ∠CMG 对顶角；NM = GM 构造）',
+                s5_l3: '③ ⇒ CG = BN，∠GCM = ∠NBM = β',
+                s5_l4: '④ 在 △ABD 中：∠ADB = 180° − β − (180° − 3β)/2 = 90° + β/2',
+                s5_l5: '⑤ l ⊥ AO ⇒ l 与 BC 在 M 处的夹角 = β/2，即 ∠NMB = ∠EMC = β/2',
+                s5_l6: '⑥ △BNM 中：∠BNM = 180° − β − β/2 = 180° − 3β/2 ⇒ ∠CGM = 180° − 3β/2',
+                s5_l7: '⑦ G、E 在直线 l 上 M 的两侧 ⇒ ∠CGE = 180° − ∠CGM = 3β/2',
+                s5_l8: '⑧ 在 △CEM 中：∠ECM = 180° − 2β（E 在 AC 延长线外），∠EMC = β/2 ⇒ ∠CEM = 3β/2',
+                s5_l9: '⑨ ∴ △CGE 中 ∠CGE = ∠CEG = 3β/2 ⇒ 等腰 ⇒ CG = CE',
+                s5_l10: '⑩ 综合 ③⑨：BN = CG = CE',
+                s5_concl_step: '代入 BN + CE = CD：CE + CE = CD ⇒ CD = 2·CE ∎',
+                h5_1_q: '看到"中点"为什么想到倍长中线？',
+                h5_1_a: '✓ 倍长中线把"中点"转化为对顶角的两个全等三角形，是把分散在两侧的边"搬到一起"的标准技巧。',
+                h5_2_q: '为什么不直接证明 BN = CE 而要绕道 CG？',
+                h5_2_a: 'BN 与 CE 在图中相距很远，不易找全等。倍长中线把 BN "复制"到 C 附近变成 CG，再用角度相等证 CG = CE。',
+
+                s6_title: '思路梳理',
+                s6_answer_label: '最终答案',
+                s6_a1: '(1) <strong>∠B = 2∠NMB</strong>',
+                s6_a2: '(2) <strong>CD = 2·CE</strong>（即 CE = CD/2）',
+                s6_a3: '(3) <strong>BN + CE = CD</strong>',
+                s6_flow_label: '解题流程',
+                s6_f1: '识别两条主线：对称模型 AN = AE；经典模型 AB = AC + CD',
+                s6_f2: '用截长法证明引理 AB = AC + CD',
+                s6_f3: '第(1)问：l 过 C ⇒ E = C ⇒ AN = AC，等腰算角',
+                s6_f4: '第(3)问恒等式：用 AN = AE 抵消，得 BN + CE = AB − AC = CD',
+                s6_f5: '第(2)问：倍长中线证 BN = CE，再代入恒等式得 CD = 2·CE',
+                s6_tags_label: '知识点',
+                tag1: '角平分线 + 垂线 → 对称',
+                tag2: '截长补短',
+                tag3: '倍长中线',
+                tag4: '三角形外角定理',
+                tag5: '等腰三角形判定',
+                tag6: 'SAS / ASA 全等',
+                s6_tips_label: '解题技巧',
+                s6_tip1: '• <strong>看到角平分线 + 垂线</strong>：立即联想 AN = AE 对称。',
+                s6_tip2: '• <strong>看到 ∠C = 2∠B + 角平分线</strong>：立即联想 AB = AC + CD。',
+                s6_tip3: '• <strong>由特殊到一般</strong>：第(3)问的恒等式其实是母题，做完它会让(1)(2)瞬间清晰。',
+                s6_tip4: '• <strong>看到中点 + 跨三角形的边</strong>：尝试倍长中线。',
+                s6_tip5: '• <strong>位置讨论</strong>：N、E 在线段内还是延长线上会改变加减号方向，做题时画图明确。'
+            },
+            en: {
+                title: '📐 011 - Angle Bisector & Perpendicular Line',
+                progress: 'Progress:',
+                prev: '← Prev',
+                next: 'Next →',
+                restart: 'Restart ↻',
+                hint_label: '💭 Think about it',
+
+                s0_title: 'Problem',
+                s0_problem: 'In △ABC, ∠ACB = 2∠B. AO bisects ∠BAC and meets BC at D. H is a moving point on AO; line l through H is perpendicular to AO and meets lines AB, AC, BC at N, E, M respectively.',
+                s0_q1: '(1) When l passes through C (Fig. 2), prove ∠B = 2∠NMB;',
+                s0_q2: '(2) When M is the midpoint of BC, find and prove the relation between CE and CD;',
+                s0_q3: '(3) State the relation between BN, CE, CD.',
+
+                s1_title: 'Two main ideas',
+                s1_key1_h: '🔑 Idea A: Symmetry model',
+                s1_key1_b: 'AO bisects ∠BAC and l ⊥ AO ⇒ N, E are symmetric about AO ⇒ <strong>AN = AE</strong>.',
+                s1_key2_h: '🔑 Idea B: Classic model (cut-long)',
+                s1_key2_b: '∠ACB = 2∠B and AD bisects ∠BAC ⇒ <strong>AB = AC + CD</strong>.',
+                h1_1_q: 'Why does l ⊥ AO give AN = AE?',
+                h1_1_a: '✓ △ANH ≌ △AEH (ASA: ∠NAH = ∠EAH, AH common, ∠AHN = ∠AHE = 90°), so AN = AE.',
+                h1_2_q: 'Is "∠ACB = 2∠B" a strong condition? What does it imply?',
+                h1_2_a: 'Combined with "AD bisects ∠A" it gives AB = AC + CD — a classic 7th-grade cut-long figure.',
+
+                s2_title: 'Lemma: AB = AC + CD',
+                s2_setup: 'Let ∠B = β, then ∠ACB = 2β and ∠BAC = 180° − 3β.',
+                s2_proof_h: 'Proof (cut-long): on AB take F with AF = AC, connect DF.',
+                s2_l1: '① △AFD ≌ △ACD (SAS: AF = AC, ∠FAD = ∠CAD, AD common)',
+                s2_l2: '② So DF = DC and ∠AFD = ∠ACD = 2β',
+                s2_l3: '③ ∠AFD is exterior angle of △BFD at F ⇒ 2β = ∠B + ∠BDF = β + ∠BDF',
+                s2_l4: '④ Hence ∠BDF = β = ∠B ⇒ △BDF isoceles ⇒ BF = DF',
+                s2_l5: '⑤ So BF = DF = DC and AB = AF + FB = AC + DC',
+                s2_concl: '∴ AB = AC + CD ∎',
+                h2_1_q: 'Why pick F on AB rather than elsewhere?',
+                h2_1_a: '✓ We want AB = AC + (something), so we cut AB into AC + FB and prove FB = CD.',
+                h2_2_q: 'Where does the exterior angle theorem matter?',
+                h2_2_a: 'In step ③: viewing ∠AFD as exterior angle of △BFD gives 2β = β + ∠BDF.',
+
+                s3_title: 'Part (1): l through C ⇒ ∠B = 2∠NMB',
+                s3_obs: 'l through C ⇒ E = M = C. By symmetry AN = AE = AC, so △ANC is isoceles.',
+                s3_proof_h: 'Proof:',
+                s3_l1: '① AN = AC ⇒ △ANC isoceles, ∠ANC = ∠ACN',
+                s3_l2: '② In △ANC: ∠ANC + ∠ACN + ∠NAC = 180°, ∠NAC = 180° − 3β',
+                s3_l3: '③ ∴ ∠ANC = (180° − (180° − 3β)) / 2 = 3β/2',
+                s3_l4: '④ N on segment AB ⇒ ∠BNC = 180° − 3β/2',
+                s3_l5: '⑤ In △BNC: ∠NCB = 180° − β − (180° − 3β/2) = β/2',
+                s3_l6: '⑥ M = C ⇒ ∠NMB = ∠NCB = β/2 = (1/2)∠B',
+                s3_concl: '∴ ∠B = 2∠NMB ∎',
+                h3_1_q: 'Why is △ANC isoceles when l passes through C?',
+                h3_1_a: '✓ Symmetry gives AN = AE; l through C means E = C, so AN = AC.',
+                h3_2_q: 'How are ∠ANC and ∠BNC related?',
+                h3_2_a: 'N is on segment AB so A and B are on opposite sides of N ⇒ supplementary, sum 180°.',
+
+                s4_title: 'Identity first: BN + CE = CD (Part 3)',
+                s4_lead: 'Part (3) is actually the parent problem of (2). Solve it first.',
+                s4_proof_h: 'Proof (cut-and-paste + symmetry):',
+                s4_construct: 'On AB take F with AF = AC, and join DF.',
+                s4_step1_h: 'Step 1: BF = CD',
+                s4_l1: '① In △AFD vs △ACD: AF = AC, ∠FAD = ∠CAD (bisector), AD common ⇒ △AFD ≌ △ACD (SAS)',
+                s4_l2: '② From the congruence: DF = DC and ∠AFD = ∠ACD = 2β',
+                s4_l3: '③ Exterior angle: ∠AFD = ∠B + ∠FDB ⇒ 2β = β + ∠FDB ⇒ ∠FDB = β = ∠B',
+                s4_l4: '④ ∴ △BDF is isoceles, BF = DF = DC, i.e. BF = CD',
+                s4_step2_h: 'Step 2: NF = CE (use the symmetry model)',
+                s4_l5: '⑤ AN = AE (symmetry); F lies between N and A since AF = AC ＜ AE = AN',
+                s4_l6: '⑥ NF = AN − AF = AE − AC = CE, i.e. NF = CE',
+                s4_step3_h: 'Step 3: combine',
+                s4_l7: '⑦ N and F are both on AB, in order B—N—F—A, so BN + NF = BF',
+                s4_l8: '⑧ Substitute: BN + CE = BF = CD',
+                s4_concl: '∴ BN + CE = CD ∎',
+                s4_remark: '<strong>Note</strong>: This proof collects the three lengths onto a single line AB as the concatenation BN + NF = BF, which is more visual than algebraically adding (AB − AN) + (AE − AC). It also avoids first proving the lemma AB = AC + CD separately — Step 1 is exactly the equivalent construction. With H placed differently, signs change to give variants such as BN − CE = CD, but the idea is the same.',
+                h4_1_q: 'Why cut AF = AC on AB, rather than some other length?',
+                h4_1_a: '✓ Because we want to bring the "two-side relation" onto AB: AF = AC plus AO bisecting ∠BAC immediately gives △AFD ≌ △ACD (the cut-and-paste model), so BF = CD; then symmetry AN = AE forces NF = CE. Now BN, NF, BF all lie on AB and concatenate.',
+                h4_2_q: 'How do we know the order is B—N—F—A?',
+                h4_2_a: 'Since AC ＜ AE (E lies past C), AF = AC ＜ AE = AN, so F is closer to A than N. Hence the order on AB is B—N—F—A and BN + NF = BF.',
+
+                s5_title: 'Part (2): M midpoint ⇒ CD = 2·CE',
+                s5_concl_lead: 'Conclusion',
+                s5_concl: 'CD = 2·CE',
+                s5_strategy: 'Strategy: by the identity BN + CE = CD, it suffices to show <strong>BN = CE</strong>.',
+                s5_proof_h: 'Proof BN = CE (double the median):',
+                s5_l1: '① Extend NM to G with MG = MN, connect CG',
+                s5_l2: '② △BNM ≌ △CGM (SAS: BM = CM midpoint; vertical angles; NM = GM)',
+                s5_l3: '③ ⇒ CG = BN, ∠GCM = ∠NBM = β',
+                s5_l4: '④ In △ABD: ∠ADB = 180° − β − (180° − 3β)/2 = 90° + β/2',
+                s5_l5: '⑤ l ⊥ AO ⇒ angle between l and BC at M = β/2, i.e. ∠NMB = ∠EMC = β/2',
+                s5_l6: '⑥ In △BNM: ∠BNM = 180° − 3β/2 ⇒ ∠CGM = 180° − 3β/2',
+                s5_l7: '⑦ G, E on opposite sides of M on line l ⇒ ∠CGE = 180° − ∠CGM = 3β/2',
+                s5_l8: '⑧ In △CEM: ∠ECM = 180° − 2β, ∠EMC = β/2 ⇒ ∠CEM = 3β/2',
+                s5_l9: '⑨ ∴ ∠CGE = ∠CEG = 3β/2 ⇒ △CGE isoceles ⇒ CG = CE',
+                s5_l10: '⑩ Combining ③⑨: BN = CG = CE',
+                s5_concl_step: 'Substitute into BN + CE = CD: CE + CE = CD ⇒ CD = 2·CE ∎',
+                h5_1_q: 'Why does "midpoint" suggest doubling the median?',
+                h5_1_a: '✓ Doubling the median turns "midpoint" into a pair of congruent triangles via vertical angles — the standard way to relocate a side.',
+                h5_2_q: 'Why detour through CG instead of proving BN = CE directly?',
+                h5_2_a: 'BN and CE are far apart and have no obvious congruence. Doubling the median copies BN to CG near C, then equal angles give CG = CE.',
+
+                s6_title: 'Summary',
+                s6_answer_label: 'Final Answers',
+                s6_a1: '(1) <strong>∠B = 2∠NMB</strong>',
+                s6_a2: '(2) <strong>CD = 2·CE</strong>',
+                s6_a3: '(3) <strong>BN + CE = CD</strong>',
+                s6_flow_label: 'Solution flow',
+                s6_f1: 'Identify two ideas: symmetry AN = AE; classic AB = AC + CD',
+                s6_f2: 'Prove the lemma AB = AC + CD by cut-long',
+                s6_f3: 'Part (1): l through C ⇒ E = C ⇒ AN = AC, isoceles angle chase',
+                s6_f4: 'Part (3) identity: cancel AN, AE to get BN + CE = AB − AC = CD',
+                s6_f5: 'Part (2): double the median to show BN = CE, then plug in to get CD = 2·CE',
+                s6_tags_label: 'Topics',
+                tag1: 'Bisector + Perpendicular ⇒ Symmetry',
+                tag2: 'Cut-long / Build-short',
+                tag3: 'Doubling the median',
+                tag4: 'Exterior angle theorem',
+                tag5: 'Isoceles triangle criterion',
+                tag6: 'SAS / ASA congruence',
+                s6_tips_label: 'Tips',
+                s6_tip1: '• <strong>Bisector + perpendicular</strong>: think AN = AE.',
+                s6_tip2: '• <strong>∠C = 2∠B + bisector</strong>: think AB = AC + CD.',
+                s6_tip3: '• <strong>Special from general</strong>: solve part (3) first, then (1)(2) trivialize.',
+                s6_tip4: '• <strong>Midpoint + two distant sides</strong>: try doubling the median.',
+                s6_tip5: '• <strong>Position matters</strong>: whether N, E lie inside segments or on extensions changes signs.'
+            }
+        };
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+            document.getElementById('langZh').classList.toggle('active', lang === 'zh');
+            document.getElementById('langZh').classList.toggle('text-gray-600', lang !== 'zh');
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            document.getElementById('langEn').classList.toggle('text-gray-600', lang !== 'en');
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang][key] !== undefined) {
+                    el.innerHTML = i18n[lang][key];
+                }
+            });
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        const TOTAL_STEPS = document.querySelectorAll('.step-card').length;
+        let currentStep = 0;
+
+        function goToStep(step) {
+            if (step < 0 || step >= TOTAL_STEPS) return;
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.remove('visible');
+                card.style.display = 'none';
+            });
+            const target = document.getElementById('step' + step);
+            target.style.display = 'block';
+            void target.offsetHeight;
+            target.classList.add('visible');
+            currentStep = step;
+            updateProgress();
+            window.scrollTo(0, 0);
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([target]);
+            }
+        }
+
+        function updateProgress() {
+            const dots = document.getElementById('progressDots');
+            dots.innerHTML = '';
+            for (let i = 0; i < TOTAL_STEPS; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot' + (i === currentStep ? ' active' : '');
+                dots.appendChild(dot);
+            }
+            document.getElementById('progressText').textContent = (currentStep + 1) + '/' + TOTAL_STEPS;
+        }
+
+        function toggleHint(id) {
+            document.getElementById(id).classList.toggle('show');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') goToStep(currentStep + 1);
+            if (e.key === 'ArrowLeft')  goToStep(currentStep - 1);
+        });
+
+        updateProgress();
+    </script>
+</body>
+</html>

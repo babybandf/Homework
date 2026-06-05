@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<!--
+  解题网页 - Problem 010
+  Built from templates/_template.html skeleton per AGENT.MD R7
+-->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">010 - 三角形中的角平分线与垂线</title>
+
+    <!-- TEMPLATE: 必需 CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']],
+                   displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; }
+        .step-card { display: none; }
+        .step-card.visible { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .nav-btn { transition: all 0.3s ease; }
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .lang-btn { cursor: pointer; transition: all 0.2s; }
+        .lang-btn:hover { transform: scale(1.05); }
+        .lang-btn.active { background-color: #4f46e5; color: white; }
+        .hint-btn { transition: all 0.3s ease; cursor: pointer; }
+        .hint-btn:hover { transform: translateX(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .hint-content {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+        }
+        .hint-content.show { max-height: 400px; padding: 12px 16px; margin-top: 8px; }
+        .hint-correct { background: #d1fae5; border-left: 4px solid #10b981; border-radius: 0 8px 8px 0; }
+        .hint-wrong   { background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; }
+        .hint-neutral { background: #e0e7ff; border-left: 4px solid #6366f1; border-radius: 0 8px 8px 0; }
+        .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; transition: background 0.3s; }
+        .progress-dot.active { background: #4f46e5; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- TEMPLATE: Sticky header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-800" data-i18n="title">010 - 三角形中的角平分线与垂线</h1>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center bg-gray-100 rounded-full p-0.5">
+                    <button onclick="setLang('zh')" class="lang-btn active px-3 py-1 rounded-full text-xs font-medium" id="langZh">CN</button>
+                    <button onclick="setLang('en')" class="lang-btn px-3 py-1 rounded-full text-xs font-medium text-gray-600" id="langEn">EN</button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600" data-i18n="progress">Progress:</span>
+                    <div class="flex space-x-1" id="progressDots"></div>
+                    <span id="progressText" class="text-sm font-medium text-gray-700 ml-2">1/9</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- Step 0: Problem -->
+        <div id="step0" class="step-card visible mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">0</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s0_title">Problem</h2>
+                </div>
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl p-6 text-lg leading-relaxed">
+                    <p data-i18n="s0_p1">在三角形ABC中，角ACB = 2 * 角B。射线AO平分角BAC，交BC于D。H是AO上一点。过H作直线l垂直于AO，分别交直线AB、AC、BC于N、E、M。</p>
+                    <p class="mt-3" data-i18n="s0_p2">(1) 当直线l经过点C时（如图2），求证：角B = 2 * 角NMB。</p>
+                    <p data-i18n="s0_p3">(2) 当M是BC中点时，写出CE和CD之间的等量关系，并证明。</p>
+                    <p data-i18n="s0_p4">(3) 请直接写出BN、CE、CD之间的等量关系。</p>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mt-6 mb-4">
+                    <img src="step0_problem_original.png" alt="Original Figure" class="w-full max-w-xl mx-auto">
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">Next -></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Basic Configuration -->
+        <div id="step1" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">1</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s1_title">Basic Configuration &amp; Angle Analysis</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step1_lines_and_points.png" alt="Step 1" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s1_text">设角B = beta。已知角ACB = 2 * 角B = 2beta。在三角形ABC中：角BAC = 180 - beta - 2beta = 180 - 3beta。AO平分角BAC，所以角BAO = 角CAO = (180 - 3beta)/2 = 90 - (3/2)beta。直线l垂直于AO于H。</p>
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">Think about it</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h1_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h1_1_q">Why does AO bisecting angle A imply symmetry about AO?</span>
+                        </div>
+                        <div id="h1_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h1_1_a">The angle bisector divides angle A into two equal parts. Any point on AO is equidistant from AB and AC. Reflecting across AO swaps AB with AC.</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h1_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h1_2_q">What angles does line l make with AB and AC?</span>
+                        </div>
+                        <div id="h1_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h1_2_a">Since l is perpendicular to AO (the angle bisector), l makes equal angles with AB and AC: both equal 90 - angle(A)/2 = 90 - (90 - 3beta/2) = 3beta/2.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev"><- Prev</button>
+                    <button onclick="goToStep(2)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">Next -></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Part (1) - Congruent Triangles -->
+        <div id="step2" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">2</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s2_title">Part (1): Congruent Triangles when l passes through C</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step1_part1_l_through_C.png" alt="l through C" class="w-full max-w-2xl mx-auto">
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s2_text">When l passes through C, C lies on l and also on BC, so M = C. Thus angle NMB = angle NCB.</p>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s2_text2">Proof: triangle AHC is congruent to triangle AHN (ASA). Reason: AH is common; angle AHC = angle AHN = 90 (l perpendicular to AO); angle CAH = angle NAH (AO bisects angle A). Therefore AN = AC and angle ACH = angle ANH.</p>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step2_part1_congruent.png" alt="Congruent triangles" class="w-full max-w-2xl mx-auto">
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s2_text3">In triangle ACN: AN = AC (isosceles). Angle CAN = 180 - 3beta. By interior sum: 2 * angle ACN + (180 - 3beta) = 180, so angle ACN = (3/2)beta. Then: angle NCB = angle ACB - angle ACN = 2beta - (3/2)beta = beta/2. Since M = C: angle NMB = angle NCB = beta/2. Therefore angle B = 2 * angle NMB. QED.</p>
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">Think about it</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_1_q">What ASA conditions are used for congruence?</span>
+                        </div>
+                        <div id="h2_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h2_1_a">1) AH = AH (common side). 2) angle AHC = angle AHN = 90 (perpendicular). 3) angle CAH = angle NAH (angle bisector).</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_2_q">How to compute angle ACN from the isosceles triangle ACN?</span>
+                        </div>
+                        <div id="h2_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h2_2_a">In isosceles triangle ACN: AN = AC, so base angles ACN = ANC. Vertex angle CAN = 180 - 3beta. Sum: angle CAN + 2 * angle ACN = 180, so angle ACN = 3beta/2.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev"><- Prev</button>
+                    <button onclick="goToStep(3)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">Next -></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Part (2) - Setup and AN = AE -->
+        <div id="step3" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">3</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s3_title">Part (2): Setup - Proving AN = AE</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step3_midpoint.png" alt="M midpoint" class="w-full max-w-2xl mx-auto">
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s3_text">When M is the midpoint of BC: BM = CM. First, we prove a general fact: for ANY position of H on AO (with l perpendicular to AO), AN = AE.</p>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s3_text2">Proof: In triangles AHN and AHE: AH = AH (common); angle AHN = angle AHE = 90 (l perpendicular to AO); angle HAN = angle HAE (AO bisects angle A). So triangle AHN is congruent to triangle AHE (ASA), giving AN = AE. This means N and E are symmetric about AO.</p>
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">Think about it</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h3_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h3_1_q">What is the geometric significance of AN = AE?</span>
+                        </div>
+                        <div id="h3_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h3_1_a">AN = AE means N and E are symmetric about AO. Reflecting N across the angle bisector gives E, and vice versa. H is the midpoint of NE.</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h3_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h3_2_q">If AN = AE, what are BN and CE in terms of AB, AC, and AN?</span>
+                        </div>
+                        <div id="h3_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h3_2_a">BN = AB - AN and CE = |AC - AN|. The exact expression depends on whether AN is between AB and AC, but BN + CE = AB - AC when M is on segment BC.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(2)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev"><- Prev</button>
+                    <button onclick="goToStep(4)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">Next -></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Part (2) - AN = (AB+AC)/2 -->
+        <div id="step4" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">4</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s4_title">Part (2): Proving AN = (AB + AC)/2 when M is midpoint</h2>
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s4_text">Draw perpendiculars from B, M, C to AO, with feet at B', H, C'. Since BB' is parallel to l is parallel to CC' (all perpendicular to AO) and M is the midpoint of BC, H is the midpoint of B'C'.</p>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s4_text2">Triangle ABB' is similar to triangle AHN: they share angle at A and both have a right angle. So AB'/AB = AH/AN. Similarly, triangle ACC' is similar to triangle AHE: AC'/AC = AH/AE = AH/AN. Hence AB' = AB * AH/AN and AC' = AC * AH/AN.</p>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s4_text3">Since H is the midpoint of B'C': AH = (AB' + AC')/2 = (AB + AC) * AH / (2 * AN). Cancel AH (AH > 0): 1 = (AB + AC) / (2 * AN). Therefore AN = AE = (AB + AC)/2. This is the key formula for the midpoint case!</p>
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">Think about it</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h4_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h4_1_q">Why is H the midpoint of B'C'?</span>
+                        </div>
+                        <div id="h4_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h4_1_a">Lines BB', l, and CC' are all parallel (all perpendicular to AO). M is the midpoint of BC. By the intercept theorem for parallel lines, the intersection of these parallel lines with AO preserves the midpoint ratio.</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h4_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h4_2_q">What does AN = (AB+AC)/2 tell us about CE?</span>
+                        </div>
+                        <div id="h4_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h4_2_a">Since AN > AC (because AB > AC), E is on the extension of AC past C. So CE = AN - AC = (AB + AC)/2 - AC = (AB - AC)/2.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(3)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev"><- Prev</button>
+                    <button onclick="goToStep(5)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">Next -></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Part (2) - Proving CD = AB - AC -->
+        <div id="step5" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">5</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s5_title">Part (2): Proving CD = AB - AC</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step4_prove_CD_AB_minus_AC.png" alt="CD = AB - AC" class="w-full max-w-2xl mx-auto">
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s5_text">Construct P on AB such that AP = AC. In triangles APD and ACD: AP = AC (construction); angle PAD = angle CAD (AO bisects angle A); AD = AD (common). So triangle APD is congruent to triangle ACD (SAS). Hence PD = CD and angle APD = angle ACD = 2beta.</p>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s5_text2">In triangle BPD: angle PBD = angle ABC = beta. Angle BPD = 180 - angle APD = 180 - 2beta. By interior sum: angle BDP = 180 - beta - (180 - 2beta) = beta. Since angle BDP = angle PBD = beta, triangle BPD is isosceles: BP = PD = CD.</p>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s5_text3">Since P is on AB with AP = AC: BP = AB - AP = AB - AC. Therefore CD = AB - AC. This beautiful result uses only SAS congruence and isosceles triangle reasoning!</p>
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">Think about it</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h5_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h5_1_q">Why does angle BDP = beta?</span>
+                        </div>
+                        <div id="h5_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h5_1_a">In triangle BPD: angle PBD = beta, angle BPD = 180 - 2beta. So angle BDP = 180 - beta - (180 - 2beta) = beta.</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h5_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h5_2_q">Why do we need to construct AP = AC on AB?</span>
+                        </div>
+                        <div id="h5_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h5_2_a">AP = AC allows us to use the angle bisector AD to create congruent triangles APD and ACD. This transfers the unknown CD to PD on a different line where we can use angle B = beta to find relationships.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(4)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev"><- Prev</button>
+                    <button onclick="goToStep(6)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">Next -></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Part (2) - Conclusion CD = 2CE -->
+        <div id="step6" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">6</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s6_title">Part (2): Conclusion - CD = 2CE</h2>
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s6_text">From Step 4: CE = AN - AC = (AB + AC)/2 - AC = (AB - AC)/2.</p>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s6_text2">From Step 5: CD = AB - AC.</p>
+                <br>
+                <div class="bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl p-6 text-center">
+                    <p class="text-xl mb-2" data-i18n="s6_text3">Therefore: CD = 2 * (AB - AC)/2 = 2 * CE</p>
+                    <p class="text-3xl font-bold mt-3" data-i18n="s6_answer">CD = 2CE</p>
+                </div>
+                <div class="bg-gray-100 rounded-xl p-4 mb-6 mt-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">Think about it</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h6_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h6_1_q">Can you verify CD = 2CE with a specific example?</span>
+                        </div>
+                        <div id="h6_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h6_1_a">Try angle B = 30, angle C = 60, angle A = 90. With AB = sqrt3, AC = 1: CD = sqrt3 - 1. CE = (sqrt3 - 1)/2 = CD/2. Verified!</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h6_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h6_2_q">What is BN in this case?</span>
+                        </div>
+                        <div id="h6_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h6_2_a">BN = AB - AN = AB - (AB+AC)/2 = (AB-AC)/2 = CE. So BN = CE = CD/2. This is a beautiful symmetric result!</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(5)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev"><- Prev</button>
+                    <button onclick="goToStep(7)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">Next -></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 7: Part (3) - BN + CE = CD -->
+        <div id="step7" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">7</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s7_title">Part (3): Relationship among BN, CE, CD</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step5_relation.png" alt="BN + CE = CD" class="w-full max-w-2xl mx-auto">
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s7_text">For valid configurations where M lies on segment BC: BN = AB - AN and CE = AN - AC (since AN is between AC and AB).</p>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s7_text2">BN + CE = (AB - AN) + (AN - AC) = AB - AC = CD.</p>
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl p-6 text-center">
+                    <p class="text-3xl font-bold" data-i18n="s7_answer">BN + CE = CD</p>
+                </div>
+                <p class="text-gray-700 leading-relaxed mt-4" data-i18n="s7_text3">This is a remarkably clean result! The sum of BN and CE always equals CD, regardless of H's position (as long as M is on BC). In the special case where M is the midpoint, BN = CE = CD/2.</p>
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">Think about it</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h7_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h7_1_q">Why is BN + CE = CD valid for all positions of H?</span>
+                        </div>
+                        <div id="h7_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h7_1_a">BN = AB - AN and CE = AN - AC (since AN is between AC and AB for valid M on BC). Their sum: (AB - AN) + (AN - AC) = AB - AC = CD. The AN terms cancel!</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h7_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h7_2_q">How does this relate to the results of parts (1) and (2)?</span>
+                        </div>
+                        <div id="h7_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h7_2_a">Part (2) is a special case of part (3): when M is midpoint, BN+CE=CD and BN=CE, so each equals CD/2. Part (1) has AN=AC, so CE=0, BN=CD.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(6)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev"><- Prev</button>
+                    <button onclick="goToStep(8)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">Next -></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 8: Summary -->
+        <div id="step8" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-emerald-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">8</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s8_title">Summary</h2>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-emerald-800 mb-3" data-i18n="s8_answer_label">Final Answers</h3>
+                    <p class="text-xl font-bold text-center text-emerald-700" data-i18n="s8_answer">(1) angle B = 2 * angle NMB<br>(2) CD = 2CE<br>(3) BN + CE = CD</p>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="s8_flow_label">Solution Flow</h3>
+                <div class="flex flex-col space-y-3 mb-6">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">1</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f1">Analyze angles: set angle B = beta, C = 2beta, A = 180-3beta</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">2</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f2">Use congruence (ASA) to prove AN = AE (symmetry about angle bisector)</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">3</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f3">For part (1): congruence + isosceles triangle -> angle B = 2 * angle NMB</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">4</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f4">For part (2): midpoint -> AN = (AB+AC)/2 via projections; construct P for CD = AB-AC</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">5</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f5">Combine: CE = (AB-AC)/2, CD = AB-AC -> CD = 2CE</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">6</div>
+                        <div class="ml-3 text-gray-700" data-i18n="s8_f6">Part (3): BN + CE = (AB-AN) + (AN-AC) = AB-AC = CD</div>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="s8_tags_label">Topics</h3>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag1">Congruent Triangles (ASA, SAS)</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag2">Isosceles Triangle</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag3">Angle Bisector</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag4">Interior Angle Sum</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag5">Midline / Parallel Lines</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag6">Auxiliary Construction</span>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="s8_tips_label">Key Techniques</h3>
+                <ul class="space-y-2 text-gray-700">
+                    <li data-i18n="s8_tip1">Symmetry about angle bisector: l perpendicular to AO gives AN = AE via ASA.</li>
+                    <li data-i18n="s8_tip2">Construct AP = AC: a classic trick to leverage the angle bisector, yielding CD = AB - AC.</li>
+                    <li data-i18n="s8_tip3">Projection method: perpendiculars to AO convert Midpoint M into midpoint H of B'C'.</li>
+                    <li data-i18n="s8_tip4">Segment addition: BN + CE simplifies to (AB - AN) + (AN - AC) = AB - AC, which is CD.</li>
+                </ul>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(7)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev"><- Prev</button>
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="restart">Restart</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let currentLang = 'zh';
+        const i18n = {
+            zh: {
+                title: '010 - 三角形中的角平分线与垂线',
+                progress: '进度:',
+                prev: '<- 上一步',
+                next: '下一步 ->',
+                restart: '重新开始',
+                hint_label: '思考问题',
+                s0_title: '题目',
+                s0_p1: '在三角形ABC中，角ACB = 2 * 角B。射线AO平分角BAC，交BC于D。H是AO上一点。过H作直线l垂直于AO，分别交直线AB、AC、BC于N、E、M。',
+                s0_p2: '(1) 当直线l经过点C时（如图2），求证：角B = 2 * 角NMB。',
+                s0_p3: '(2) 当M是BC中点时，写出CE和CD之间的等量关系，并证明。',
+                s0_p4: '(3) 请直接写出BN、CE、CD之间的等量关系。',
+                s1_title: '基本图形与角度分析',
+                s1_text: '设角B = beta。已知角ACB = 2 * 角B = 2beta。在三角形ABC中：角BAC = 180 - beta - 2beta = 180 - 3beta。AO平分角BAC，所以角BAO = 角CAO = (180 - 3beta)/2 = 90 - (3/2)beta。直线l垂直于AO于H。',
+                h1_1_q: '为什么AO平分角A意味着关于AO对称？',
+                h1_1_a: '角平分线将角A分成两个相等的部分。AO上的任意点到AB和AC的距离相等。沿AO反射可以将AB映射到AC。',
+                h1_2_q: '直线l与AB和AC的夹角是多少？',
+                h1_2_a: '由于l垂直于AO（角平分线），l与AB和AC的夹角相等：都等于90 - 角A/2 = 90 - (90 - 3beta/2) = 3beta/2。',
+                s2_title: '(1) 当l经过C时的全等三角形证明',
+                s2_text: '当l经过C时，C在l上，同时C在BC上，所以M = C。因此角NMB = 角NCB。',
+                s2_text2: '证明：三角形AHC全等于三角形AHN（ASA）。理由：AH是公共边；角AHC = 角AHN = 90（l垂直于AO）；角CAH = 角NAH（AO平分角A）。因此AN = AC且角ACH = 角ANH。',
+                s2_text3: '在三角形ACN中：AN = AC（等腰三角形）。角CAN = 180 - 3beta。由内角和：2 * 角ACN + (180 - 3beta) = 180，所以角ACN = (3/2)beta。因此角NCB = 角ACB - 角ACN = 2beta - (3/2)beta = beta/2。由于M = C：角NMB = 角NCB = beta/2。因此角B = 2 * 角NMB。证毕。',
+                h2_1_q: '全等证明用了哪三个条件（ASA）？',
+                h2_1_a: '1) AH = AH（公共边）。2) 角AHC = 角AHN = 90（垂直）。3) 角CAH = 角NAH（角平分线）。',
+                h2_2_q: '如何从等腰三角形ACN计算角ACN？',
+                h2_2_a: '在等腰三角形ACN中：AN = AC，底角相等：角ACN = 角ANC。顶角CAN = 180 - 3beta。内角和：角CAN + 2 * 角ACN = 180，所以角ACN = 3beta/2。',
+                s3_title: '(2) 准备工作 - 证明AN = AE',
+                s3_text: '当M是BC中点时：BM = CM。首先证明一个通用事实：对于AO上任意位置的H（l垂直于AO），都有AN = AE。',
+                s3_text2: '证明：在三角形AHN和AHE中：AH = AH（公共边）；角AHN = 角AHE = 90（l垂直于AO）；角HAN = 角HAE（AO平分角A）。所以三角形AHN全等于三角形AHE（ASA），得到AN = AE。这意味着N和E关于AO对称。',
+                h3_1_q: 'AN = AE的几何意义是什么？',
+                h3_1_a: 'AN = AE意味着N和E关于AO对称。将N沿角平分线反射得到E，反之亦然。H是NE的中点。',
+                h3_2_q: '已知AN = AE，BN和CE如何用AB、AC和AN表示？',
+                h3_2_a: 'BN = AB - AN，CE = |AC - AN|。具体表达式取决于AN是否在AB和AC之间，但对于M在线段BC上的情况：BN + CE = AB - AC。',
+                s4_title: '(2) 证明M为中点时 AN = (AB+AC)/2',
+                s4_text: '分别过B、M、C向AO作垂线，垂足为B\'、H、C\'。由于BB\'平行于l平行于CC\'（都垂直于AO），且M是BC的中点，所以H是B\'C\'的中点。',
+                s4_text2: '三角形ABB\'相似于三角形AHN：它们共角A，都有直角。所以AB\'/AB = AH/AN。同理，三角形ACC\'相似于三角形AHE：AC\'/AC = AH/AE = AH/AN。因此AB\' = AB * AH/AN，AC\' = AC * AH/AN。',
+                s4_text3: '由于H是B\'C\'的中点：AH = (AB\' + AC\')/2 = (AB + AC) * AH / (2 * AN)。约去AH（AH > 0）：1 = (AB + AC) / (2 * AN)。因此AN = AE = (AB + AC)/2。这是中点情况下的关键公式！',
+                h4_1_q: '为什么H是B\'C\'的中点？',
+                h4_1_a: '直线BB\'、l和CC\'都平行（都垂直于AO）。M是BC的中点。根据平行线截线段的性质，这些平行线与AO的交点保持中点比例关系。',
+                h4_2_q: 'AN = (AB+AC)/2对CE意味着什么？',
+                h4_2_a: '由于AN > AC（因为AB > AC），E在AC延长线（C的外侧）上。所以CE = AN - AC = (AB + AC)/2 - AC = (AB - AC)/2。',
+                s5_title: '(2) 证明CD = AB - AC',
+                s5_text: '在AB上取点P，使得AP = AC。在三角形APD和ACD中：AP = AC（作图）；角PAD = 角CAD（AO平分角A）；AD = AD（公共边）。所以三角形APD全等于三角形ACD（SAS）。因此PD = CD，角APD = 角ACD = 2beta。',
+                s5_text2: '在三角形BPD中：角PBD = 角ABC = beta。角BPD = 180 - 角APD = 180 - 2beta。由内角和：角BDP = 180 - beta - (180 - 2beta) = beta。由于角BDP = 角PBD = beta，三角形BPD是等腰三角形：BP = PD = CD。',
+                s5_text3: '由于P在AB上且AP = AC：BP = AB - AP = AB - AC。因此CD = AB - AC。这个漂亮的结果仅使用了SAS全等和等腰三角形推理！',
+                h5_1_q: '为什么角BDP = beta？',
+                h5_1_a: '在三角形BPD中：角PBD = beta，角BPD = 180 - 2beta。所以角BDP = 180 - beta - (180 - 2beta) = beta。',
+                h5_2_q: '为什么要在AB上构造AP = AC？',
+                h5_2_a: 'AP = AC使我们能利用角平分线AD构造全等三角形APD和ACD。这可以将未知的CD转移到另一条线上的PD，然后利用角B = beta找到三角形BPD中等腰的关系。',
+                s6_title: '(2) 结论 - CD = 2CE',
+                s6_text: '由步骤4：CE = AN - AC = (AB + AC)/2 - AC = (AB - AC)/2。',
+                s6_text2: '由步骤5：CD = AB - AC。',
+                s6_text3: '因此：CD = 2 * (AB - AC)/2 = 2 * CE',
+                s6_answer: 'CD = 2CE',
+                h6_1_q: '你能用一个具体例子验证CD = 2CE吗？',
+                h6_1_a: '取角B = 30，角C = 60，角A = 90。AB = sqrt3，AC = 1：CD = sqrt3 - 1。CE = (sqrt3 - 1)/2 = CD/2。验证正确！',
+                h6_2_q: '这种情况下BN是多少？',
+                h6_2_a: 'BN = AB - AN = AB - (AB+AC)/2 = (AB-AC)/2 = CE。所以BN = CE = CD/2。这是一个优美对称的结果！',
+                s7_title: '(3) BN、CE、CD之间的等量关系',
+                s7_text: '对于M在线段BC上的有效配置：BN = AB - AN，CE = AN - AC（因为AN在AC和AB之间）。',
+                s7_text2: 'BN + CE = (AB - AN) + (AN - AC) = AB - AC = CD。',
+                s7_answer: 'BN + CE = CD',
+                s7_text3: '这是一个非常简洁的结果！无论H在什么位置（只要M在BC上），BN + CE总是等于CD。在M是中点的特殊情况下，BN = CE = CD/2。',
+                h7_1_q: '为什么BN + CE = CD对H的所有位置都成立？',
+                h7_1_a: 'BN = AB - AN，CE = AN - AC（对于M在BC上的有效配置，AN在AC和AB之间）。它们的和：(AB - AN) + (AN - AC) = AB - AC = CD。AN项抵消了！',
+                h7_2_q: '这与第(1)(2)问的结果有什么关系？',
+                h7_2_a: '第(2)问是第(3)问的特例：当M是BC中点时，BN+CE=CD且BN=CE，所以每个都等于CD/2。第(1)问中AN=AC，所以CE=0，BN=CD。',
+                s8_title: '思路梳理',
+                s8_answer_label: '最终答案',
+                s8_answer: '(1) 角B = 2 * 角NMB<br>(2) CD = 2CE<br>(3) BN + CE = CD',
+                s8_flow_label: '解题流程',
+                s8_f1: '角度分析：设角B = beta，角C = 2beta，角A = 180-3beta',
+                s8_f2: '利用全等（ASA）证明AN = AE（关于角平分线的对称性）',
+                s8_f3: '(1)：全等三角形 + 等腰三角形 -> 角B = 2 * 角NMB',
+                s8_f4: '(2)：中点 -> 通过投影法得AN = (AB+AC)/2；构造P得CD = AB-AC',
+                s8_f5: '综合：CE = (AB-AC)/2，CD = AB-AC -> CD = 2CE',
+                s8_f6: '(3)：BN + CE = (AB - AN) + (AN - AC) = AB - AC = CD',
+                s8_tags_label: '知识点',
+                tag1: '全等三角形（ASA、SAS）',
+                tag2: '等腰三角形',
+                tag3: '角平分线',
+                tag4: '三角形内角和',
+                tag5: '中位线/平行线性质',
+                tag6: '辅助线构造',
+                s8_tips_label: '解题技巧',
+                s8_tip1: '关于角平分线的对称性：l垂直于AO，通过ASA可证AN = AE。',
+                s8_tip2: '构造AP = AC：经典技巧，利用角平分线得到CD = AB - AC。',
+                s8_tip3: '投影法：向AO作垂线，将中点M转换为B\'C\'的中点H。',
+                s8_tip4: '线段代数和：BN + CE = (AB - AN) + (AN - AC) = AB - AC = CD，AN项消去。'
+            },
+            en: {
+                title: '010 - Angle Bisector & Perpendicular in Triangle',
+                progress: 'Progress:',
+                prev: '<- Prev',
+                next: 'Next ->',
+                restart: 'Restart',
+                hint_label: 'Think about it',
+                s0_title: 'Problem',
+                s0_p1: 'In triangle ABC, angle ACB = 2 * angle B. Ray AO bisects angle BAC, meeting BC at D. H is a point on AO. Draw line l perpendicular to AO through H, intersecting lines AB, AC, BC at N, E, M respectively.',
+                s0_p2: '(1) When line l passes through C (Fig 2), prove: angle B = 2 * angle NMB.',
+                s0_p3: '(2) When M is the midpoint of BC, find the relationship between CE and CD, and prove it.',
+                s0_p4: '(3) Directly state the relationship among BN, CE, CD.',
+                s1_title: 'Basic Configuration & Angle Analysis',
+                s1_text: 'Let angle B = beta. Given angle ACB = 2beta. In triangle ABC: angle BAC = 180 - 3beta. AO bisects angle BAC: angle BAO = angle CAO = 90 - (3/2)beta. Line l is perpendicular to AO at H.',
+                h1_1_q: 'Why does AO bisecting angle A imply symmetry about AO?',
+                h1_1_a: 'The angle bisector splits angle A equally. Any point on AO is equidistant from AB and AC. Reflecting across AO swaps AB with AC.',
+                h1_2_q: 'What angles does line l make with AB and AC?',
+                h1_2_a: 'Since l is perpendicular to the angle bisector, it makes equal angles with AB and AC: both equal 90 - angle(A)/2 = 90 - (90 - 3beta/2) = 3beta/2.',
+                s2_title: 'Part (1): Congruent Triangles when l passes through C',
+                s2_text: 'When l passes through C, M = C, so angle NMB = angle NCB.',
+                s2_text2: 'Triangle AHC is congruent to triangle AHN (ASA): AH common; angle AHC = angle AHN = 90; angle CAH = angle NAH. Hence AN = AC and angle ACH = angle ANH.',
+                s2_text3: 'In isosceles triangle ACN: AN = AC. Angle CAN = 180 - 3beta. So 2*angle ACN + (180-3beta) = 180, giving angle ACN = 3beta/2. Then angle NCB = 2beta - 3beta/2 = beta/2. Since M=C: angle NMB = beta/2. Therefore angle B = 2 * angle NMB.',
+                h2_1_q: 'What are the three ASA conditions?',
+                h2_1_a: '1) AH = AH (common). 2) angle AHC = angle AHN = 90. 3) angle CAH = angle NAH (bisector).',
+                h2_2_q: 'How to compute angle ACN from isosceles triangle ACN?',
+                h2_2_a: 'AN = AC gives base angles ACN = ANC. Vertex CAN = 180 - 3beta. Sum: CAN + 2*ACN = 180, so ACN = 3beta/2.',
+                s3_title: 'Part (2): Setup - Proving AN = AE',
+                s3_text: 'When M is the midpoint of BC: BM = CM. First: for ANY H on AO, AN = AE.',
+                s3_text2: 'Triangles AHN and AHE: AH = AH; angle AHN = angle AHE = 90; angle HAN = angle HAE. So triangle AHN is congruent to triangle AHE (ASA), giving AN = AE. N and E are symmetric about AO.',
+                h3_1_q: 'What is the geometric meaning of AN = AE?',
+                h3_1_a: 'N and E are symmetric about AO. Reflecting N across the angle bisector gives E. H is the midpoint of NE.',
+                h3_2_q: 'With AN = AE, express BN and CE in terms of AB, AC, AN.',
+                h3_2_a: 'BN = AB - AN, CE = |AC - AN|. For M on segment BC: BN + CE = AB - AC.',
+                s4_title: 'Part (2): Proving AN = (AB+AC)/2 when M is midpoint',
+                s4_text: 'Draw perpendiculars from B, M, C to AO, feet B\', H, C\'. BB\' || l || CC\' with M midpoint of BC, so H is midpoint of B\'C\'.',
+                s4_text2: 'Triangle ABB\' is similar to triangle AHN: AB\'/AB = AH/AN. Triangle ACC\' is similar to triangle AHE: AC\'/AC = AH/AE = AH/AN. So AB\' = AB*AH/AN, AC\' = AC*AH/AN.',
+                s4_text3: 'Since H is midpoint of B\'C\': AH = (AB\'+AC\')/2 = (AB+AC)*AH/(2*AN). Cancel AH: 1 = (AB+AC)/(2*AN). Therefore AN = AE = (AB+AC)/2.',
+                h4_1_q: 'Why is H the midpoint of B\'C\'?',
+                h4_1_a: 'Lines BB\', l, CC\' are all parallel (perpendicular to AO). M is midpoint of BC. By the intercept theorem for parallel lines, H is the midpoint of B\'C\'.',
+                h4_2_q: 'What does AN = (AB+AC)/2 imply about CE?',
+                h4_2_a: 'Since AN > AC (because AB > AC), E lies on extension of AC beyond C. So CE = AN - AC = (AB+AC)/2 - AC = (AB-AC)/2.',
+                s5_title: 'Part (2): Proving CD = AB - AC',
+                s5_text: 'Construct P on AB with AP = AC. Triangles APD and ACD: AP=AC; angle PAD=angle CAD; AD=AD. So triangle APD is congruent to triangle ACD (SAS). Hence PD=CD, angle APD=2beta.',
+                s5_text2: 'In triangle BPD: angle PBD=beta. Angle BPD=180-2beta. Angle BDP=180-beta-(180-2beta)=beta. Since angle BDP=angle PBD=beta, triangle BPD is isosceles: BP=PD=CD.',
+                s5_text3: 'BP = AB - AP = AB - AC. Therefore CD = AB - AC.',
+                h5_1_q: 'Why is angle BDP = beta?',
+                h5_1_a: 'In triangle BPD, angle PBD=beta, angle BPD=180-2beta. So angle BDP=180-beta-(180-2beta)=beta.',
+                h5_2_q: 'Why construct AP = AC on AB?',
+                h5_2_a: 'This allows the angle bisector AD to create congruent triangles APD and ACD, transferring CD to PD on another line where angle B=beta can be used to find isosceles relationships.',
+                s6_title: 'Part (2): Conclusion - CD = 2CE',
+                s6_text: 'From Step 4: CE = AN - AC = (AB+AC)/2 - AC = (AB-AC)/2.',
+                s6_text2: 'From Step 5: CD = AB - AC.',
+                s6_text3: 'Therefore: CD = 2 * (AB-AC)/2 = 2 * CE',
+                s6_answer: 'CD = 2CE',
+                h6_1_q: 'Can you verify CD = 2CE with a concrete triangle?',
+                h6_1_a: 'Try angle B=30, C=60, A=90. With AB=sqrt3, AC=1: CD=sqrt3-1, CE=(sqrt3-1)/2=CD/2. Verified!',
+                h6_2_q: 'What is BN in this case?',
+                h6_2_a: 'BN = AB - AN = AB - (AB+AC)/2 = (AB-AC)/2 = CE. So BN = CE = CD/2. Beautiful symmetry!',
+                s7_title: 'Part (3): Relationship among BN, CE, CD',
+                s7_text: 'For valid configurations where M is on segment BC: BN = AB - AN, CE = AN - AC.',
+                s7_text2: 'BN + CE = (AB - AN) + (AN - AC) = AB - AC = CD.',
+                s7_answer: 'BN + CE = CD',
+                s7_text3: 'This is remarkably clean! For any H position (with M on BC), BN+CE always equals CD. In the special midpoint case, BN = CE = CD/2.',
+                h7_1_q: 'Why does BN+CE=CD hold for all H positions?',
+                h7_1_a: 'BN = AB - AN, CE = AN - AC. Sum: (AB-AN)+(AN-AC) = AB-AC = CD. The AN terms cancel!',
+                h7_2_q: 'How does this relate to parts (1) and (2)?',
+                h7_2_a: 'Part (2) is a special case: midpoint gives BN=CE, so each=CD/2. Part (1) has AN=AC, so CE=0, BN=CD.',
+                s8_title: 'Summary',
+                s8_answer_label: 'Final Answers',
+                s8_answer: '(1) angle B = 2 * angle NMB<br>(2) CD = 2CE<br>(3) BN + CE = CD',
+                s8_flow_label: 'Solution Flow',
+                s8_f1: 'Angle analysis: set B=beta, C=2beta, A=180-3beta',
+                s8_f2: 'Use ASA congruence to prove AN = AE (symmetry)',
+                s8_f3: '(1): Congruence + isosceles -> angle B = 2 * angle NMB',
+                s8_f4: '(2): Midpoint -> AN=(AB+AC)/2 via projections; construct P for CD=AB-AC',
+                s8_f5: 'Combine: CE=(AB-AC)/2, CD=AB-AC -> CD=2CE',
+                s8_f6: '(3): BN+CE=(AB-AN)+(AN-AC)=AB-AC=CD',
+                s8_tags_label: 'Topics',
+                tag1: 'Congruent Triangles (ASA, SAS)',
+                tag2: 'Isosceles Triangle',
+                tag3: 'Angle Bisector',
+                tag4: 'Interior Angle Sum',
+                tag5: 'Midline/Parallel Lines',
+                tag6: 'Auxiliary Construction',
+                s8_tips_label: 'Key Techniques',
+                s8_tip1: 'Symmetry about angle bisector: l perp AO => AN = AE via ASA.',
+                s8_tip2: 'Construct AP = AC: classic trick, yields CD = AB - AC.',
+                s8_tip3: 'Projection: perpendiculars to AO convert midpoint M into midpoint H of B\'C\'.',
+                s8_tip4: 'Segment sum: BN+CE = (AB-AN)+(AN-AC) = AB-AC = CD, AN cancels.'
+            }
+        };
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+            document.getElementById('langZh').classList.toggle('active', lang === 'zh');
+            document.getElementById('langZh').classList.toggle('text-gray-600', lang !== 'zh');
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            document.getElementById('langEn').classList.toggle('text-gray-600', lang !== 'en');
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang][key] !== undefined) {
+                    el.innerHTML = i18n[lang][key];
+                }
+            });
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        const TOTAL_STEPS = document.querySelectorAll('.step-card').length;
+        let currentStep = 0;
+
+        function goToStep(step) {
+            if (step < 0 || step >= TOTAL_STEPS) return;
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.remove('visible');
+                card.style.display = 'none';
+            });
+            const target = document.getElementById('step' + step);
+            target.style.display = 'block';
+            void target.offsetHeight;
+            target.classList.add('visible');
+            currentStep = step;
+            updateProgress();
+            window.scrollTo(0, 0);
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([target]);
+            }
+        }
+
+        function updateProgress() {
+            const dots = document.getElementById('progressDots');
+            dots.innerHTML = '';
+            for (let i = 0; i < TOTAL_STEPS; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot' + (i === currentStep ? ' active' : '');
+                dots.appendChild(dot);
+            }
+            document.getElementById('progressText').textContent = (currentStep + 1) + '/' + TOTAL_STEPS;
+        }
+
+        function toggleHint(id) {
+            document.getElementById(id).classList.toggle('show');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') goToStep(currentStep + 1);
+            if (e.key === 'ArrowLeft')  goToStep(currentStep - 1);
+        });
+
+        // Default to Chinese on page load
+        setLang('zh');
+        updateProgress();
+    </script>
+</body>
+</html>
