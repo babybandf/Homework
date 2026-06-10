@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<!--
+  解题网页骨架（由 AGENT.MD §R7 强制使用）
+  题号：012 - 全等构造法（延长 AD 交 EC 于 M）
+  更新：添加 step7 和 step8 详细证明步骤
+-->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">📐 012 - 全等构造法（延长 AD 交 EC 于 M）</title>
+
+    <!-- TEMPLATE: 必需 CDN（MUST NOT 删除） -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']],
+                   displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; }
+        .step-card { display: none; }
+        .step-card.visible { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .nav-btn { transition: all 0.3s ease; }
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .lang-btn { cursor: pointer; transition: all 0.2s; }
+        .lang-btn:hover { transform: scale(1.05); }
+        .lang-btn.active { background-color: #4f46e5; color: white; }
+        .hint-btn { transition: all 0.3s ease; cursor: pointer; }
+        .hint-btn:hover { transform: translateX(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .hint-content {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+        }
+        .hint-content.show { max-height: 400px; padding: 12px 16px; margin-top: 8px; }
+        .hint-correct { background: #d1fae5; border-left: 4px solid #10b981; border-radius: 0 8px 8px 0; }
+        .hint-wrong   { background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; }
+        .hint-neutral { background: #e0e7ff; border-left: 4px solid #6366f1; border-radius: 0 8px 8px 0; }
+        .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; transition: background 0.3s; }
+        .progress-dot.active { background: #4f46e5; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- TEMPLATE: Sticky header（双语切换 + 进度，MUST NOT 删除） -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-800" data-i18n="title">📐 012 - 全等构造法（延长 AD 交 EC 于 M）</h1>
+            <div class="flex items-center space-x-4">
+                <!-- 语言切换（必需组件） -->
+                <div class="flex items-center bg-gray-100 rounded-full p-0.5">
+                    <button onclick="setLang('zh')" class="lang-btn active px-3 py-1 rounded-full text-xs font-medium" id="langZh">中文</button>
+                    <button onclick="setLang('en')" class="lang-btn px-3 py-1 rounded-full text-xs font-medium text-gray-600" id="langEn">EN</button>
+                </div>
+                <!-- 进度指示器 -->
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600" data-i18n="progress">进度:</span>
+                    <div class="flex space-x-1" id="progressDots"></div>
+                    <span id="progressText" class="text-sm font-medium text-gray-700 ml-2">1/9</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- 题目卡（step0） -->
+        <div id="step0" class="step-card visible mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">📋</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s0_title">题目</h2>
+                </div>
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl p-6 text-lg leading-relaxed">
+                    <p data-i18n="s0_problem">
+                        已知：如图，点 D 是 BC 的中点，AB // CE，AD 平分∠EAB，点 F 在线段 AE 上，且 AF = AB。<br><br>
+                        （1）求证：EC = EF；<br><br>
+                        （2）连接 CA，交 DF 于点 G，如果∠E = 90°，CA = CB。<br>
+                        i）当 CE = 2 时，求四边形 ABCE 的面积；<br>
+                        ii）延长 GD 至点 P，使 PD = GD，连接 AP，求∠P 的度数。
+                    </p>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6 mt-6">
+                    <img src="step0_original.png" alt="Original Problem" class="w-full max-w-2xl mx-auto">
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 1：延长 AD 交 EC 于 M，证明 △ABD ≌ △MCD（AAS） -->
+        <div id="step1" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">1</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s1_title">延长 AD 交 EC 于 M，证明 △ABD ≌ △MCD</h2>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step1_congruence.png" alt="Step 1" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s1_text">
+                    构造辅助线：延长 AD 交 EC 的延长线于点 M。<br><br>
+                    在 △ABD 和 △MCD 中：<br>
+                    • 因为 AB ∥ CE，所以 ∠BAD = ∠M（两直线平行，内错角相等）<br>
+                    • 因为 D 是 BC 的中点，所以 BD = CD<br>
+                    • ∠BDA = ∠CDM（对顶角相等）<br><br>
+                    所以 <strong>△ABD ≌ △MCD（AAS）</strong>。<br><br>
+                    从而 <strong>AB = CM</strong>，<strong>AD = MD</strong>。
+                </p>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h1_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h1_1_q">为什么选择延长 AD 交 EC 于 M？</span>
+                        </div>
+                        <div id="h1_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h1_1_a">✓ 利用中点 D 和平行线 AB ∥ CE，构造以 D 为顶点的"8字形"全等（AAS），将 AB 转移到 CM，AD 转移到 MD。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h1_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h1_2_q">全等后得到哪些等量关系？</span>
+                        </div>
+                        <div id="h1_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h1_2_a">得到 AB = CM 和 AD = MD。AB = CM 将已知等长 AF = AB 转化为 AF = CM；AD = MD 说明 D 也是 AM 的中点。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(2)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 2：证明 △EMA 是等腰三角形，得 EC = EF -->
+        <div id="step2" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">2</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s2_title">证明 EA = EM，从而 EC = EF</h2>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step2_isosceles.png" alt="Step 2" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s2_text">
+                    因为 AD 平分 ∠EAB，所以 <strong>∠EAD = ∠BAD</strong>。<br><br>
+                    由第 1 步得 ∠M = ∠BAD（△ABD ≌ △MCD），<br>
+                    所以 <strong>∠EAD = ∠M</strong>。<br><br>
+                    因此 <strong>EA = EM</strong>（等角对等边），△EMA 是等腰三角形。<br><br>
+                    利用线段和差关系：<br>
+                    • EA = EF + AF（点 F 在线段 AE 上）<br>
+                    • EM = EC + CM（点 C 在线段 EM 上）<br>
+                    • 已知 AF = AB，且第 1 步已证 AB = CM，所以 <strong>AF = CM</strong><br>
+                    • 因为 EA = EM 且 AF = CM，相减得：<br>
+                    EA - AF = EM - CM，即 <strong>EC = EF</strong> ✓
+                </p>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_1_q">如何证明 EA = EM？</span>
+                        </div>
+                        <div id="h2_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h2_1_a">✓ 利用 AD 平分∠EAB 得∠EAD = ∠BAD，再通过全等得∠BAD = ∠M，从而∠EAD = ∠M，等角对等边得 EA = EM。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_2_q">为什么能推出 EC = EF？</span>
+                        </div>
+                        <div id="h2_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h2_2_a">由 EA = EM 和 AF = CM（因为 AF = AB = CM），两式相减得 EA - AF = EM - CM，即 EC = EF。这是利用线段和差关系巧妙推导。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(3)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 3：当 ∠E=90°，CA=CB，CE=2 时求面积 -->
+        <div id="step3" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">3</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s3_title">求四边形 ABCE 的面积</h2>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step3_area.png" alt="Step 3" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s3_text">
+                    由 ∠E = 90° 且 EA = EM，得 △EMA 是等腰直角三角形，∠EAM = ∠M = 45°。<br>
+                    又 AD 平分 ∠EAB，所以 ∠EAB = 90°，四边形 ABCE 是直角梯形。<br><br>
+                    <strong>辅助线：</strong>过 C 作 CH ⟂ AB 于 H。<br>
+                    • 四边形 EHCA 是矩形（三个直角），得 CH = EA，AH = CE = 2<br><br>
+                    <strong>证明 △EAC ≌ △HBC（AAS）：</strong><br>
+                    • ∠E = ∠CHB = 90°<br>
+                    • CE ∥ AB ⇒ ∠ECA = ∠CAB（内错角）<br>
+                    • CA = CB ⇒ ∠CAB = ∠B（等边对等角）⇒ ∠ECA = ∠B<br>
+                    • CA = CB（已知）<br>
+                    ∴ △EAC ≌ △HBC（AAS），得 HB = EC = 2<br><br>
+                    <strong>求边长：</strong>AB = AH + HB = 4；CM = AB = 4；EM = EC + CM = 6；EA = EM = 6<br><br>
+                    <strong>面积：</strong>S = S(矩形 EHCA) + S(△HBC) = 2×6 + (1/2)×2×6 = 12 + 6 = <strong>18</strong>
+                </p>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h3_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h3_1_q">为什么 △EMA 是等腰直角三角形？</span>
+                        </div>
+                        <div id="h3_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h3_1_a">✓ 由第（1）问已证 EA = EM，加上条件 ∠E = 90°，所以 △EMA 是等腰直角三角形。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h3_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h3_2_q">为什么过 C 作 CH ⟂ AB？</span>
+                        </div>
+                        <div id="h3_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h3_2_a">过 C 作 CH ⟂ AB 同时构造了矩形 EHCA 和全等三角形 △EAC ≌ △HBC，将梯形面积转化为矩形 + 三角形面积之和。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(2)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(4)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 4：(2ii) 求∠P 的度数 - 题目引导页 -->
+        <div id="step4" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-purple-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">4</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s4_intro_title">(2ii) 求 ∠P 的度数</h2>
+                </div>
+
+                <div class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-lg mb-2" data-i18n="problem_label">📋 题目</h3>
+                    <p class="leading-relaxed" data-i18n="s4_intro_problem">
+                        延长 GD 至点 P，使 PD = GD，连接 AP，求 ∠P 的度数。
+                    </p>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step4_5_intro.png" alt="Problem (2ii)" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-blue-800 mb-3" data-i18n="proof_idea_label">🎯 证明思路</h3>
+                    <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s4_intro_idea">
+                        <strong>核心目标</strong>：证明 ∠P = 45°，即证明 △AGP 是等腰直角三角形。
+                    </p>
+                    <div class="space-y-2 text-gray-700">
+                        <div class="flex items-start">
+                            <span class="bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">1</span>
+                            <span class="ml-2" data-i18n="s4_intro_step1"><strong>先证直角</strong>：证明 ∠AGP = 90°（FD ⊥ AC）</span>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">2</span>
+                            <span class="ml-2" data-i18n="s4_intro_step2"><strong>再证等腰</strong>：证明 AG = GP（通过两次全等转换）</span>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">3</span>
+                            <span class="ml-2" data-i18n="s4_intro_step3"><strong>得出结论</strong>：△AGP 为等腰直角三角形 → ∠P = 45°</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-emerald-800 mb-3" data-i18n="knowledge_label">📚 将要使用的知识点</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-white text-emerald-700 px-3 py-1 rounded-full text-sm border border-emerald-200" data-i18n="tag6">等腰直角三角形性质</span>
+                        <span class="bg-white text-emerald-700 px-3 py-1 rounded-full text-sm border border-emerald-200" data-i18n="tag7">直角三角形斜边中线定理</span>
+                        <span class="bg-white text-emerald-700 px-3 py-1 rounded-full text-sm border border-emerald-200" data-i18n="tag8">全等三角形判定（SAS、AAS）</span>
+                        <span class="bg-white text-emerald-700 px-3 py-1 rounded-full text-sm border border-emerald-200" data-i18n="tag9">中位线定理</span>
+                        <span class="bg-white text-emerald-700 px-3 py-1 rounded-full text-sm border border-emerald-200" data-i18n="tag10">平行线性质</span>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-amber-800 mb-3" data-i18n="framework_label">🔧 四步骨架</h3>
+                    <div class="space-y-2 text-gray-700">
+                        <div class="flex items-center">
+                            <span class="bg-amber-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">①</span>
+                            <span class="ml-2" data-i18n="s4_intro_fw1">锁定直角 ∠BFC = 90°（为 FD = BD = CD 铺垫）</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="bg-amber-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">②</span>
+                            <span class="ml-2" data-i18n="s4_intro_fw2">中线倍长，建立 AC ∥ MD（为角度计算铺垫）</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="bg-amber-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">③</span>
+                            <span class="ml-2" data-i18n="s4_intro_fw3">全等转换，建立 BP ∥ AC（为 AG ∥ BP 铺垫）</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="bg-amber-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">④</span>
+                            <span class="ml-2" data-i18n="s4_intro_fw4">终结证明 ∠AGP = 90° 且 AG = GP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(3)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(5)" class="nav-btn bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="start_proof">开始证明 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 5：锁定直角 -->
+        <div id="step5" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">5</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s4_title">锁定直角：证明 ∠BFC = 90°</h2>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step4_angle.png" alt="Step 4" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s4_text">
+                    已知 A、F、E 三点共线，且 △FAB、△CEF 为等腰直角三角形。<br>
+                    所以 ∠AFB = 45°，∠CFE = 45°。<br>
+                    由平角拆分可得：∠BFC = 180° - 45° - 45° = 90°。<br>
+                    阶段结论：<strong>BF ⟂ CF</strong>。
+                </p>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h4_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h4_1_q">这一步最关键的角度关系是什么？</span>
+                        </div>
+                        <div id="h4_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h4_1_a">✓ 关键是 ∠AFB=45° 与 ∠CFE=45°，再用 A、F、E 共线做平角拆分。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h4_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h4_2_q">这一页得到的阶段结论是什么？</span>
+                        </div>
+                        <div id="h4_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h4_2_a">得到 BF ⟂ CF，这个直角会在后续转化为 G 点直角。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(4)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(6)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 6：中线倍长 -->
+        <div id="step6" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">6</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s5_title">中线倍长：证明 AC ∥ MD</h2>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step5_midline.png" alt="Step 5" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s5_text">
+                    过 C 作 CM ⟂ AB 于 M。由 CA = CB（等腰三角形三线合一）得 M 是 AB 中点。<br><br>
+                    延长 MD 至 L，使 DL = MD，连接 CL。<br><br>
+                    在 △BDM 和 △CDL 中：<br>
+                    • BD = CD（D 为 BC 中点）<br>
+                    • ∠BDM = ∠CDL（对顶角）<br>
+                    • MD = LD（构造）<br><br>
+                    所以 <strong>△BDM ≌ △CDL（SAS）</strong>。<br><br>
+                    从而 CL = BM = AM，且 CL ∥ AB，所以四边形 AMLC 是平行四边形。<br>
+                    阶段结论：<strong>AC ∥ MD</strong>，<strong>AC = 2MD</strong>。
+                </p>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h5_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h5_1_q">为什么要倍长 MD 至 L？</span>
+                        </div>
+                        <div id="h5_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h5_1_a">✓ 倍长 MD 构造全等 △BDM ≌ △CDL，从而得到 CL ∥ AB 且 CL = AM，形成平行四边形 AMLC。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h5_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h5_2_q">AC ∥ MD 有什么用？</span>
+                        </div>
+                        <div id="h5_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h5_2_a">AC ∥ MD 建立了第一条平行线，后续会与 BP ∥ AC 形成平行链条，用于角度转化证明 ∠AGP = 90°。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(5)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(7)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 7：全等转换 -->
+        <div id="step7" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">7</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s6_title">全等转换：证明 BP ∥ AC</h2>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step5_symmetry.png" alt="Step 6" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s6_text">
+                    在 △CDG 与 △BDP 中：<br>
+                    • CD = BD（D 为 BC 中点）<br>
+                    • GD = PD（已知）<br>
+                    • ∠CDG = ∠BDP（对顶角）<br><br>
+                    所以 <strong>△CDG ≌ △BDP（SAS）</strong>。<br><br>
+                    由全等对应可得 <strong>BP = CG</strong>，且由对应角关系可得 <strong>BP ∥ AC</strong>。<br>
+                    阶段结论：<strong>BP ∥ AC ∥ MD</strong>。
+                </p>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h6_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h6_1_q">为什么全等能得到 BP ∥ AC？</span>
+                        </div>
+                        <div id="h6_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h6_1_a">✓ 全等三角形对应角相等，∠PCD = ∠PBD，这两角是内错角，内错角相等则两直线平行。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h6_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h6_2_q">三步平行关系有什么用？</span>
+                        </div>
+                        <div id="h6_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h6_2_a">BP ∥ AC ∥ MD 建立了完整的平行链条，为后续证明 ∠AGP = 90° 和 AG ∥ BP 奠定基础。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(6)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(8)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 8：证明 ∠AGP = 90° -->
+        <div id="step8" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">8</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s7_title">证明 ∠AGP = 90°</h2>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step7_angle_90.png" alt="Step 7" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s7_text">
+                    要证 ∠AGP = 90°，由于 AC ∥ MD，只需证明 FD ⊥ MD（即 ∠FDM = 90°）即可。<br><br>
+                    • 由 △FAB 是等腰直角三角形，得 ∠ABF = 45°<br>
+                    • 第一步已证 ∠BFC = 90°，又 D 是斜边 BC 的中点<br>
+                    • 由 (1) 中 △ABD ≌ △MCD 及直角三角形斜边中线性质，得 <strong>FD = BD = CD</strong><br>
+                    • 所以 △FBD 是等腰三角形，∠DFB = ∠FBD<br>
+                    • 因此 ∠FDB = 180° - 2∠FBD = 180° - 2(∠ABC - 45°) = 270° - 2∠ABC<br>
+                    • 由第二步知 <strong>MD ∥ AC</strong>，从而 ∠MDB = ∠C（同位角相等）<br>
+                    • 在等腰 △ABC（CA = CB）中，∠C = 180° - 2∠ABC<br><br>
+                    计算 ∠FDM：<br>
+                    $$∠FDM = ∠FDB - ∠MDB = (270° - 2∠ABC) - (180° - 2∠ABC) = 90°$$<br>
+                    因为 AC ∥ MD，FD ⊥ MD，所以 FD ⊥ AC，即 <strong>∠AGD = 90°</strong>，从而 <strong>∠AGP = 90°</strong>。
+                </p>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h7_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h7_1_q">为什么 FD = BD = CD？</span>
+                        </div>
+                        <div id="h7_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h7_1_a">✓ 因为 ∠BFC = 90°，D 是斜边 BC 中点，根据直角三角形斜边中线定理，斜边中线等于斜边一半，所以 FD = BD = CD = BC/2。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h7_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h7_2_q">角度计算中 ∠ABC 为什么能消去？</span>
+                        </div>
+                        <div id="h7_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h7_2_a">∠FDB 和 ∠MDB 都含有 -2∠ABC 项，相减时恰好抵消，这是本题角度计算的关键设计。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(7)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(9)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 9：证明 AG = GP -->
+        <div id="step9" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">9</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s8_title">证明 AG = GP</h2>
+                </div>
+
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step8_ag_gp.png" alt="Step 8" class="w-full max-w-2xl mx-auto">
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s8_text">
+                    • 因为 BP ∥ AC，且 FD ⊥ AC（已证 ∠AGP = 90°），所以 <strong>∠GPB = 90°</strong><br>
+                    • 由第三步知 <strong>BP ∥ AC</strong>，又 G 在 AC 上，故 <strong>AG ∥ BP</strong><br><br>
+                    <strong>构造辅助线：</strong>过点 A 作 AT ⊥ BP 于点 T。<br><br>
+                    <strong>第一次全等：△FAG ≌ △BAT（AAS）</strong><br>
+                    • 因为 AG ∥ BP 且 AT ⊥ BP，所以 AT ⊥ AG，即 <strong>∠GAT = 90°</strong><br>
+                    • 已知 ∠FAB = 90°，所以 ∠FAG + ∠GAB = 90°，且 ∠BAT + ∠GAB = 90°，得 <strong>∠FAG = ∠BAT</strong><br>
+                    • ∠FGA = ∠BTA = 90°，FA = AB（已知）<br>
+                    • 所以 <strong>△FAG ≌ △BAT（AAS）</strong>，得 <strong>AG = AT</strong><br><br>
+                    <strong>第二次全等：△AGP ≌ △PTA（AAS）</strong><br>
+                    • ∠AGP = ∠ATP = 90°<br>
+                    • 因为 AT ⊥ BP 且 GP ⊥ BP，所以 AT ∥ GP，得 ∠GAP = ∠TPA（内错角）<br>
+                    • AP = AP（公共边）<br>
+                    • 所以 <strong>△AGP ≌ △PTA（AAS）</strong>，得 <strong>GP = AT</strong><br><br>
+                    结合 AG = AT 与 GP = AT，得 <strong>AG = GP</strong>。
+                </p>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h8_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h8_1_q">为什么要构造 AT ⊥ BP？</span>
+                        </div>
+                        <div id="h8_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h8_1_a">✓ 构造 AT ⊥ BP 是为了建立中间桥梁 AT，通过两次全等（△FAG ≌ △BAT 和 △AGP ≌ △PTA）间接证明 AG = GP。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h8_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h8_2_q">两次全等的思路是什么？</span>
+                        </div>
+                        <div id="h8_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h8_2_a">第一次全等将 AG 转化为 AT，第二次全等将 GP 转化为 AT，通过共同的 AT 建立 AG 和 GP 的等量关系。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(8)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(10)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 10：得出结论 -->
+        <div id="step10" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">10</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s9_title">得出结论：∠P = 45°</h2>
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4 mt-6" data-i18n="s9_text">
+                    • 因为 <strong>∠AGP = 90°</strong> 且 <strong>AG = GP</strong><br>
+                    • 所以 △AGP 是<strong>等腰直角三角形</strong><br>
+                    • 故 <strong>∠GPA = 45°</strong>，即 <strong>∠APD = 45°</strong><br><br>
+                    <span class="text-2xl font-bold text-emerald-600">∠P 的度数为 45°</span>
+                </p>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-emerald-800 mb-3" data-i18n="s9_summary_label">【证明思路总结】</h3>
+                    <p class="text-gray-700 leading-relaxed" data-i18n="s9_summary">
+                        <strong>核心策略</strong>：通过证明 △AGP 是等腰直角三角形来求 ∠P。<br><br>
+                        <strong>关键过程回顾</strong>：<br>
+                        1. <strong>建立平行关系</strong>：通过中线倍长（第二步）和全等转换（第三步），建立 BP ∥ AC ∥ MD<br>
+                        2. <strong>证明直角</strong>：利用直角三角形斜边中线性质（FD = BD = CD）和角度计算，证明 ∠AGP = 90°<br>
+                        3. <strong>证明等腰</strong>：通过两次全等（△FAG ≌ △BAT 和 △AGP ≌ △PTA），证明 AG = GP<br>
+                        4. <strong>得出结论</strong>：△AGP 为等腰直角三角形，故 ∠P = 45°
+                    </p>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(9)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(11)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 思路梳理 / 总结页（最后一步） -->
+        <div id="step11" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-emerald-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">🎯</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="sN_title">思路梳理</h2>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-emerald-800 mb-3" data-i18n="sN_answer_label">最终答案</h3>
+                    <p class="text-2xl font-bold text-center text-emerald-700" data-i18n="sN_answer">（1）EC = EF<br>（2i）四边形 ABCE 面积 = 18<br>（2ii）∠P = 45°</p>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="sN_flow_label">解题流程</h3>
+                <div class="flex flex-col space-y-3 mb-6">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">1</div>
+                        <div class="ml-3 text-gray-700" data-i18n="sN_f1">延长 AD 交 EC 于 M，证明 △ABD ≌ △MCD（AAS），得 AB = CM，AD = MD</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">2</div>
+                        <div class="ml-3 text-gray-700" data-i18n="sN_f2">利用 ∠EAD = ∠BAD = ∠M 证 EA = EM，再由 AF = AB = CM 得 EC = EF</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">3</div>
+                        <div class="ml-3 text-gray-700" data-i18n="sN_f3">过 C 作 CH ⟂ AB，证 EHCA 是矩形、△EAC ≌ △HBC，得 AB=4、EA=6，面积 = 18</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">4</div>
+                        <div class="ml-3 text-gray-700">锁定 ∠BFC = 90°，为 FD = BD = CD 铺垫</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">5</div>
+                        <div class="ml-3 text-gray-700">中线倍长，建立 AC ∥ MD，为角度计算铺垫</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">6</div>
+                        <div class="ml-3 text-gray-700">全等转换，建立 BP ∥ AC，为 AG ∥ BP 铺垫</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">7</div>
+                        <div class="ml-3 text-gray-700">证明 ∠AGP = 90°（FD ⊥ AC）</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">8</div>
+                        <div class="ml-3 text-gray-700">证明 AG = GP（两次全等转换）</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">9</div>
+                        <div class="ml-3 text-gray-700">△AGP 为等腰直角三角形，∠P = 45°</div>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="sN_tags_label">知识点</h3>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag1">全等三角形（AAS、SAS）</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag2">等腰三角形性质</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag3">平行线性质</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag4">矩形与梯形面积</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag5">直角三角形斜边中线定理</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm">中位线定理</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm">等腰直角三角形判定</span>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="sN_tips_label">解题技巧</h3>
+                <ul class="space-y-2 text-gray-700">
+                    <li data-i18n="sN_tip1">• <strong>倍长/延长构造全等</strong>：中点 + 平行线时，延长中线交平行线构造"8字形"AAS全等</li>
+                    <li data-i18n="sN_tip2">• <strong>线段和差代换</strong>：利用已知等量关系通过加减运算直接推出目标线段相等</li>
+                    <li data-i18n="sN_tip3">• <strong>面积分割法</strong>：将复杂图形分割为矩形 + 三角形，分别计算再求和</li>
+                    <li data-i18n="sN_tip4">• <strong>中点 + 中位线</strong>：先用"中点 + 中位线"固定平行方向，再做角度转化</li>
+                    <li>• <strong>全等先定向再定长</strong>：先用全等得到平行关系，再回到等腰直角三角形收束结论</li>
+                    <li>• <strong>两次全等求线段</strong>：第一次全等求 AG = AT，第二次全等求 GP = AT，间接得 AG = GP</li>
+                </ul>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(10)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="restart">重新开始 ↻</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // ============================================================
+        // i18n（双语切换，MUST NOT 删除）
+        // ============================================================
+        let currentLang = 'zh';
+        const i18n = {
+            zh: {
+                title: '📐 012 - 全等构造法（延长 AD 交 EC 于 M）',
+                progress: '进度:',
+                prev: '← 上一步',
+                next: '下一步 →',
+                restart: '重新开始 ↻',
+                hint_label: '💭 思考问题',
+                s0_title: '题目',
+                s0_problem: '已知：如图，点 D 是 BC 的中点，AB // CE，AD 平分∠EAB，点 F 在线段 AE 上，且 AF = AB。<br><br>（1）求证：EC = EF；<br><br>（2）连接 CA，交 DF 于点 G，如果∠E = 90°，CA = CB。<br>i）当 CE = 2 时，求四边形 ABCE 的面积；<br>ii）延长 GD 至点 P，使 PD = GD，连接 AP，求∠P 的度数。',
+                s1_title: '延长 AD 交 EC 于 M，证明 △ABD ≌ △MCD',
+                s1_text: '构造辅助线：延长 AD 交 EC 的延长线于点 M。<br><br>在 △ABD 和 △MCD 中：<br>• 因为 AB ∥ CE，所以 ∠BAD = ∠M（两直线平行，内错角相等）<br>• 因为 D 是 BC 的中点，所以 BD = CD<br>• ∠BDA = ∠CDM（对顶角相等）<br><br>所以 <strong>△ABD ≌ △MCD（AAS）</strong>。<br><br>从而 <strong>AB = CM</strong>，<strong>AD = MD</strong>。',
+                h1_1_q: '为什么选择延长 AD 交 EC 于 M？',
+                h1_1_a: '✓ 利用中点 D 和平行线 AB ∥ CE，构造以 D 为顶点的"8字形"全等（AAS），将 AB 转移到 CM，AD 转移到 MD。',
+                h1_2_q: '全等后得到哪些等量关系？',
+                h1_2_a: '得到 AB = CM 和 AD = MD。AB = CM 将已知等长 AF = AB 转化为 AF = CM；AD = MD 说明 D 也是 AM 的中点。',
+                s2_title: '证明 EA = EM，从而 EC = EF',
+                s2_text: '因为 AD 平分 ∠EAB，所以 <strong>∠EAD = ∠BAD</strong>。<br><br>由第 1 步得 ∠M = ∠BAD（△ABD ≌ △MCD），<br>所以 <strong>∠EAD = ∠M</strong>。<br><br>因此 <strong>EA = EM</strong>（等角对等边），△EMA 是等腰三角形。<br><br>利用线段和差关系：<br>• EA = EF + AF（点 F 在线段 AE 上）<br>• EM = EC + CM（点 C 在线段 EM 上）<br>• 已知 AF = AB，且第 1 步已证 AB = CM，所以 <strong>AF = CM</strong><br>• 因为 EA = EM 且 AF = CM，相减得：<br>EA - AF = EM - CM，即 <strong>EC = EF</strong> ✓',
+                h2_1_q: '如何证明 EA = EM？',
+                h2_1_a: '✓ 利用 AD 平分∠EAB 得∠EAD = ∠BAD，再通过全等得∠BAD = ∠M，从而∠EAD = ∠M，等角对等边得 EA = EM。',
+                h2_2_q: '为什么能推出 EC = EF？',
+                h2_2_a: '由 EA = EM 和 AF = CM（因为 AF = AB = CM），两式相减得 EA - AF = EM - CM，即 EC = EF。这是利用线段和差关系巧妙推导。',
+                s3_title: '求四边形 ABCE 的面积',
+                s3_text: '由 ∠E = 90° 且 EA = EM，得 △EMA 是等腰直角三角形，∠EAM = ∠M = 45°。<br>又 AD 平分 ∠EAB，所以 ∠EAB = 90°，四边形 ABCE 是直角梯形。<br><br><strong>辅助线：</strong>过 C 作 CH ⟂ AB 于 H。<br>• 四边形 EHCA 是矩形（三个直角），得 CH = EA，AH = CE = 2<br><br><strong>证明 △EAC ≌ △HBC（AAS）：</strong><br>• ∠E = ∠CHB = 90°<br>• CE ∥ AB ⇒ ∠ECA = ∠CAB（内错角）<br>• CA = CB ⇒ ∠CAB = ∠B（等边对等角）⇒ ∠ECA = ∠B<br>• CA = CB（已知）<br>∴ △EAC ≌ △HBC（AAS），得 HB = EC = 2<br><br><strong>求边长：</strong>AB = AH + HB = 4；CM = AB = 4；EM = EC + CM = 6；EA = EM = 6<br><br><strong>面积：</strong>S = S(矩形 EHCA) + S(△HBC) = 2×6 + (1/2)×2×6 = 12 + 6 = <strong>18</strong>',
+                h3_1_q: '为什么 △EMA 是等腰直角三角形？',
+                h3_1_a: '✓ 由第（1）问已证 EA = EM，加上条件 ∠E = 90°，所以 △EMA 是等腰直角三角形。',
+                h3_2_q: '为什么过 C 作 CH ⟂ AB？',
+                h3_2_a: '过 C 作 CH ⟂ AB 同时构造了矩形 EHCA 和全等三角形 △EAC ≌ △HBC，将梯形面积转化为矩形 + 三角形面积之和。',
+                s4_title: '锁定直角：证明 ∠BFC = 90°',
+                s4_text: '已知 A、F、E 三点共线，且 △FAB、△CEF 为等腰直角三角形。<br>所以 ∠AFB = 45°，∠CFE = 45°。<br>由平角拆分可得：∠BFC = 180° - 45° - 45° = 90°。<br>阶段结论：<strong>BF ⟂ CF</strong>。',
+                h4_1_q: '这一步最关键的角度关系是什么？',
+                h4_1_a: '✓ 关键是 ∠AFB=45° 与 ∠CFE=45°，再用 A、F、E 共线做平角拆分。',
+                h4_2_q: '这一页得到的阶段结论是什么？',
+                h4_2_a: '得到 BF ⟂ CF，这个直角会在后续转化为 G 点直角。',
+                s5_title: '中线倍长：证明 AC ∥ MD',
+                s5_text: '过 C 作 CM ⟂ AB 于 M。由 CA = CB（等腰三角形三线合一）得 M 是 AB 中点。<br><br>延长 MD 至 L，使 DL = MD，连接 CL。<br><br>在 △BDM 和 △CDL 中：<br>• BD = CD（D 为 BC 中点）<br>• ∠BDM = ∠CDL（对顶角）<br>• MD = LD（构造）<br><br>所以 <strong>△BDM ≌ △CDL（SAS）</strong>。<br><br>从而 CL = BM = AM，且 CL ∥ AB，所以四边形 AMLC 是平行四边形。<br>阶段结论：<strong>AC ∥ MD</strong>，<strong>AC = 2MD</strong>。',
+                h5_1_q: '为什么要倍长 MD 至 L？',
+                h5_1_a: '✓ 倍长 MD 构造全等 △BDM ≌ △CDL，从而得到 CL ∥ AB 且 CL = AM，形成平行四边形 AMLC。',
+                h5_2_q: 'AC ∥ MD 有什么用？',
+                h5_2_a: 'AC ∥ MD 建立了第一条平行线，后续会与 BP ∥ AC 形成平行链条，用于角度转化证明 ∠AGP = 90°。',
+                s6_title: '全等转换：证明 BP ∥ AC',
+                s6_text: '在 △CDG 与 △BDP 中：<br>• CD = BD（D 为 BC 中点）<br>• GD = PD（已知）<br>• ∠CDG = ∠BDP（对顶角）<br><br>所以 <strong>△CDG ≌ △BDP（SAS）</strong>。<br><br>由全等对应可得 <strong>BP = CG</strong>，且由对应角关系可得 <strong>BP ∥ AC</strong>。<br>阶段结论：<strong>BP ∥ AC ∥ MD</strong>。',
+                h6_1_q: '为什么全等能得到 BP ∥ AC？',
+                h6_1_a: '✓ 全等三角形对应角相等，∠PCD = ∠PBD，这两角是内错角，内错角相等则两直线平行。',
+                h6_2_q: '三步平行关系有什么用？',
+                h6_2_a: 'BP ∥ AC ∥ MD 建立了完整的平行链条，为后续证明 ∠AGP = 90° 和 AG ∥ BP 奠定基础。',
+                sN_title: '思路梳理',
+                sN_answer_label: '最终答案',
+                sN_answer: '（1）EC = EF<br>（2i）四边形 ABCE 面积 = 18<br>（2ii）∠P = 45°',
+                sN_flow_label: '解题流程',
+                sN_f1: '延长 AD 交 EC 于 M，证明 △ABD ≌ △MCD（AAS），得 AB = CM，AD = MD',
+                sN_f2: '利用 ∠EAD = ∠BAD = ∠M 证 EA = EM，再由 AF = AB = CM 得 EC = EF',
+                sN_f3: '过 C 作 CH ⟂ AB，证 EHCA 是矩形、△EAC ≌ △HBC，得 AB=4、EA=6，面积 = 18',
+                sN_tags_label: '知识点',
+                tag1: '全等三角形（AAS、SAS）',
+                tag2: '等腰三角形性质',
+                tag3: '平行线性质',
+                tag4: '矩形与梯形面积',
+                tag5: '中线倍长与等腰直角',
+                sN_tips_label: '解题技巧',
+                sN_tip1: '• <strong>倍长/延长构造全等</strong>：中点 + 平行线时，延长中线交平行线构造"8字形"AAS全等',
+                sN_tip2: '• <strong>线段和差代换</strong>：利用已知等量关系通过加减运算直接推出目标线段相等',
+                sN_tip3: '• <strong>面积分割法</strong>：将复杂图形分割为矩形 + 三角形，分别计算再求和',
+                sN_tip4: '• <strong>全等先定平行，再收束到等腰直角</strong>：先得 BP ∥ AC，再用直角+等边一击收尾',
+                problem_label: '📋 题目',
+                proof_idea_label: '🎯 证明思路',
+                knowledge_label: '📚 将要使用的知识点',
+                framework_label: '🔧 四步骨架',
+                start_proof: '开始证明 →',
+                s4_intro_title: '(2ii) 求 ∠P 的度数',
+                s4_intro_problem: '延长 GD 至点 P，使 PD = GD，连接 AP，求 ∠P 的度数。',
+                s4_intro_idea: '<strong>核心目标</strong>：证明 ∠P = 45°，即证明 △AGP 是等腰直角三角形。',
+                s4_intro_step1: '<strong>先证直角</strong>：证明 ∠AGP = 90°（FD ⊥ AC）',
+                s4_intro_step2: '<strong>再证等腰</strong>：证明 AG = GP（通过两次全等转换）',
+                s4_intro_step3: '<strong>得出结论</strong>：△AGP 为等腰直角三角形 → ∠P = 45°',
+                s4_intro_fw1: '锁定直角 ∠BFC = 90°（为 FD = BD = CD 铺垫）',
+                s4_intro_fw2: '中线倍长，建立 AC ∥ MD（为角度计算铺垫）',
+                s4_intro_fw3: '全等转换，建立 BP ∥ AC（为 AG ∥ BP 铺垫）',
+                s4_intro_fw4: '终结证明 ∠AGP = 90° 且 AG = GP',
+                tag6: '等腰直角三角形性质',
+                tag7: '直角三角形斜边中线定理',
+                tag8: '全等三角形判定（SAS、AAS）',
+                tag9: '中位线定理',
+                tag10: '平行线性质',
+                s7_title: '证明 ∠AGP = 90°',
+                s7_text: '要证 ∠AGP = 90°，由于 AC ∥ MD，只需证明 FD ⊥ MD（即 ∠FDM = 90°）即可。<br><br>• 由 △FAB 是等腰直角三角形，得 ∠ABF = 45°<br>• 第一步已证 ∠BFC = 90°，又 D 是斜边 BC 的中点<br>• 由 (1) 中 △ABD ≌ △MCD 及直角三角形斜边中线性质，得 <strong>FD = BD = CD</strong><br>• 所以 △FBD 是等腰三角形，∠DFB = ∠FBD<br>• 因此 ∠FDB = 180° - 2∠FBD = 180° - 2(∠ABC - 45°) = 270° - 2∠ABC<br>• 由第二步知 <strong>MD ∥ AC</strong>，从而 ∠MDB = ∠C（同位角相等）<br>• 在等腰 △ABC（CA = CB）中，∠C = 180° - 2∠ABC<br><br>计算 ∠FDM：<br>$$∠FDM = ∠FDB - ∠MDB = (270° - 2∠ABC) - (180° - 2∠ABC) = 90°$$<br>因为 AC ∥ MD，FD ⊥ MD，所以 FD ⊥ AC，即 <strong>∠AGD = 90°</strong>，从而 <strong>∠AGP = 90°</strong>。',
+                h7_1_q: '为什么 FD = BD = CD？',
+                h7_1_a: '✓ 因为 ∠BFC = 90°，D 是斜边 BC 中点，根据直角三角形斜边中线定理，斜边中线等于斜边一半，所以 FD = BD = CD = BC/2。',
+                h7_2_q: '角度计算中 ∠ABC 为什么能消去？',
+                h7_2_a: '∠FDB 和 ∠MDB 都含有 -2∠ABC 项，相减时恰好抵消，这是本题角度计算的关键设计。',
+                s8_title: '证明 AG = GP',
+                s8_text: '• 因为 BP ∥ AC，且 FD ⊥ AC（已证 ∠AGP = 90°），所以 <strong>∠GPB = 90°</strong><br>• 由第三步知 <strong>BP ∥ AC</strong>，又 G 在 AC 上，故 <strong>AG ∥ BP</strong><br><br><strong>构造辅助线：</strong>过点 A 作 AT ⊥ BP 于点 T。<br><br><strong>第一次全等：△FAG ≌ △BAT（AAS）</strong><br>• 因为 AG ∥ BP 且 AT ⊥ BP，所以 AT ⊥ AG，即 <strong>∠GAT = 90°</strong><br>• 已知 ∠FAB = 90°，所以 ∠FAG + ∠GAB = 90°，且 ∠BAT + ∠GAB = 90°，得 <strong>∠FAG = ∠BAT</strong><br>• ∠FGA = ∠BTA = 90°，FA = AB（已知）<br>• 所以 <strong>△FAG ≌ △BAT（AAS）</strong>，得 <strong>AG = AT</strong><br><br><strong>第二次全等：△AGP ≌ △PTA（AAS）</strong><br>• ∠AGP = ∠ATP = 90°<br>• 因为 AT ⊥ BP 且 GP ⊥ BP，所以 AT ∥ GP，得 ∠GAP = ∠TPA（内错角）<br>• AP = AP（公共边）<br>• 所以 <strong>△AGP ≌ △PTA（AAS）</strong>，得 <strong>GP = AT</strong><br><br>结合 AG = AT 与 GP = AT，得 <strong>AG = GP</strong>。',
+                h8_1_q: '为什么要构造 AT ⊥ BP？',
+                h8_1_a: '✓ 构造 AT ⊥ BP 是为了建立中间桥梁 AT，通过两次全等（△FAG ≌ △BAT 和 △AGP ≌ △PTA）间接证明 AG = GP。',
+                h8_2_q: '两次全等的思路是什么？',
+                h8_2_a: '第一次全等将 AG 转化为 AT，第二次全等将 GP 转化为 AT，通过共同的 AT 建立 AG 和 GP 的等量关系。',
+                s9_title: '得出结论：∠P = 45°',
+                s9_text: '• 因为 <strong>∠AGP = 90°</strong> 且 <strong>AG = GP</strong><br>• 所以 △AGP 是<strong>等腰直角三角形</strong><br>• 故 <strong>∠GPA = 45°</strong>，即 <strong>∠APD = 45°</strong><br><br><span class="text-2xl font-bold text-emerald-600">∠P 的度数为 45°</span>',
+                s9_summary_label: '【证明思路总结】',
+                s9_summary: '<strong>核心策略</strong>：通过证明 △AGP 是等腰直角三角形来求 ∠P。<br><br><strong>关键过程回顾</strong>：<br>1. <strong>建立平行关系</strong>：通过中线倍长（第二步）和全等转换（第三步），建立 BP ∥ AC ∥ MD<br>2. <strong>证明直角</strong>：利用直角三角形斜边中线性质（FD = BD = CD）和角度计算，证明 ∠AGP = 90°<br>3. <strong>证明等腰</strong>：通过两次全等（△FAG ≌ △BAT 和 △AGP ≌ △PTA），证明 AG = GP<br>4. <strong>得出结论</strong>：△AGP 为等腰直角三角形，故 ∠P = 45°'
+            },
+            en: {
+                title: '📐 012 - Congruence Construction Method (Extend AD to meet EC at M)',
+                progress: 'Progress:',
+                prev: '← Previous',
+                next: 'Next →',
+                restart: 'Restart ↻',
+                hint_label: '💭 Think About It',
+                s0_title: 'Problem',
+                s0_problem: 'Given: As shown in the figure, point D is the midpoint of BC, AB // CE, AD bisects ∠EAB, point F is on segment AE, and AF = AB.<br><br>(1) Prove: EC = EF;<br><br>(2) Connect CA, intersecting DF at point G. If ∠E = 90°, CA = CB.<br>i) When CE = 2, find the area of quadrilateral ABCE;<br>ii) Extend GD to point P such that PD = GD, connect AP, find the measure of ∠P.',
+                s1_title: 'Extend AD to meet EC at M, prove △ABD ≌ △MCD',
+                s1_text: 'Construct auxiliary line: Extend AD to meet the extension of EC at point M.<br><br>In △ABD and △MCD:<br>• Since AB ∥ CE, ∠BAD = ∠M (alternate interior angles)<br>• Since D is the midpoint of BC, BD = CD<br>• ∠BDA = ∠CDM (vertical angles)<br><br>Therefore <strong>△ABD ≌ △MCD (AAS)</strong>.<br><br>Thus <strong>AB = CM</strong>, <strong>AD = MD</strong>.',
+                h1_1_q: 'Why extend AD to meet EC at M?',
+                h1_1_a: '✓ Using midpoint D and parallel lines AB ∥ CE, construct an "8-shaped" congruence (AAS) with D as vertex, transferring AB to CM and AD to MD.',
+                h1_2_q: 'What equal relationships are obtained from congruence?',
+                h1_2_a: 'We get AB = CM and AD = MD. AB = CM transforms the given AF = AB into AF = CM; AD = MD shows D is also the midpoint of AM.',
+                s2_title: 'Prove EA = EM, thus EC = EF',
+                s2_text: 'Since AD bisects ∠EAB, <strong>∠EAD = ∠BAD</strong>.<br><br>From step 1, ∠M = ∠BAD (△ABD ≌ △MCD),<br>so <strong>∠EAD = ∠M</strong>.<br><br>Therefore <strong>EA = EM</strong> (equal angles opposite equal sides), △EMA is isosceles.<br><br>Using segment sum/difference:<br>• EA = EF + AF (F is on segment AE)<br>• EM = EC + CM (C is on segment EM)<br>• Given AF = AB, and AB = CM from step 1, so <strong>AF = CM</strong><br>• Since EA = EM and AF = CM, subtracting: EA - AF = EM - CM, thus <strong>EC = EF</strong> ✓',
+                h2_1_q: 'How to prove EA = EM?',
+                h2_1_a: '✓ Using AD bisects ∠EAB gives ∠EAD = ∠BAD, then congruence gives ∠BAD = ∠M, so ∠EAD = ∠M, equal angles give EA = EM.',
+                h2_2_q: 'Why can we derive EC = EF?',
+                h2_2_a: 'From EA = EM and AF = CM (since AF = AB = CM), subtracting gives EA - AF = EM - CM, i.e., EC = EF. This uses segment sum/difference cleverly.',
+                s3_title: 'Find the area of quadrilateral ABCE',
+                s3_text: 'From ∠E = 90° and EA = EM, △EMA is an isosceles right triangle, ∠EAM = ∠M = 45°.<br>Also AD bisects ∠EAB, so ∠EAB = 90°, quadrilateral ABCE is a right trapezoid.<br><br><strong>Auxiliary line:</strong> Draw CH ⟂ AB at H.<br>• Quadrilateral EHCA is a rectangle (three right angles), so CH = EA, AH = CE = 2<br><br><strong>Prove △EAC ≌ △HBC (AAS):</strong><br>• ∠E = ∠CHB = 90°<br>• CE ∥ AB ⇒ ∠ECA = ∠CAB (alternate interior)<br>• CA = CB ⇒ ∠CAB = ∠B (equal sides) ⇒ ∠ECA = ∠B<br>• CA = CB (given)<br>∴ △EAC ≌ △HBC (AAS), so HB = EC = 2<br><br><strong>Find side lengths:</strong> AB = AH + HB = 4; CM = AB = 4; EM = EC + CM = 6; EA = EM = 6<br><br><strong>Area:</strong> S = S(rectangle EHCA) + S(△HBC) = 2×6 + (1/2)×2×6 = 12 + 6 = <strong>18</strong>',
+                h3_1_q: 'Why is △EMA an isosceles right triangle?',
+                h3_1_a: '✓ From part (1) we proved EA = EM, plus condition ∠E = 90°, so △EMA is an isosceles right triangle.',
+                h3_2_q: 'Why draw CH ⟂ AB through C?',
+                h3_2_a: 'Drawing CH ⟂ AB constructs both rectangle EHCA and congruent triangles △EAC ≌ △HBC, converting trapezoid area to rectangle + triangle sum.',
+                s4_title: 'Lock the right angle: Prove ∠BFC = 90°',
+                s4_text: 'Given A, F, E are collinear, and △FAB, △CEF are isosceles right triangles.<br>So ∠AFB = 45°, ∠CFE = 45°.<br>From straight angle: ∠BFC = 180° - 45° - 45° = 90°.<br>Stage conclusion: <strong>BF ⟂ CF</strong>.',
+                h4_1_q: 'What is the key angle relationship in this step?',
+                h4_1_a: '✓ The key is ∠AFB=45° and ∠CFE=45°, then use A, F, E collinear for straight angle decomposition.',
+                h4_2_q: 'What is the stage conclusion from this page?',
+                h4_2_a: 'We get BF ⟂ CF, this right angle will later transform to right angle at G.',
+                s5_title: 'Double the median: Prove AC ∥ MD',
+                s5_text: 'Draw CM ⟂ AB at M. From CA = CB (isosceles triangle property) M is midpoint of AB.<br><br>Extend MD to L with DL = MD, connect CL.<br><br>In △BDM and △CDL:<br>• BD = CD (D is midpoint of BC)<br>• ∠BDM = ∠CDL (vertical angles)<br>• MD = LD (construction)<br><br>So <strong>△BDM ≌ △CDL (SAS)</strong>.<br><br>Thus CL = BM = AM, and CL ∥ AB, so quadrilateral AMLC is a parallelogram.<br>Stage conclusion: <strong>AC ∥ MD</strong>, <strong>AC = 2MD</strong>.',
+                h5_1_q: 'Why double MD to L?',
+                h5_1_a: '✓ Doubling MD constructs congruence △BDM ≌ △CDL, getting CL ∥ AB and CL = AM, forming parallelogram AMLC.',
+                h5_2_q: 'What is AC ∥ MD useful for?',
+                h5_2_a: 'AC ∥ MD establishes the first parallel line, later combined with BP ∥ AC to form a parallel chain for angle transformation to prove ∠AGP = 90°.',
+                s6_title: 'Congruence transformation: Prove BP ∥ AC',
+                s6_text: 'In △CDG and △BDP:<br>• CD = BD (D is midpoint of BC)<br>• GD = PD (given)<br>• ∠CDG = ∠BDP (vertical angles)<br><br>So <strong>△CDG ≌ △BDP (SAS)</strong>.<br><br>From congruence correspondence <strong>BP = CG</strong>, and from corresponding angles <strong>BP ∥ AC</strong>.<br>Stage conclusion: <strong>BP ∥ AC ∥ MD</strong>.',
+                h6_1_q: 'Why does congruence give BP ∥ AC?',
+                h6_1_a: '✓ Corresponding angles of congruent triangles are equal, ∠PCD = ∠PBD, these are alternate interior angles, equal alternate interior angles mean parallel lines.',
+                h6_2_q: 'What is the three-step parallel relationship useful for?',
+                h6_2_a: 'BP ∥ AC ∥ MD establishes a complete parallel chain, laying foundation for proving ∠AGP = 90° and AG ∥ BP.',
+                sN_title: 'Summary',
+                sN_answer_label: 'Final Answer',
+                sN_answer: '(1) EC = EF<br>(2i) Area of quadrilateral ABCE = 18<br>(2ii) ∠P = 45°',
+                sN_flow_label: 'Solution Flow',
+                sN_f1: 'Extend AD to meet EC at M, prove △ABD ≌ △MCD (AAS), get AB = CM, AD = MD',
+                sN_f2: 'Use ∠EAD = ∠BAD = ∠M to prove EA = EM, then AF = AB = CM gives EC = EF',
+                sN_f3: 'Draw CH ⟂ AB through C, prove EHCA is rectangle, △EAC ≌ △HBC, get AB=4, EA=6, area = 18',
+                sN_tags_label: 'Key Concepts',
+                tag1: 'Congruent Triangles (AAS, SAS)',
+                tag2: 'Isosceles Triangle Properties',
+                tag3: 'Parallel Line Properties',
+                tag4: 'Rectangle & Trapezoid Area',
+                tag5: 'Median Doubling & Isosceles Right',
+                sN_tips_label: 'Problem Solving Tips',
+                sN_tip1: '• <strong>Double/extend to construct congruence</strong>: With midpoint + parallel lines, extend median to meet parallel line for "8-shaped" AAS congruence',
+                sN_tip2: '• <strong>Segment sum/difference substitution</strong>: Use known equalities through addition/subtraction to derive target segment equality',
+                sN_tip3: '• <strong>Area division method</strong>: Divide complex shapes into rectangle + triangle, calculate separately then sum',
+                sN_tip4: '• <strong>Congruence first establishes parallel, then converges to isosceles right</strong>: First get BP ∥ AC, then use right angle + equal sides to finish',
+                problem_label: '📋 Problem',
+                proof_idea_label: '🎯 Proof Strategy',
+                knowledge_label: '📚 Key Concepts to Use',
+                framework_label: '🔧 Four-Step Framework',
+                start_proof: 'Start Proof →',
+                s4_intro_title: '(2ii) Find the measure of ∠P',
+                s4_intro_problem: 'Extend GD to point P such that PD = GD, connect AP, find the measure of ∠P.',
+                s4_intro_idea: '<strong>Core Goal</strong>: Prove ∠P = 45°, i.e., prove △AGP is an isosceles right triangle.',
+                s4_intro_step1: '<strong>First prove right angle</strong>: Prove ∠AGP = 90° (FD ⊥ AC)',
+                s4_intro_step2: '<strong>Then prove isosceles</strong>: Prove AG = GP (through two congruence transformations)',
+                s4_intro_step3: '<strong>Draw conclusion</strong>: △AGP is isosceles right triangle → ∠P = 45°',
+                s4_intro_fw1: 'Lock right angle ∠BFC = 90° (setup for FD = BD = CD)',
+                s4_intro_fw2: 'Double the median, establish AC ∥ MD (setup for angle calculation)',
+                s4_intro_fw3: 'Congruence transformation, establish BP ∥ AC (setup for AG ∥ BP)',
+                s4_intro_fw4: 'Final proof: ∠AGP = 90° and AG = GP',
+                tag6: 'Isosceles Right Triangle Properties',
+                tag7: 'Right Triangle Hypotenuse Median Theorem',
+                tag8: 'Congruent Triangle Criteria (SAS, AAS)',
+                tag9: 'Midsegment Theorem',
+                tag10: 'Parallel Line Properties',
+                s7_title: 'Prove ∠AGP = 90°',
+                s7_text: 'To prove ∠AGP = 90°, since AC ∥ MD, we only need to prove FD ⊥ MD (i.e., ∠FDM = 90°).<br><br>• From △FAB being isosceles right, ∠ABF = 45°<br>• Step 1 proved ∠BFC = 90°, and D is midpoint of hypotenuse BC<br>• From △ABD ≌ △MCD in (1) and hypotenuse median property, <strong>FD = BD = CD</strong><br>• So △FBD is isosceles, ∠DFB = ∠FBD<br>• Thus ∠FDB = 180° - 2∠FBD = 180° - 2(∠ABC - 45°) = 270° - 2∠ABC<br>• From step 2, <strong>MD ∥ AC</strong>, so ∠MDB = ∠C (corresponding angles)<br>• In isosceles △ABC (CA = CB), ∠C = 180° - 2∠ABC<br><br>Calculate ∠FDM:<br>$$∠FDM = ∠FDB - ∠MDB = (270° - 2∠ABC) - (180° - 2∠ABC) = 90°$$<br>Since AC ∥ MD and FD ⊥ MD, FD ⊥ AC, i.e., <strong>∠AGD = 90°</strong>, thus <strong>∠AGP = 90°</strong>.',
+                h7_1_q: 'Why FD = BD = CD?',
+                h7_1_a: '✓ Since ∠BFC = 90° and D is midpoint of hypotenuse BC, by hypotenuse median theorem, median equals half hypotenuse, so FD = BD = CD = BC/2.',
+                h7_2_q: 'Why does ∠ABC cancel in angle calculation?',
+                h7_2_a: 'Both ∠FDB and ∠MDB contain -2∠ABC term, which cancels when subtracting. This is the key design of this angle calculation.',
+                s8_title: 'Prove AG = GP',
+                s8_text: '• Since BP ∥ AC and FD ⊥ AC (proved ∠AGP = 90°), <strong>∠GPB = 90°</strong><br>• From step 3, <strong>BP ∥ AC</strong>, and G is on AC, so <strong>AG ∥ BP</strong><br><br><strong>Construct auxiliary line:</strong> Draw AT ⊥ BP through A at T.<br><br><strong>First congruence: △FAG ≌ △BAT (AAS)</strong><br>• Since AG ∥ BP and AT ⊥ BP, AT ⊥ AG, i.e., <strong>∠GAT = 90°</strong><br>• Given ∠FAB = 90°, so ∠FAG + ∠GAB = 90°, and ∠BAT + ∠GAB = 90°, thus <strong>∠FAG = ∠BAT</strong><br>• ∠FGA = ∠BTA = 90°, FA = AB (given)<br>• So <strong>△FAG ≌ △BAT (AAS)</strong>, giving <strong>AG = AT</strong><br><br><strong>Second congruence: △AGP ≌ △PTA (AAS)</strong><br>• ∠AGP = ∠ATP = 90°<br>• Since AT ⊥ BP and GP ⊥ BP, AT ∥ GP, so ∠GAP = ∠TPA (alternate interior)<br>• AP = AP (common)<br>• So <strong>△AGP ≌ △PTA (AAS)</strong>, giving <strong>GP = AT</strong><br><br>Combining AG = AT and GP = AT, we get <strong>AG = GP</strong>.',
+                h8_1_q: 'Why construct AT ⊥ BP?',
+                h8_1_a: '✓ Constructing AT ⊥ BP creates intermediate bridge AT, using two congruences (△FAG ≌ △BAT and △AGP ≌ △PTA) to indirectly prove AG = GP.',
+                h8_2_q: 'What is the idea of the two congruences?',
+                h8_2_a: 'First congruence transforms AG to AT, second transforms GP to AT, establishing AG = GP through common AT.',
+                s9_title: 'Conclusion: ∠P = 45°',
+                s9_text: '• Since <strong>∠AGP = 90°</strong> and <strong>AG = GP</strong><br>• Therefore △AGP is an <strong>isosceles right triangle</strong><br>• Thus <strong>∠GPA = 45°</strong>, i.e., <strong>∠APD = 45°</strong><br><br><span class="text-2xl font-bold text-emerald-600">The measure of ∠P is 45°</span>',
+                s9_summary_label: '【Proof Summary】',
+                s9_summary: '<strong>Core Strategy</strong>: Find ∠P by proving △AGP is an isosceles right triangle.<br><br><strong>Key Steps Review</strong>:<br>1. <strong>Establish parallel relationships</strong>: Through median doubling (step 2) and congruence transformation (step 3), establish BP ∥ AC ∥ MD<br>2. <strong>Prove right angle</strong>: Using hypotenuse median property (FD = BD = CD) and angle calculation, prove ∠AGP = 90°<br>3. <strong>Prove isosceles</strong>: Through two congruences (△FAG ≌ △BAT and △AGP ≌ △PTA), prove AG = GP<br>4. <strong>Draw conclusion</strong>: △AGP is isosceles right triangle, so ∠P = 45°'
+            }
+        };
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.getElementById('langZh').classList.toggle('active', lang === 'zh');
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang] && i18n[lang][key]) {
+                    el.innerHTML = i18n[lang][key];
+                }
+            });
+        }
+
+        // ============================================================
+        // 步骤导航
+        // ============================================================
+        let currentStep = 0;
+        const totalSteps = 12;
+
+        function updateProgress() {
+            const dotsContainer = document.getElementById('progressDots');
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < totalSteps; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot' + (i === currentStep ? ' active' : '');
+                dotsContainer.appendChild(dot);
+            }
+            document.getElementById('progressText').textContent = (currentStep + 1) + '/' + totalSteps;
+        }
+
+        function goToStep(n) {
+            document.getElementById('step' + currentStep).classList.remove('visible');
+            currentStep = n;
+            document.getElementById('step' + currentStep).classList.add('visible');
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleHint(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('show');
+        }
+
+        // 键盘导航
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && currentStep < totalSteps - 1) goToStep(currentStep + 1);
+            if (e.key === 'ArrowLeft' && currentStep > 0) goToStep(currentStep - 1);
+        });
+
+        // 初始化
+        updateProgress();
+    </script>
+</body>
+</html>
