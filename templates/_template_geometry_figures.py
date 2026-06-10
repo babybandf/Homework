@@ -368,6 +368,11 @@ def label_point(ax, P, name, direction=(1.0, 1.0), scale=1.0,
     密集区点群 MUST 显式给出互不平行的 direction，遵循 G7。
     owners: 该点归属的名集合（默认 {name}），用于避免误报“标签压自身关联边”。
     """
+    # 保护阈值：防止误把点标签抛到远处空白区。
+    if offset_ratio > 0.20:
+        raise ValueError(
+            f'label_point offset_ratio={offset_ratio:.3f} is too large; '
+            'use <=0.08 for normal labels, or use a dedicated callout.')
     d = np.array(direction, dtype=float)
     n = np.linalg.norm(d)
     if n < 1e-9:
