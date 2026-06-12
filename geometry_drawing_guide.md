@@ -36,8 +36,8 @@ def compute_visual_scale(ax):
 
 ### G1 直角符号 size
 
-- `size = 0.035 × L_ref`（推荐区间 `[0.025, 0.05] × L_ref`）。
-- MUST NOT 超过其所在两条线段中较短者的 **8%**。
+- `size = 0.045 × L_ref`（推荐区间 `[0.03, 0.06] × L_ref`）。
+- MUST NOT 超过其所在两条线段中较短者的 **15%**（既保证直角符号可辨识，又不过度侵占邻域）。
 - `zorder` MUST ≤ 普通线段 zorder（即 ≤ 2），不得遮挡关键辅助线。
 
 ### G2 角弧半径
@@ -186,7 +186,7 @@ assert not violations, f'step1 layout VIOLATIONS: {violations}'
 
 - `draw_right_angle` 在 H 处占据约 `size × size` 的方形区域。
 - 该方形 MUST NOT 套住或贴近**另一个**已 `label_point` 的点（除 H 自身/重合垂足外）。
-- 命中即为 G14 违规，处理：减小 `size_ratio`（最低 0.025），或把另一点淡显，或选 G7b 的方案 1。
+- 命中即为 G14 违规，处理：减小 `size_ratio`（最低 0.03），或把另一点淡显，或选 G7b 的方案 1。
 
 ### G6b 文字 ↔ 文字（bbox 矩形相交，MUST）
 
