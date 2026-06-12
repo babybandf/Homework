@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">014 - 等边三角形中的全等证明与平行证明</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']],
+                   displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; }
+        .step-card { display: none; }
+        .step-card.visible { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .nav-btn { transition: all 0.3s ease; }
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .lang-btn { cursor: pointer; transition: all 0.2s; }
+        .lang-btn:hover { transform: scale(1.05); }
+        .lang-btn.active { background-color: #4f46e5; color: white; }
+        .hint-btn { transition: all 0.3s ease; cursor: pointer; }
+        .hint-btn:hover { transform: translateX(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .hint-content {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+        }
+        .hint-content.show { max-height: 400px; padding: 12px 16px; margin-top: 8px; }
+        .hint-correct { background: #d1fae5; border-left: 4px solid #10b981; border-radius: 0 8px 8px 0; }
+        .hint-wrong   { background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; }
+        .hint-neutral { background: #e0e7ff; border-left: 4px solid #6366f1; border-radius: 0 8px 8px 0; }
+        .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; transition: background 0.3s; }
+        .progress-dot.active { background: #4f46e5; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-800" data-i18n="title">📐 014 - 等边三角形中的全等证明与平行证明</h1>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center bg-gray-100 rounded-full p-0.5">
+                    <button onclick="setLang('zh')" class="lang-btn active px-3 py-1 rounded-full text-xs font-medium" id="langZh">中文</button>
+                    <button onclick="setLang('en')" class="lang-btn px-3 py-1 rounded-full text-xs font-medium text-gray-600" id="langEn">EN</button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600" data-i18n="progress">进度:</span>
+                    <div class="flex space-x-1" id="progressDots"></div>
+                    <span id="progressText" class="text-sm font-medium text-gray-700 ml-2">1/5</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Step 0: 题目 -->
+        <div id="step0" class="step-card visible mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">📋</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s0_title">题目</h2>
+                </div>
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl p-6 text-lg leading-relaxed">
+                    <p data-i18n="s0_problem">如图(1)，等边△ABC中，D是AB边上的动点，以CD为一边，向上作等边△EDC，连接AE。<br><br>(1) △DBC和△EAC会全等吗？请说说你的理由；<br>(2) 试说明 AE∥BC 的理由；<br>(3) 如图(2)，将(1)动点D运动到边BA的延长线上，所作仍为等边三角形，请问是否仍有 AE∥BC？证明你的猜想。</p>
+                </div>
+                <div class="mt-6">
+                    <img src="014.jpg" alt="原题" class="w-full max-w-2xl mx-auto rounded-lg shadow">
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: 问题(1)全等证明 -->
+        <div id="step1" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">1</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s1_title">问题(1)：证明△DBC≌△EAC</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step1_case1.png" alt="Step 1" class="w-full max-w-2xl mx-auto">
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s1_text"><strong>已知条件：</strong><br>• △ABC是等边三角形，AB=BC=CA，∠ABC=∠BCA=∠CAB=60°<br>• △EDC是等边三角形，ED=DC=CE，∠EDC=∠DCE=∠CED=60°<br>• D是AB边上的动点<br><br><strong>结论：</strong>△DBC ≌ △EAC<br><br><strong>证明：</strong><br>在△DBC和△EAC中：<br>1. <strong>BC = AC</strong>（等边△ABC的边）<br>2. <strong>CD = CE</strong>（等边△EDC的边）<br>3. <strong>∠BCD = ∠ACE</strong><br>   • ∠BCA = 60°，∠DCE = 60°<br>   • ∠BCD = 60° - ∠DCA<br>   • ∠ACE = 60° - ∠DCA<br>   • 因此 ∠BCD = ∠ACE<br><br>由SAS判定，<strong>△DBC ≌ △EAC</strong></p>
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h1_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h1_1_q">如何证明∠BCD = ∠ACE？</span>
+                        </div>
+                        <div id="h1_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h1_1_a">✓ 观察图形，∠BCD = ∠BCA - ∠DCA = 60° - ∠DCA，而∠ACE = ∠DCE - ∠DCA = 60° - ∠DCA。两者都等于60°减去同一个角∠DCA，所以相等。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h1_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h1_2_q">为什么选择SAS作为判定依据？</span>
+                        </div>
+                        <div id="h1_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h1_2_a">因为我们已经找到了两组对应边相等（BC=AC，CD=CE），并且它们的夹角也相等（∠BCD=∠ACE），正好满足SAS的条件。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(2)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: 全等三角形详解 -->
+        <div id="step2" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">2</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s2_title">全等三角形详解</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step4_congruent.png" alt="Step 2" class="w-full max-w-2xl mx-auto">
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s2_text">图中用红色高亮了△DBC，用蓝色高亮了△EAC。<br><br><strong>对应关系：</strong><br>• B ↔ A（都是等边三角形的顶点）<br>• C ↔ C（公共顶点）<br>• D ↔ E（构造的等边三角形的顶点）<br><br><strong>关键观察：</strong><br>两个等边三角形△ABC和△EDC共用顶点C，且∠BCA = ∠DCE = 60°。<br><br>当两个等边三角形共用一个顶点时，通过旋转60°可以将一个三角形变换到另一个三角形的位置。这种"共顶点等边三角形"模型是几何中常见的全等模型。</p>
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_1_q">全等三角形的对应边和对应角有什么关系？</span>
+                        </div>
+                        <div id="h2_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h2_1_a">✓ 全等三角形的对应边相等，对应角相等。在本题中，BD=AE，BC=AC，CD=CE，以及∠DBC=∠EAC，∠BCD=∠ACE，∠CDB=∠CEA。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_2_q">这个模型有什么特点？</span>
+                        </div>
+                        <div id="h2_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h2_2_a">这是"共顶点等边三角形"模型，两个等边三角形共用一个顶点C。这种模型中，连接另外两组顶点（如B与E，A与D）形成的线段往往有特殊的平行或相等关系。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(3)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: 问题(2)平行证明 -->
+        <div id="step3" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">3</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s3_title">问题(2)：证明AE∥BC</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step2_parallel.png" alt="Step 3" class="w-full max-w-2xl mx-auto">
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s3_text"><strong>结论：</strong>AE ∥ BC<br><br><strong>证明：</strong><br>由(1)知 △DBC ≌ △EAC<br><br>所以 ∠EAC = ∠DBC（全等三角形对应角相等）<br><br>因为 D在AB上，所以 ∠DBC = ∠ABC = 60°<br><br>因此 ∠EAC = 60°<br><br>又因为 ∠ACB = 60°（等边三角形内角）<br><br>所以 <strong>∠EAC = ∠ACB = 60°</strong><br><br>由于∠EAC和∠ACB是内错角，且相等<br><br>因此 <strong>AE ∥ BC</strong>（内错角相等，两直线平行）</p>
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h3_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h3_1_q">为什么∠EAC和∠ACB是内错角？</span>
+                        </div>
+                        <div id="h3_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h3_1_a">✓ 直线AE和BC被直线AC所截，∠EAC在AE和AC之间，∠ACB在BC和AC之间，且它们在截线AC的两侧，所以是内错角。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h3_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h3_2_q">除了内错角相等，还有其他方法证明平行吗？</span>
+                        </div>
+                        <div id="h3_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h3_2_a">还可以用同位角相等或同旁内角互补来证明。在本题中，也可以证明∠EAB + ∠ABC = 180°（同旁内角互补）来证明AE∥BC。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(2)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(4)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: 问题(3)延长线情况 -->
+        <div id="step4" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">4</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s4_title">问题(3)：D在BA延长线上的情况</h2>
+                </div>
+                <div class="overflow-hidden rounded-xl shadow-lg mb-6">
+                    <img src="step3_case2.png" alt="Step 4" class="w-full max-w-2xl mx-auto">
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s4_text"><strong>问题：</strong>当D运动到边BA的延长线上时，是否仍有AE∥BC？<br><br><strong>结论：仍然成立</strong><br><br><strong>证明：</strong><br><br><strong>第一步：证明△DBC ≌ △EAC</strong><br>在△DBC和△EAC中：<br>• BC = AC（等边△ABC）<br>• CD = CE（等边△EDC）<br>• ∠BCD = ∠ACE<br>  - ∠BCD = ∠BCA + ∠ACD = 60° + ∠ACD<br>  - ∠ACE = ∠DCE + ∠ACD = 60° + ∠ACD<br><br>由SAS，△DBC ≌ △EAC<br><br><strong>第二步：证明AE∥BC</strong><br>由全等知 ∠EAC = ∠DBC<br>因为D在BA延长线上，∠DBC = 180° - 60° = 120°<br>所以 ∠EAC = 120°<br><br>∠EAC + ∠ACB = 120° + 60° = 180°<br><br>由于∠EAC和∠ACB是同旁内角，且互补<br>因此 <strong>AE ∥ BC</strong>（同旁内角互补，两直线平行）</p>
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h4_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h4_1_q">为什么这种情况下用同旁内角互补而不是内错角相等？</span>
+                        </div>
+                        <div id="h4_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h4_1_a">✓ 当D在延长线上时，∠EAC = 120°，而∠ACB = 60°，两者不相等。但它们是同旁内角，且和为180°，所以用同旁内角互补来证明平行。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h4_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h4_2_q">这个结论有什么几何意义？</span>
+                        </div>
+                        <div id="h4_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h4_2_a">这说明无论D点在直线AB上的什么位置（只要不与A重合），AE始终平行于BC。这是一个非常优美的几何性质，体现了"共顶点等边三角形"模型的稳定性。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(3)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(5)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: 思路梳理 -->
+        <div id="step5" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-emerald-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">🎯</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="sN_title">思路梳理</h2>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-emerald-800 mb-3" data-i18n="sN_answer_label">最终答案</h3>
+                    <p class="text-2xl font-bold text-center text-emerald-700" data-i18n="sN_answer">(1) △DBC ≌ △EAC (SAS)<br>(2) AE ∥ BC (内错角相等)<br>(3) AE ∥ BC 仍然成立 (同旁内角互补)</p>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="sN_flow_label">解题流程</h3>
+                <div class="flex flex-col space-y-3 mb-6">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">1</div>
+                        <div class="ml-3 text-gray-700" data-i18n="sN_f1">分析等边三角形的性质，找出相等的边和角</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">2</div>
+                        <div class="ml-3 text-gray-700" data-i18n="sN_f2">利用角度和差关系证明∠BCD = ∠ACE</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">3</div>
+                        <div class="ml-3 text-gray-700" data-i18n="sN_f3">利用SAS证明△DBC ≌ △EAC</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">4</div>
+                        <div class="ml-3 text-gray-700" data-i18n="sN_f4">利用全等三角形对应角相等证明平行</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">5</div>
+                        <div class="ml-3 text-gray-700" data-i18n="sN_f5">分类讨论D点位置变化，验证结论的普遍性</div>
+                    </div>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="sN_tags_label">知识点</h3>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag1">等边三角形性质</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag2">全等三角形（SAS）</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag3">平行线判定</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag4">角度和差计算</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag5">分类讨论</span>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="sN_tips_label">解题技巧</h3>
+                <ul class="space-y-2 text-gray-700">
+                    <li data-i18n="sN_tip1">• <strong>寻找全等条件</strong>：利用等边三角形的边相等和角相等，快速找到全等三角形的对应边和对应角</li>
+                    <li data-i18n="sN_tip2">• <strong>角度转化</strong>：通过角度的和差关系证明角相等</li>
+                    <li data-i18n="sN_tip3">• <strong>分类讨论</strong>：动点D的位置变化会影响角度关系，但全等关系始终成立</li>
+                    <li data-i18n="sN_tip4">• <strong>平行判定的灵活性</strong>：根据具体情况选择内错角相等或同旁内角互补</li>
+                    <li data-i18n="sN_tip5">• <strong>模型识别</strong>：本题属于"共顶点等边三角形"模型，旋转60°可相互转化</li>
+                </ul>
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(4)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="restart">重新开始 ↻</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentLang = 'zh';
+        const i18n = {
+            zh: {
+                title: '📐 014 - 等边三角形中的全等证明与平行证明',
+                progress: '进度:',
+                prev: '← 上一步',
+                next: '下一步 →',
+                restart: '重新开始 ↻',
+                hint_label: '💭 思考问题',
+                s0_title: '题目',
+                s0_problem: '如图(1)，等边△ABC中，D是AB边上的动点，以CD为一边，向上作等边△EDC，连接AE。<br><br>(1) △DBC和△EAC会全等吗？请说说你的理由；<br>(2) 试说明 AE∥BC 的理由；<br>(3) 如图(2)，将(1)动点D运动到边BA的延长线上，所作仍为等边三角形，请问是否仍有 AE∥BC？证明你的猜想。',
+                s1_title: '问题(1)：证明△DBC≌△EAC',
+                s1_text: '<strong>已知条件：</strong><br>• △ABC是等边三角形，AB=BC=CA，∠ABC=∠BCA=∠CAB=60°<br>• △EDC是等边三角形，ED=DC=CE，∠EDC=∠DCE=∠CED=60°<br>• D是AB边上的动点<br><br><strong>结论：</strong>△DBC ≌ △EAC<br><br><strong>证明：</strong><br>在△DBC和△EAC中：<br>1. <strong>BC = AC</strong>（等边△ABC的边）<br>2. <strong>CD = CE</strong>（等边△EDC的边）<br>3. <strong>∠BCD = ∠ACE</strong><br>   • ∠BCA = 60°，∠DCE = 60°<br>   • ∠BCD = 60° - ∠DCA<br>   • ∠ACE = 60° - ∠DCA<br>   • 因此 ∠BCD = ∠ACE<br><br>由SAS判定，<strong>△DBC ≌ △EAC</strong>',
+                h1_1_q: '如何证明∠BCD = ∠ACE？',
+                h1_1_a: '✓ 观察图形，∠BCD = ∠BCA - ∠DCA = 60° - ∠DCA，而∠ACE = ∠DCE - ∠DCA = 60° - ∠DCA。两者都等于60°减去同一个角∠DCA，所以相等。',
+                h1_2_q: '为什么选择SAS作为判定依据？',
+                h1_2_a: '因为我们已经找到了两组对应边相等（BC=AC，CD=CE），并且它们的夹角也相等（∠BCD=∠ACE），正好满足SAS的条件。',
+                s2_title: '全等三角形详解',
+                s2_text: '图中用红色高亮了△DBC，用蓝色高亮了△EAC。<br><br><strong>对应关系：</strong><br>• B ↔ A（都是等边三角形的顶点）<br>• C ↔ C（公共顶点）<br>• D ↔ E（构造的等边三角形的顶点）<br><br><strong>关键观察：</strong><br>两个等边三角形△ABC和△EDC共用顶点C，且∠BCA = ∠DCE = 60°。<br><br>当两个等边三角形共用一个顶点时，通过旋转60°可以将一个三角形变换到另一个三角形的位置。这种"共顶点等边三角形"模型是几何中常见的全等模型。',
+                h2_1_q: '全等三角形的对应边和对应角有什么关系？',
+                h2_1_a: '✓ 全等三角形的对应边相等，对应角相等。在本题中，BD=AE，BC=AC，CD=CE，以及∠DBC=∠EAC，∠BCD=∠ACE，∠CDB=∠CEA。',
+                h2_2_q: '这个模型有什么特点？',
+                h2_2_a: '这是"共顶点等边三角形"模型，两个等边三角形共用一个顶点C。这种模型中，连接另外两组顶点（如B与E，A与D）形成的线段往往有特殊的平行或相等关系。',
+                s3_title: '问题(2)：证明AE∥BC',
+                s3_text: '<strong>结论：</strong>AE ∥ BC<br><br><strong>证明：</strong><br>由(1)知 △DBC ≌ △EAC<br><br>所以 ∠EAC = ∠DBC（全等三角形对应角相等）<br><br>因为 D在AB上，所以 ∠DBC = ∠ABC = 60°<br><br>因此 ∠EAC = 60°<br><br>又因为 ∠ACB = 60°（等边三角形内角）<br><br>所以 <strong>∠EAC = ∠ACB = 60°</strong><br><br>由于∠EAC和∠ACB是内错角，且相等<br><br>因此 <strong>AE ∥ BC</strong>（内错角相等，两直线平行）',
+                h3_1_q: '为什么∠EAC和∠ACB是内错角？',
+                h3_1_a: '✓ 直线AE和BC被直线AC所截，∠EAC在AE和AC之间，∠ACB在BC和AC之间，且它们在截线AC的两侧，所以是内错角。',
+                h3_2_q: '除了内错角相等，还有其他方法证明平行吗？',
+                h3_2_a: '还可以用同位角相等或同旁内角互补来证明。在本题中，也可以证明∠EAB + ∠ABC = 180°（同旁内角互补）来证明AE∥BC。',
+                s4_title: '问题(3)：D在BA延长线上的情况',
+                s4_text: '<strong>问题：</strong>当D运动到边BA的延长线上时，是否仍有AE∥BC？<br><br><strong>结论：仍然成立</strong><br><br><strong>证明：</strong><br><br><strong>第一步：证明△DBC ≌ △EAC</strong><br>在△DBC和△EAC中：<br>• BC = AC（等边△ABC）<br>• CD = CE（等边△EDC）<br>• ∠BCD = ∠ACE<br>  - ∠BCD = ∠BCA + ∠ACD = 60° + ∠ACD<br>  - ∠ACE = ∠DCE + ∠ACD = 60° + ∠ACD<br><br>由SAS，△DBC ≌ △EAC<br><br><strong>第二步：证明AE∥BC</strong><br>由全等知 ∠EAC = ∠DBC<br>因为D在BA延长线上，∠DBC = 180° - 60° = 120°<br>所以 ∠EAC = 120°<br><br>∠EAC + ∠ACB = 120° + 60° = 180°<br><br>由于∠EAC和∠ACB是同旁内角，且互补<br>因此 <strong>AE ∥ BC</strong>（同旁内角互补，两直线平行）',
+                h4_1_q: '为什么这种情况下用同旁内角互补而不是内错角相等？',
+                h4_1_a: '✓ 当D在延长线上时，∠EAC = 120°，而∠ACB = 60°，两者不相等。但它们是同旁内角，且和为180°，所以用同旁内角互补来证明平行。',
+                h4_2_q: '这个结论有什么几何意义？',
+                h4_2_a: '这说明无论D点在直线AB上的什么位置（只要不与A重合），AE始终平行于BC。这是一个非常优美的几何性质，体现了"共顶点等边三角形"模型的稳定性。',
+                sN_title: '思路梳理',
+                sN_answer_label: '最终答案',
+                sN_answer: '(1) △DBC ≌ △EAC (SAS)<br>(2) AE ∥ BC (内错角相等)<br>(3) AE ∥ BC 仍然成立 (同旁内角互补)',
+                sN_flow_label: '解题流程',
+                sN_f1: '分析等边三角形的性质，找出相等的边和角',
+                sN_f2: '利用角度和差关系证明∠BCD = ∠ACE',
+                sN_f3: '利用SAS证明△DBC ≌ △EAC',
+                sN_f4: '利用全等三角形对应角相等证明平行',
+                sN_f5: '分类讨论D点位置变化，验证结论的普遍性',
+                sN_tags_label: '知识点',
+                tag1: '等边三角形性质',
+                tag2: '全等三角形（SAS）',
+                tag3: '平行线判定',
+                tag4: '角度和差计算',
+                tag5: '分类讨论',
+                sN_tips_label: '解题技巧',
+                sN_tip1: '• <strong>寻找全等条件</strong>：利用等边三角形的边相等和角相等，快速找到全等三角形的对应边和对应角',
+                sN_tip2: '• <strong>角度转化</strong>：通过角度的和差关系证明角相等',
+                sN_tip3: '• <strong>分类讨论</strong>：动点D的位置变化会影响角度关系，但全等关系始终成立',
+                sN_tip4: '• <strong>平行判定的灵活性</strong>：根据具体情况选择内错角相等或同旁内角互补',
+                sN_tip5: '• <strong>模型识别</strong>：本题属于"共顶点等边三角形"模型，旋转60°可相互转化'
+            },
+            en: {
+                title: '📐 014 - Congruence and Parallelism in Equilateral Triangles',
+                progress: 'Progress:',
+                prev: '← Prev',
+                next: 'Next →',
+                restart: 'Restart ↻',
+                hint_label: '💭 Think about it',
+                s0_title: 'Problem',
+                s0_problem: 'As shown in Figure (1), in equilateral △ABC, D is a moving point on side AB. Construct equilateral △EDC upward with CD as one side, and connect AE.<br><br>(1) Are △DBC and △EAC congruent? Explain your reasoning.<br>(2) Explain why AE∥BC.<br>(3) As shown in Figure (2), when D moves to the extension of BA, is AE still parallel to BC? Prove your conjecture.',
+                s1_title: 'Part (1): Prove △DBC≌△EAC',
+                s1_text: '<strong>Given:</strong><br>• △ABC is equilateral, AB=BC=CA, ∠ABC=∠BCA=∠CAB=60°<br>• △EDC is equilateral, ED=DC=CE, ∠EDC=∠DCE=∠CED=60°<br>• D is a moving point on AB<br><br><strong>Conclusion:</strong> △DBC ≌ △EAC<br><br><strong>Proof:</strong><br>In △DBC and △EAC:<br>1. <strong>BC = AC</strong> (sides of equilateral △ABC)<br>2. <strong>CD = CE</strong> (sides of equilateral △EDC)<br>3. <strong>∠BCD = ∠ACE</strong><br>   • ∠BCA = 60°, ∠DCE = 60°<br>   • ∠BCD = 60° - ∠DCA<br>   • ∠ACE = 60° - ∠DCA<br>   • Therefore ∠BCD = ∠ACE<br><br>By SAS, <strong>△DBC ≌ △EAC</strong>',
+                h1_1_q: 'How to prove ∠BCD = ∠ACE?',
+                h1_1_a: '✓ Observe that ∠BCD = ∠BCA - ∠DCA = 60° - ∠DCA, and ∠ACE = ∠DCE - ∠DCA = 60° - ∠DCA. Both equal 60° minus the same angle ∠DCA, so they are equal.',
+                h1_2_q: 'Why use SAS as the congruence criterion?',
+                h1_2_a: 'Because we have found two pairs of corresponding sides equal (BC=AC, CD=CE), and their included angles are also equal (∠BCD=∠ACE), which satisfies the SAS condition.',
+                s2_title: 'Congruent Triangles in Detail',
+                s2_text: 'The figure highlights △DBC in red and △EAC in blue.<br><br><strong>Correspondence:</strong><br>• B ↔ A (vertices of equilateral triangles)<br>• C ↔ C (common vertex)<br>• D ↔ E (vertices of constructed equilateral triangle)<br><br><strong>Key Observation:</strong><br>Two equilateral triangles △ABC and △EDC share vertex C, and ∠BCA = ∠DCE = 60°.<br><br>When two equilateral triangles share a vertex, one can be transformed to the other by a 60° rotation. This "common-vertex equilateral triangle" model is a common congruence pattern in geometry.',
+                h2_1_q: 'What is the relationship between corresponding sides and angles of congruent triangles?',
+                h2_1_a: '✓ Corresponding sides are equal, and corresponding angles are equal. In this problem: BD=AE, BC=AC, CD=CE, and ∠DBC=∠EAC, ∠BCD=∠ACE, ∠CDB=∠CEA.',
+                h2_2_q: 'What are the characteristics of this model?',
+                h2_2_a: 'This is the "common-vertex equilateral triangle" model. In such models, line segments connecting the other pairs of vertices (like B-E and A-D) often have special parallel or equal relationships.',
+                s3_title: 'Part (2): Prove AE∥BC',
+                s3_text: '<strong>Conclusion:</strong> AE ∥ BC<br><br><strong>Proof:</strong><br>From (1), △DBC ≌ △EAC<br><br>So ∠EAC = ∠DBC (corresponding angles of congruent triangles)<br><br>Since D is on AB, ∠DBC = ∠ABC = 60°<br><br>Therefore ∠EAC = 60°<br><br>Also ∠ACB = 60° (interior angle of equilateral triangle)<br><br>So <strong>∠EAC = ∠ACB = 60°</strong><br><br>Since ∠EAC and ∠ACB are alternate interior angles and equal<br><br>Therefore <strong>AE ∥ BC</strong> (alternate interior angles equal)',
+                h3_1_q: 'Why are ∠EAC and ∠ACB alternate interior angles?',
+                h3_1_a: '✓ Lines AE and BC are cut by transversal AC. ∠EAC is between AE and AC, ∠ACB is between BC and AC, and they are on opposite sides of transversal AC, so they are alternate interior angles.',
+                h3_2_q: 'Are there other ways to prove parallelism?',
+                h3_2_a: 'We can also use corresponding angles equal or consecutive interior angles supplementary. In this problem, we could also prove ∠EAB + ∠ABC = 180° (consecutive interior angles supplementary) to show AE∥BC.',
+                s4_title: 'Part (3): D on extension of BA',
+                s4_text: '<strong>Question:</strong> When D moves to the extension of BA, is AE still parallel to BC?<br><br><strong>Answer: Yes</strong><br><br><strong>Proof:</strong><br><br><strong>Step 1: Prove △DBC ≌ △EAC</strong><br>In △DBC and △EAC:<br>• BC = AC (equilateral △ABC)<br>• CD = CE (equilateral △EDC)<br>• ∠BCD = ∠ACE<br>  - ∠BCD = ∠BCA + ∠ACD = 60° + ∠ACD<br>  - ∠ACE = ∠DCE + ∠ACD = 60° + ∠ACD<br><br>By SAS, △DBC ≌ △EAC<br><br><strong>Step 2: Prove AE∥BC</strong><br>From congruence, ∠EAC = ∠DBC<br>Since D is on extension of BA, ∠DBC = 180° - 60° = 120°<br>So ∠EAC = 120°<br><br>∠EAC + ∠ACB = 120° + 60° = 180°<br><br>Since ∠EAC and ∠ACB are consecutive interior angles and supplementary<br>Therefore <strong>AE ∥ BC</strong> (consecutive interior angles supplementary)',
+                h4_1_q: 'Why use consecutive interior angles supplementary instead of alternate interior angles equal?',
+                h4_1_a: '✓ When D is on the extension, ∠EAC = 120° and ∠ACB = 60°, which are not equal. But they are consecutive interior angles summing to 180°, so we use this criterion for parallelism.',
+                h4_2_q: 'What is the geometric significance of this conclusion?',
+                h4_2_a: 'This shows that regardless of where D is on line AB (as long as D≠A), AE is always parallel to BC. This is a beautiful geometric property demonstrating the stability of the "common-vertex equilateral triangle" model.',
+                sN_title: 'Summary',
+                sN_answer_label: 'Final Answer',
+                sN_answer: '(1) △DBC ≌ △EAC (SAS)<br>(2) AE ∥ BC (alternate interior angles)<br>(3) AE ∥ BC still holds (consecutive interior angles)',
+                sN_flow_label: 'Solution Flow',
+                sN_f1: 'Analyze properties of equilateral triangles, find equal sides and angles',
+                sN_f2: 'Use angle sum/difference to prove ∠BCD = ∠ACE',
+                sN_f3: 'Use SAS to prove △DBC ≌ △EAC',
+                sN_f4: 'Use corresponding angles of congruent triangles to prove parallelism',
+                sN_f5: 'Discuss different positions of D to verify generality',
+                sN_tags_label: 'Topics',
+                tag1: 'Equilateral Triangle Properties',
+                tag2: 'Congruent Triangles (SAS)',
+                tag3: 'Parallel Line Criteria',
+                tag4: 'Angle Sum/Difference',
+                tag5: 'Case Analysis',
+                sN_tips_label: 'Tips',
+                sN_tip1: '• <strong>Finding Congruence Conditions</strong>: Use equal sides and angles of equilateral triangles to quickly find corresponding parts',
+                sN_tip2: '• <strong>Angle Transformation</strong>: Prove angle equality through sum/difference relationships',
+                sN_tip3: '• <strong>Case Analysis</strong>: Different positions of D affect angle relationships, but congruence always holds',
+                sN_tip4: '• <strong>Flexibility in Parallel Criteria</strong>: Choose alternate interior angles or consecutive interior angles as appropriate',
+                sN_tip5: '• <strong>Pattern Recognition</strong>: This is the "common-vertex equilateral triangle" model, transformable by 60° rotation'
+            }
+        };
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+            document.getElementById('langZh').classList.toggle('active', lang === 'zh');
+            document.getElementById('langZh').classList.toggle('text-gray-600', lang !== 'zh');
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            document.getElementById('langEn').classList.toggle('text-gray-600', lang !== 'en');
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang][key] !== undefined) {
+                    el.innerHTML = i18n[lang][key];
+                }
+            });
+        }
+
+        const TOTAL_STEPS = document.querySelectorAll('.step-card').length;
+        let currentStep = 0;
+
+        function goToStep(step) {
+            if (step < 0 || step >= TOTAL_STEPS) return;
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.remove('visible');
+                card.style.display = 'none';
+            });
+            const target = document.getElementById('step' + step);
+            target.style.display = 'block';
+            void target.offsetHeight;
+            target.classList.add('visible');
+            currentStep = step;
+            updateProgress();
+            window.scrollTo(0, 0);
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([target]);
+            }
+        }
+
+        function updateProgress() {
+            const dots = document.getElementById('progressDots');
+            dots.innerHTML = '';
+            for (let i = 0; i < TOTAL_STEPS; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot' + (i === currentStep ? ' active' : '');
+                dots.appendChild(dot);
+            }
+            document.getElementById('progressText').textContent = (currentStep + 1) + '/' + TOTAL_STEPS;
+        }
+
+        function toggleHint(id) {
+            document.getElementById(id).classList.toggle('show');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') goToStep(currentStep + 1);
+            if (e.key === 'ArrowLeft')  goToStep(currentStep - 1);
+        });
+
+        updateProgress();
+    </script>
+</body>
+</html>
