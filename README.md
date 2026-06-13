@@ -1,112 +1,117 @@
-# 七年级几何题解析助手
+# 初中数学习题解析助手
 
-> 帮助孩子更好地理解解题过程，通过可视化插图、流程梳理和思路引导，让几何学习更轻松。
+> 帮助孩子更好地理解解题过程，通过可视化插图、流程梳理和思路引导，让数学学习更轻松。
 
-## 📖 项目简介
+## 项目简介
 
-本项目专为七年级学生设计，利用大模型辅助生成：
-- 🎨 **可视化插图** - 用Python matplotlib绘制几何图形，直观展示题目和解题过程
-- 📝 **分步解析** - 将复杂题目拆分为简单步骤，逐步引导理解
-- 💡 **思路梳理** - 总结解题技巧和关键知识点，培养数学思维
-- 🌐 **交互式网页** - 可交互的HTML页面，支持逐步浏览和提示探索
+利用大模型辅助生成：
 
-## 📁 项目结构
+- **可视化插图** — Python matplotlib 绘制几何/函数图形，直观展示题目和解题过程
+- **分步解析** — 将复杂题目拆分为简单步骤，逐步引导理解
+- **思路梳理** — 总结解题技巧和关键知识点，培养数学思维
+- **交互式网页** — 可交互的 HTML 页面，支持逐步浏览和提示探索
+- **复习报告** — 跨题目总结解题规律、梳理知识体系、诊断薄弱环节
+
+## 项目结构
 
 ```
-homework/
-├── AGENT.MD                    # 任务执行规范（知识范围约束）
-├── problem_solve_steps.md      # 详细解题步骤规范
+Homework/
+├── CLAUDE.md                         # Claude Code 项目指南
+├── AGENT.MD                          # 任务执行硬性约束（知识范围、技术栈、必出文件）
+├── checker.md                        # 解题成果自检清单 + 报告模板
+├── problem_solve_steps.md            # 详细解题步骤执行规范
+├── geometry_drawing_guide.md         # 几何图形绘制规范（G-标准 + LayoutAuditor）
+├── webpage_guide.md                  # 交互式网页生成规范
+│
 ├── math/
-│   ├── 001/                    # 第001题完整资料
-│   │   ├── 001.png            # 原题图片
-│   │   ├── 001.html           # 交互式解题网页
-│   │   ├── 001_solution.md    # Markdown解题文档
-│   │   ├── geometry_figures.py # Python绘图脚本
-│   │   └── step*.png          # 解题过程插图
-│   ├── 002/                    # 第002题完整资料
-│   └── 003/                    # 第003题完整资料
-└── README.md                   # 本文件
+│   ├── Geometry/                     # 几何题
+│   │   ├── 001/ ... 014/             # 已完成的14道几何题
+│   │   └── report/
+│   │       └── 001to014/             # 几何题全面复习报告
+│   │           ├── geometry_mastery_report.md   # 复习报告（含5大模型配图）
+│   │           ├── model_figures.py             # 模型配图绘制脚本
+│   │           └── model_assets/                # 配图PNG文件
+│   │
+│   └── Algebra/                      # 代数题（规划中）
+│       └── 001/                      # 已完成的第1道代数题
+│
+├── templates/                        # 文件骨架（MUST从骨架复制后填充）
+│   ├── _template.html                # 交互式网页骨架
+│   ├── _template_solution.md         # Markdown 解题文档骨架
+│   └── _template_geometry_figures.py # matplotlib 绘图脚本骨架
+│
+└── font/                             # 中文字体（matplotlib 渲染用）
+    ├── STHeiti Medium.ttc
+    └── STHeiti Light.ttc
 ```
 
-## 🎯 核心功能
+## 几何题概况
 
-### 1. 可视化解题
-- 每道题配备多幅插图，展示题目场景和解题关键步骤
-- 使用颜色区分不同情况（如锐角/直角/钝角三角形）
-- 英文标注确保跨平台显示正常
+目前已覆盖 **001-014** 共14道七年级几何题，涵盖：
 
-### 2. 交互式学习
-- **逐步展示**：点击按钮逐步浏览解题过程，避免信息过载
-- **提示系统**：每个关键步骤提供3个提示选项（正确/错误/中性），点击展开查看
-- **进度追踪**：顶部进度条显示学习进度
-- **键盘导航**：支持左右箭头键切换步骤
+| 核心模型 | 题目 | 关键技巧 |
+|:---|:---|:---|
+| 手拉手模型（双等边共顶点） | 008, 014 | SAS 全等 → 旋转视角 |
+| 角平分线 + 垂线 → 对称 | 001, 010, 011, 013 | ASA 全等 → 等腰/中点 |
+| ∠C=2∠B + 角平分线 → 截长补短 | 010, 011 | SAS 全等 → 等量代换 |
+| 特殊角 → 构造等边三角形 | 004, 005 | 造 60° → 连锁全等 |
+| 分类讨论（等腰/位置） | 003, 006, 007, 009, 013 | 穷举 + 验证 |
 
-### 3. 知识总结
-- 每道题包含：题目 → 解题过程 → 最终答案 → 知识点总结 → 解题技巧
-- 帮助孩子建立完整的知识体系
+> 详细复习报告见 [`math/Geometry/report/001to014/geometry_mastery_report.md`](math/Geometry/report/001to014/geometry_mastery_report.md)
 
-## 🚀 使用方法
+## 使用方法
 
 ### 查看交互式网页
 
-1. 进入任意题目文件夹（如 `math/001/`）
-2. 启动本地HTTP服务器：
-   ```bash
-   cd math/001
-   python -m http.server 8080
-   ```
-3. 浏览器打开 `http://localhost:8080/001.html`
+```bash
+cd math/Geometry/001
+python3 -m http.server 8080
+# 浏览器打开 http://localhost:8080/001.html
+```
 
-### 查看Markdown文档
+### 重新生成几何配图
 
-直接打开 `001_solution.md` 等文件，使用Markdown预览器查看。
+```bash
+cd math/Geometry/001
+python3 geometry_figures.py
+# 输出 "All figures generated successfully!" 即成功
+```
 
-## 📋 解题流程规范
+### 查看 Markdown 解题文档
 
-本项目遵循严格的解题规范（详见 `problem_solve_steps.md`）：
+直接用任意 Markdown 预览器打开 `001_solution.md` 等文件。
 
-1. **解析题目** - 提取已知条件和求解目标
-2. **生成思路** - 分析核心知识点，设计推理路径
-3. **绘制插图** - Python matplotlib生成几何图形（英文标注）
-4. **编写文档** - Markdown格式，纯文本公式，兼容各种预览器
-5. **生成网页** - 交互式HTML，带提示系统和进度追踪
-6. **总结梳理** - 知识点归纳和解题技巧总结
+## 新题初始化流程
 
-## 🛠️ 技术栈
+```bash
+NNN="015"
+mkdir -p math/Geometry/$NNN
+cp templates/_template.html               math/Geometry/$NNN/$NNN.html
+cp templates/_template_solution.md        math/Geometry/$NNN/$NNN_solution.md
+cp templates/_template_geometry_figures.py math/Geometry/$NNN/geometry_figures.py
+# 然后填充 {{...}} / TODO: 占位内容
+```
 
-- **Python** - matplotlib绘制几何图形
-- **HTML/CSS/JavaScript** - 交互式网页
-- **Tailwind CSS** - 现代化UI样式
-- **MathJax** - 数学公式渲染（网页端）
-
-## 📝 公式显示规范
-
-为确保兼容性，采用以下规范：
+## 公式显示规范
 
 | 类型 | 示例 | 说明 |
 |------|------|------|
-| 分数 | `(1/2)` 或 `2/13` | 避免使用LaTeX分数 |
+| 角度 | `∠ABC = 60°` | 直接使用 Unicode |
+| 分数 | `(1/2)` | 避免 LaTeX 分数 |
 | 面积比 | `S△AMN / S△ABC` | 纯文本表示 |
 | 平方 | `(1/2)²` | 使用上标符号 |
 | 重要公式 | `**加粗**` 或 `>` 引用 | 突出显示 |
 
-## 🎓 适用对象
+## 任务完成标准
+
+- 解题方法不超七年级范围（不涉及三角函数、勾股定理）
+- 四类必出文件齐全（`*_solution.md`, `*.html`, `geometry_figures.py`, `step*.png`）
+- `LayoutAuditor.check()` 返回空列表（标签无重叠、直角符号合规等）
+- 逐项填写 [`checker.md`](checker.md) 自检报告，全部 PASS
+- Markdown 公式使用纯文本，HTML 引入 MathJax 渲染
+
+## 适用对象
 
 - 七年级学生
-- 需要几何解题辅导的初中生
+- 需要几何/代数解题辅导的初中生
 - 希望培养数学思维的学生
-
-## 📌 注意事项
-
-1. **知识范围**：所有解题内容严格控制在七年级知识范围内，不超纲
-2. **字体兼容**：配图中使用英文标注，避免中文字体显示问题
-3. **内容同步**：HTML网页与Markdown文档保持内容一致
-
-## 📄 相关文档
-
-- [problem_solve_steps.md](problem_solve_steps.md) - 详细的解题步骤执行规范
-- [AGENT.MD](AGENT.MD) - 任务执行约束（七年级知识范围）
-
----
-
-> 💡 **提示**：每道题的交互式网页都包含提示系统，鼓励孩子先思考，再点击查看提示，培养独立思考能力。
