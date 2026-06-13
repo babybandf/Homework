@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">001 - 不等式整数解问题</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']],
+                   displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif; }
+        .step-card { display: none; }
+        .step-card.visible { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .nav-btn { transition: all 0.3s ease; }
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .lang-btn { cursor: pointer; transition: all 0.2s; }
+        .lang-btn:hover { transform: scale(1.05); }
+        .lang-btn.active { background-color: #4f46e5; color: white; }
+        .hint-btn { transition: all 0.3s ease; cursor: pointer; }
+        .hint-btn:hover { transform: translateX(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .hint-content {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+        }
+        .hint-content.show { max-height: 400px; padding: 12px 16px; margin-top: 8px; }
+        .hint-correct { background: #d1fae5; border-left: 4px solid #10b981; border-radius: 0 8px 8px 0; }
+        .hint-wrong   { background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; }
+        .hint-neutral { background: #e0e7ff; border-left: 4px solid #6366f1; border-radius: 0 8px 8px 0; }
+        .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; transition: background 0.3s; }
+        .progress-dot.active { background: #4f46e5; }
+        .number-line { position: relative; height: 60px; margin: 20px 0; }
+        .number-line-bar { position: absolute; top: 30px; left: 10%; right: 10%; height: 2px; background: #4f46e5; }
+        .number-line-point { position: absolute; top: 24px; width: 12px; height: 12px; border-radius: 50%; background: #4f46e5; transform: translateX(-50%); }
+        .number-line-label { position: absolute; top: 40px; transform: translateX(-50%); font-size: 12px; color: #666; }
+        .interval-highlight { position: absolute; top: 20px; height: 20px; background: rgba(79, 70, 229, 0.2); border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-800" data-i18n="title">001 - 不等式整数解问题</h1>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center bg-gray-100 rounded-full p-0.5">
+                    <button onclick="setLang('zh')" class="lang-btn active px-3 py-1 rounded-full text-xs font-medium" id="langZh">中文</button>
+                    <button onclick="setLang('en')" class="lang-btn px-3 py-1 rounded-full text-xs font-medium text-gray-600" id="langEn">EN</button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600" data-i18n="progress">进度:</span>
+                    <div class="flex space-x-1" id="progressDots"></div>
+                    <span id="progressText" class="text-sm font-medium text-gray-700 ml-2">1/5</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- 题目卡 -->
+        <div id="step0" class="step-card visible mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">📋</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s0_title">题目</h2>
+                </div>
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl p-6 text-lg leading-relaxed">
+                    <p data-i18n="s0_problem">已知 a > 0，且不等式 1 < ax < 2 恰有三个正整数解，则当不等式 2 < ax < 3 含有最多的整数解时，正数 a 的取值范围为__________。</p>
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 1 -->
+        <div id="step1" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">1</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s1_title">分析第一个不等式</h2>
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s1_text">由 a > 0，不等式 1 < ax < 2 可化为 1/a < x < 2/a。设该不等式恰有三个正整数解，记为 n, n+1, n+2。</p>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                    <p class="font-bold text-amber-800 mb-2" data-i18n="s1_key_label">💡 关键隐含条件</p>
+                    <p class="text-amber-700 text-sm leading-relaxed" data-i18n="s1_key_text">三个解必须是连续的。因为不等式的解集是一个连续区间 (1/a, 2/a)，一个连续区间不可能跳过中间的整数。例如，区间 (2.3, 5.7) 包含的正整数是 3, 4, 5——它们是连续的：</p>
+                    <pre class="text-amber-800 text-xs leading-relaxed mt-2 ml-2 font-mono" style="font-family: 'Courier New', monospace;">
+ 2.3 │ 3   4   5 │ 5.7
+─────┼───────●───┼────
+      ↑ 区间起点  ↑ 区间终点</pre>
+                    <p class="text-amber-700 text-sm leading-relaxed mt-2" data-i18n="s1_key_text2">如果有人说解是 3, 5, 7（不连续），那 4 和 6 也必然在区间内，解集就会变成 3, 4, 5, 6, 7，不止三个了。因此恰好三个正整数解，必然是三个连续整数 n, n+1, n+2。</p>
+                </div>
+
+                <div class="bg-indigo-50 rounded-xl p-4 mb-4">
+                    <p class="text-indigo-800 font-medium">需要满足的条件：</p>
+                    <ul class="list-disc list-inside mt-2 text-indigo-700">
+                        <li>n-1 ≤ 1/a < n（保证 n 是最小的正整数解）</li>
+                        <li>n+2 < 2/a ≤ n+3（保证 n+2 是最大的正整数解）</li>
+                    </ul>
+                </div>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h1_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h1_1_q">为什么需要 n-1 ≤ 1/a < n 这个条件？</span>
+                        </div>
+                        <div id="h1_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h1_1_a">✓ 这个条件确保 n 是最小的正整数解。如果 1/a < n-1，则 n-1 也会是解；如果 1/a ≥ n，则 n 不是解。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h1_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h1_2_q">从条件能得出 a 的什么范围？</span>
+                        </div>
+                        <div id="h1_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h1_2_a">由 1/a < n 得 a > 1/n；由 n+2 < 2/a 得 a < 2/(n+2)。所以 1/n < a < 2/(n+2)。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(2)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 2 -->
+        <div id="step2" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">2</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s2_title">确定 n 的值</h2>
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s2_text">检验不同的 n 值，找出满足 1/n < a < 2/(n+2) 的 n：</p>
+
+                <div class="bg-gray-50 rounded-xl p-4 mb-4">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="py-2 px-2">n</th>
+                                <th class="py-2 px-2">1/n</th>
+                                <th class="py-2 px-2">2/(n+2)</th>
+                                <th class="py-2 px-2">有解？</th>
+                                <th class="py-2 px-2">a 的范围</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b text-red-600">
+                                <td class="py-2 px-2">1</td>
+                                <td class="py-2 px-2">1</td>
+                                <td class="py-2 px-2">2/3 ≈ 0.67</td>
+                                <td class="py-2 px-2">❌</td>
+                                <td class="py-2 px-2">—</td>
+                            </tr>
+                            <tr class="border-b text-red-600">
+                                <td class="py-2 px-2">2</td>
+                                <td class="py-2 px-2">0.5</td>
+                                <td class="py-2 px-2">0.5</td>
+                                <td class="py-2 px-2">❌</td>
+                                <td class="py-2 px-2">—</td>
+                            </tr>
+                            <tr class="border-b text-green-600">
+                                <td class="py-2 px-2 font-bold">3</td>
+                                <td class="py-2 px-2 font-bold">1/3 ≈ 0.33</td>
+                                <td class="py-2 px-2 font-bold">0.4</td>
+                                <td class="py-2 px-2 font-bold">✅</td>
+                                <td class="py-2 px-2 font-bold">1/3 < a < 2/5</td>
+                            </tr>
+                            <tr class="text-green-600">
+                                <td class="py-2 px-2 font-bold">4</td>
+                                <td class="py-2 px-2 font-bold">0.25</td>
+                                <td class="py-2 px-2 font-bold">1/3 ≈ 0.33</td>
+                                <td class="py-2 px-2 font-bold">✅</td>
+                                <td class="py-2 px-2 font-bold">2/7 < a < 1/3</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+                        <p class="text-green-800 font-bold mb-2">情况 A（n=3）：解为 3,4,5</p>
+                        <ul class="list-disc list-inside text-green-700 text-sm space-y-1">
+                            <li>2 ≤ 1/a < 3 → 1/3 < a ≤ 1/2</li>
+                            <li>5 < 2/a ≤ 6 → 1/3 ≤ a < 0.4</li>
+                            <li>交集：<strong>1/3 < a < 2/5</strong></li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <p class="text-blue-800 font-bold mb-2">情况 B（n=4）：解为 4,5,6</p>
+                        <ul class="list-disc list-inside text-blue-700 text-sm space-y-1">
+                            <li>3 ≤ 1/a < 4 → 1/4 < a ≤ 1/3</li>
+                            <li>6 < 2/a ≤ 7 → 2/7 ≤ a < 1/3</li>
+                            <li>交集：<strong>2/7 < a < 1/3</strong></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_1_q">为什么 n = 1 和 n = 2 没有解？</span>
+                        </div>
+                        <div id="h2_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h2_1_a">✓ n=1 时区间 (1, 2/3) 为空；n=2 时区间 (0.5, 0.5) 也为空。需要 1/n < 2/(n+2) 才有解。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h2_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h2_2_q">n=3 和 n=4 都满足条件，接下来怎么办？</span>
+                        </div>
+                        <div id="h2_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h2_2_a">分别对两种情况分析第二个不等式 2 < ax < 3 的整数解个数，再比较哪个更多。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(1)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(3)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 3 -->
+        <div id="step3" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">3</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="s3_title">分析第二个不等式（分类讨论）</h2>
+                </div>
+
+                <p class="text-gray-700 leading-relaxed mb-4" data-i18n="s3_text">不等式 2 < ax < 3 可化为 2/a < x < 3/a，区间长度为 1/a。现在对两种情况进行分类讨论。</p>
+
+                <!-- 情况 A -->
+                <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+                    <p class="text-green-800 font-bold mb-2">情况 A（n=3，a ∈ (1/3, 0.4)）：</p>
+                    <ul class="list-disc list-inside text-green-700 text-sm mb-3">
+                        <li>2/a 的范围是 (5, 6)</li>
+                        <li>3/a 的范围是 (7.5, 9)</li>
+                    </ul>
+                    <div class="bg-white rounded-lg p-3 border border-green-100">
+                        <p class="text-green-700 text-sm"><span class="font-bold">整数解分析：</span></p>
+                        <ul class="list-disc list-inside text-green-600 text-sm space-y-1 mt-1">
+                            <li>当 a ∈ (1/3, 3/8)：2/a < 6 且 3/a > 8 → <strong>6, 7, 8（3个）</strong></li>
+                            <li>当 a ∈ [3/8, 0.4)：3/a ≤ 8 → <strong>6, 7（2个）</strong></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 情况 B -->
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                    <p class="text-blue-800 font-bold mb-2">情况 B（n=4，a ∈ (2/7, 1/3)）：</p>
+                    <ul class="list-disc list-inside text-blue-700 text-sm mb-3">
+                        <li>2/a 的范围是 (6, 7)</li>
+                        <li>3/a 的范围是 (9, 10.5)</li>
+                    </ul>
+                    <div class="bg-white rounded-lg p-3 border border-blue-100">
+                        <p class="text-blue-700 text-sm"><span class="font-bold">整数解分析：</span></p>
+                        <ul class="list-disc list-inside text-blue-600 text-sm space-y-1 mt-1">
+                            <li>当 a ∈ (2/7, 0.3)：2/a < 7 且 3/a > 10 → <strong class="text-xl">7, 8, 9, 10（4个）</strong> 🏆 最多</li>
+                            <li>当 a ∈ [0.3, 1/3)：3/a ≤ 10 → <strong>7, 8, 9（3个）</strong></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 比较表格 -->
+                <div class="bg-gray-50 rounded-xl p-4 mb-4">
+                    <p class="font-bold text-gray-800 mb-2">对比总结：</p>
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="py-2 px-2">情况</th>
+                                <th class="py-2 px-2">a 的范围</th>
+                                <th class="py-2 px-2">第二不等式最多解</th>
+                                <th class="py-2 px-2">对应子区间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="py-2 px-2">A（n=3）</td>
+                                <td class="py-2 px-2">(1/3, 0.4)</td>
+                                <td class="py-2 px-2">3个</td>
+                                <td class="py-2 px-2">(1/3, 3/8)</td>
+                            </tr>
+                            <tr class="bg-blue-50 font-bold">
+                                <td class="py-2 px-2 text-blue-800">B（n=4）🏆</td>
+                                <td class="py-2 px-2 text-blue-800">(2/7, 1/3)</td>
+                                <td class="py-2 px-2 text-blue-800"><span class="text-xl">4个</span></td>
+                                <td class="py-2 px-2 text-blue-800">(2/7, 0.3)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-indigo-50 rounded-xl p-4 mb-6">
+                    <p class="text-indigo-800 font-medium" data-i18n="s3_conclusion">结论：情况 B（n=4）在 a ∈ (2/7, 3/10) 时第二不等式有 4 个整数解，多于情况 A 的 3 个，因此取情况 B 的范围。</p>
+                </div>
+
+                <div class="bg-gray-100 rounded-xl p-4 mb-6">
+                    <p class="font-semibold text-gray-700 mb-3" data-i18n="hint_label">💭 思考问题</p>
+                    <div class="space-y-2">
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h3_1')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h3_1_q">为什么需要分别讨论 n=3 和 n=4 两种情况？</span>
+                        </div>
+                        <div id="h3_1" class="hint-content hint-correct">
+                            <span class="text-green-700" data-i18n="h3_1_a">两个 n 值都满足"恰有三个正整数解"的条件，但它们在数轴上对应不同位置的区间，所以第二个不等式会有不同的整数解个数，必须分开分析。</span>
+                        </div>
+                        <div class="hint-btn bg-white rounded-lg p-3 shadow-sm" onclick="toggleHint('h3_2')">
+                            <span class="inline-block w-5 h-5 rounded-full bg-indigo-400 text-white text-center text-xs leading-5 mr-2">?</span>
+                            <span class="text-gray-700" data-i18n="h3_2_q">情况 B 中 a 的范围为什么是 (2/7, 3/10)？</span>
+                        </div>
+                        <div id="h3_2" class="hint-content hint-neutral">
+                            <span class="text-indigo-700" data-i18n="h3_2_a">要得到 4 个整数解 7,8,9,10，需要 2/a < 7（即 a > 2/7）且 10 < 3/a（即 a < 3/10）。再与第一不等式的约束 (2/7, 1/3) 取交集得 (2/7, 3/10)。</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(2)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(4)" class="nav-btn bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium" data-i18n="next">下一步 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 思路梳理 / 总结页 -->
+        <div id="step4" class="step-card mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-4">
+                    <span class="bg-emerald-500 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg mr-3">🎯</span>
+                    <h2 class="text-2xl font-bold text-gray-800" data-i18n="sN_title">思路梳理</h2>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-emerald-800 mb-3" data-i18n="sN_answer_label">最终答案</h3>
+                    <p class="text-2xl font-bold text-center text-emerald-700" data-i18n="sN_answer">2/7 < a < 3/10</p>
+                    <p class="text-emerald-600 text-sm text-center mt-1" data-i18n="sN_answer_note">此时不等式 2 < ax < 3 有 4 个整数解 7, 8, 9, 10</p>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="sN_flow_label">解题流程</h3>
+                <div class="flex flex-col space-y-3 mb-6">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">1</div>
+                        <div class="ml-3 text-gray-700" data-i18n="sN_f1">将 1 < ax < 2 化为 1/a < x < 2/a，三个解为连续整数 n, n+1, n+2</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">2</div>
+                        <div class="ml-3 text-gray-700" data-i18n="sN_f2">分类讨论：n=3（a∈(1/3,2/5)）和 n=4（a∈(2/7,1/3)）均满足条件</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">3</div>
+                        <div class="ml-3 text-gray-700" data-i18n="sN_f3">分析 2 < ax < 3：情况 A 最多 3 个解，情况 B 最多 4 个解</div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center text-sm font-bold shrink-0">4</div>
+                        <div class="ml-3 text-gray-700 font-bold" data-i18n="sN_f4">情况 B 胜出：a ∈ (2/7, 3/10) 时第二不等式有 4 个整数解</div>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+                    <p class="font-bold text-amber-800 mb-1" data-i18n="sN_verify_label">验证（a = 0.29）：</p>
+                    <p class="text-amber-700 text-sm leading-relaxed" data-i18n="sN_verify">第一不等式：1/a≈3.45，2/a≈6.90 → 整数解 4,5,6 ✓ | 第二不等式：2/a≈6.90，3/a≈10.34 → 整数解 7,8,9,10（4个）✓</p>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="sN_tags_label">知识点</h3>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag1">一元一次不等式</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag2">整数解计数</span>
+                    <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm" data-i18n="tag3">参数范围确定</span>
+                </div>
+
+                <h3 class="font-bold text-gray-800 mb-3" data-i18n="sN_tips_label">解题技巧</h3>
+                <ul class="space-y-2 text-gray-700">
+                    <li data-i18n="sN_tip1">• 转化法：将含参数的不等式转化为关于 x 的区间形式</li>
+                    <li data-i18n="sN_tip2">• 端点分析法：通过分析区间端点位置确定整数解个数</li>
+                    <li data-i18n="sN_tip3">• 范围交集法：多个条件限制时取各范围的交集</li>
+                </ul>
+
+                <div class="flex justify-between mt-6">
+                    <button onclick="goToStep(3)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="prev">← 上一步</button>
+                    <button onclick="goToStep(0)" class="nav-btn bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-medium" data-i18n="restart">重新开始 ↻</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let currentLang = 'zh';
+        const i18n = {
+            zh: {
+                title: '001 - 不等式整数解问题',
+                progress: '进度:',
+                prev: '← 上一步',
+                next: '下一步 →',
+                restart: '重新开始 ↻',
+                hint_label: '💭 思考问题',
+                s0_title: '题目',
+                s0_problem: '已知 a > 0，且不等式 1 < ax < 2 恰有三个正整数解，则当不等式 2 < ax < 3 含有最多的整数解时，正数 a 的取值范围为__________。',
+                s1_title: '分析第一个不等式',
+                s1_text: '由 a > 0，不等式 1 < ax < 2 可化为 1/a < x < 2/a。设该不等式恰有三个正整数解，记为 n, n+1, n+2。',
+                h1_1_q: '为什么三个解必须是连续整数？比如 (2.3, 5.7) 内的正整数是什么？',
+                h1_1_a: '✓ 区间 (2.3, 5.7) 包含的正整数是 3, 4, 5——连续。因为解集是连续区间，不能跳过中间整数。所以恰好三个正整数解必然是 n, n+1, n+2。',
+                h1_2_q: '从条件能得出 a 的什么范围？',
+                h1_2_a: '由 1/a < n 得 a > 1/n；由 n+2 < 2/a 得 a < 2/(n+2)。所以 1/n < a < 2/(n+2)。',
+                s1_key_label: '💡 关键隐含条件',
+                s1_key_text: '三个解必须是连续的。因为不等式的解集是一个连续区间 (1/a, 2/a)，一个连续区间不可能跳过中间的整数。例如，区间 (2.3, 5.7) 包含的正整数是 3, 4, 5——它们是连续的：',
+                s1_key_text2: '如果有人说解是 3, 5, 7（不连续），那 4 和 6 也必然在区间内，解集就会变成 3, 4, 5, 6, 7，不止三个了。因此恰好三个正整数解，必然是三个连续整数 n, n+1, n+2。',
+                s2_title: '确定 n 的值',
+                s2_text: '检验不同的 n 值，找出满足 1/n < a < 2/(n+2) 的 n：',
+                h2_1_q: '为什么 n = 1 和 n = 2 没有解？',
+                h2_1_a: '✓ n=1 时区间 (1, 2/3) 为空；n=2 时区间 (0.5, 0.5) 也为空。需要 1/n < 2/(n+2) 才有解。',
+                h2_2_q: 'n=3 和 n=4 都满足条件，接下来怎么办？',
+                h2_2_a: '分别对两种情况分析第二个不等式 2 < ax < 3 的整数解个数，再比较哪个更多。',
+                s3_title: '分析第二个不等式（分类讨论）',
+                s3_text: '不等式 2 < ax < 3 可化为 2/a < x < 3/a，区间长度为 1/a。现在对两种情况进行分类讨论。',
+                h3_1_q: '为什么需要分别讨论 n=3 和 n=4 两种情况？',
+                h3_1_a: '两个 n 值都满足"恰有三个正整数解"的条件，但它们在数轴上对应不同位置的区间，所以第二个不等式会有不同的整数解个数，必须分开分析。',
+                h3_2_q: '情况 B 中 a 的范围为什么是 (2/7, 3/10)？',
+                h3_2_a: '要得到 4 个整数解 7,8,9,10，需要 2/a < 7（即 a > 2/7）且 10 < 3/a（即 a < 3/10）。再与第一不等式的约束 (2/7, 1/3) 取交集得 (2/7, 3/10)。',
+                s3_conclusion: '结论：情况 B（n=4）在 a ∈ (2/7, 3/10) 时第二不等式有 4 个整数解，多于情况 A 的 3 个，因此取情况 B 的范围。',
+                sN_title: '思路梳理',
+                sN_answer_label: '最终答案',
+                sN_answer: '2/7 < a < 3/10',
+                sN_answer_note: '此时不等式 2 < ax < 3 有 4 个整数解 7, 8, 9, 10',
+                sN_flow_label: '解题流程',
+                sN_f1: '将 1 < ax < 2 化为 1/a < x < 2/a，三个解为连续整数 n, n+1, n+2',
+                sN_f2: '分类讨论：n=3（a∈(1/3,2/5)）和 n=4（a∈(2/7,1/3)）均满足条件',
+                sN_f3: '分析 2 < ax < 3：情况 A 最多 3 个解，情况 B 最多 4 个解',
+                sN_f4: '情况 B 胜出：a ∈ (2/7, 3/10) 时第二不等式有 4 个整数解',
+                sN_verify_label: '验证（a = 0.29）：',
+                sN_verify: '第一不等式：1/a≈3.45，2/a≈6.90 → 整数解 4,5,6 ✓ | 第二不等式：2/a≈6.90，3/a≈10.34 → 整数解 7,8,9,10（4个）✓',
+                sN_tags_label: '知识点',
+                tag1: '一元一次不等式',
+                tag2: '整数解计数',
+                tag3: '参数范围确定',
+                sN_tips_label: '解题技巧',
+                sN_tip1: '• 转化法：将含参数的不等式转化为关于 x 的区间形式',
+                sN_tip2: '• 端点分析法：通过分析区间端点位置确定整数解个数',
+                sN_tip3: '• 范围交集法：多个条件限制时取各范围的交集'
+            },
+            en: {
+                title: '001 - Inequality Integer Solutions',
+                progress: 'Progress:',
+                prev: '← Prev',
+                next: 'Next →',
+                restart: 'Restart ↻',
+                hint_label: '💭 Think about it',
+                s0_title: 'Problem',
+                s0_problem: 'Given a > 0, and the inequality 1 < ax < 2 has exactly three positive integer solutions. When the inequality 2 < ax < 3 has the maximum number of integer solutions, find the range of positive number a.',
+                s1_title: 'Analyze the First Inequality',
+                s1_text: 'Since a > 0, the inequality 1 < ax < 2 becomes 1/a < x < 2/a. Suppose it has exactly three positive integer solutions: n, n+1, n+2.',
+                h1_1_q: 'Why must the three solutions be consecutive? E.g., what integers are in (2.3, 5.7)?',
+                h1_1_a: '✓ The interval (2.3, 5.7) contains integers 3, 4, 5 — consecutive. Because the solution set is a continuous interval, it cannot skip integers. So exactly three positive integer solutions must be n, n+1, n+2.',
+                h1_2_q: 'What range of a can we derive from the conditions?',
+                h1_2_a: 'From 1/a < n we get a > 1/n; from n+2 < 2/a we get a < 2/(n+2). So 1/n < a < 2/(n+2).',
+                s1_key_label: '💡 Key Implicit Condition',
+                s1_key_text: 'The three solutions must be consecutive. Since the solution set is a continuous interval (1/a, 2/a), it cannot skip integers. For example, interval (2.3, 5.7) contains integers 3, 4, 5 — they are consecutive:',
+                s1_key_text2: 'If someone claims the solutions are 3, 5, 7 (non-consecutive), then 4 and 6 would also fall in the interval, making it 3, 4, 5, 6, 7 — more than three. Thus exactly three positive integer solutions must be three consecutive integers n, n+1, n+2.',
+                s2_title: 'Determine the Value of n',
+                s2_text: 'Test different values of n to find which satisfies 1/n < a < 2/(n+2):',
+                h2_1_q: 'Why do n = 1 and n = 2 have no solution?',
+                h2_1_a: '✓ For n=1, the interval (1, 2/3) is empty; for n=2, the interval (0.5, 0.5) is also empty. We need 1/n < 2/(n+2) for a solution to exist.',
+                h2_2_q: 'Both n=3 and n=4 satisfy the conditions, what next?',
+                h2_2_a: 'Analyze the second inequality 2 < ax < 3 for both cases separately, then compare which yields more integer solutions.',
+                s3_title: 'Analyze the Second Inequality (Two Cases)',
+                s3_text: 'The inequality 2 < ax < 3 becomes 2/a < x < 3/a, with interval length 1/a. Now analyze both cases separately.',
+                h3_1_q: 'Why do we need to consider both n=3 and n=4 separately?',
+                h3_1_a: 'Both n values satisfy "exactly three positive integer solutions," but they correspond to intervals at different positions on the number line, leading to different integer solution counts for the second inequality.',
+                h3_2_q: 'Why is the range for Case B (2/7, 3/10)?',
+                h3_2_a: 'For 4 integer solutions 7,8,9,10: need 2/a < 7 (a > 2/7) and 10 < 3/a (a < 3/10). Intersection with first constraint (2/7, 1/3) gives (2/7, 3/10).',
+                s3_conclusion: 'Conclusion: Case B (n=4) has 4 integer solutions when a ∈ (2/7, 3/10), more than Case A\'s 3. So Case B wins.',
+                sN_title: 'Summary',
+                sN_answer_label: 'Final Answer',
+                sN_answer: '2/7 < a < 3/10',
+                sN_answer_note: 'The inequality 2 < ax < 3 has 4 integer solutions: 7, 8, 9, 10',
+                sN_flow_label: 'Solution Flow',
+                sN_f1: 'Transform 1 < ax < 2 to 1/a < x < 2/a, three solutions are consecutive n, n+1, n+2',
+                sN_f2: 'Classify: n=3 (a∈(1/3,2/5)) and n=4 (a∈(2/7,1/3)) both satisfy conditions',
+                sN_f3: 'Analyze 2 < ax < 3: Case A max 3 solutions, Case B max 4 solutions',
+                sN_f4: 'Case B wins: a ∈ (2/7, 3/10) gives 4 integer solutions for the second inequality',
+                sN_verify_label: 'Verification (a = 0.29):',
+                sN_verify: 'First inequality: 1/a≈3.45, 2/a≈6.90 → integers 4,5,6 ✓ | Second inequality: 2/a≈6.90, 3/a≈10.34 → integers 7,8,9,10 (4) ✓',
+                sN_tags_label: 'Topics',
+                tag1: 'Linear Inequality',
+                tag2: 'Integer Solution Counting',
+                tag3: 'Parameter Range',
+                sN_tips_label: 'Tips',
+                sN_tip1: '• Transformation: Convert parametric inequality to interval form',
+                sN_tip2: '• Endpoint Analysis: Determine integer solutions by analyzing interval endpoints',
+                sN_tip3: '• Range Intersection: Take intersection of all constraint ranges'
+            }
+        };
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+            document.getElementById('langZh').classList.toggle('active', lang === 'zh');
+            document.getElementById('langZh').classList.toggle('text-gray-600', lang !== 'zh');
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            document.getElementById('langEn').classList.toggle('text-gray-600', lang !== 'en');
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang][key] !== undefined) {
+                    el.innerHTML = i18n[lang][key];
+                }
+            });
+        }
+
+        const TOTAL_STEPS = document.querySelectorAll('.step-card').length;
+        let currentStep = 0;
+
+        function goToStep(step) {
+            if (step < 0 || step >= TOTAL_STEPS) return;
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.remove('visible');
+                card.style.display = 'none';
+            });
+            const target = document.getElementById('step' + step);
+            target.style.display = 'block';
+            void target.offsetHeight;
+            target.classList.add('visible');
+            currentStep = step;
+            updateProgress();
+            window.scrollTo(0, 0);
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([target]);
+            }
+        }
+
+        function updateProgress() {
+            const dots = document.getElementById('progressDots');
+            dots.innerHTML = '';
+            for (let i = 0; i < TOTAL_STEPS; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot' + (i === currentStep ? ' active' : '');
+                dots.appendChild(dot);
+            }
+            document.getElementById('progressText').textContent = (currentStep + 1) + '/' + TOTAL_STEPS;
+        }
+
+        function toggleHint(id) {
+            document.getElementById(id).classList.toggle('show');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') goToStep(currentStep + 1);
+            if (e.key === 'ArrowLeft')  goToStep(currentStep - 1);
+        });
+
+        updateProgress();
+    </script>
+</body>
+</html>
