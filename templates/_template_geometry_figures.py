@@ -133,11 +133,13 @@ class LayoutAuditor:
 
     # ---- 文字登记（绘图函数自动调用）----
     def register_text(self, artist, kind='label', name='', anchor=None,
-                      owners=(), is_box=False, owner_seg=None):
+                      anchor_pt=None, owners=(), is_box=False,
+                      owner_seg=None, is_leader=False):
         self.texts.append(dict(
             kind=kind, name=name, artist=artist,
             anchor=None if anchor is None else np.asarray(anchor, float),
-            owners=set(owners), is_box=is_box,
+            anchor_pt=None if anchor_pt is None else np.asarray(anchor_pt, float),
+            owners=set(owners), is_box=is_box, is_leader=is_leader,
             owner_seg=None if owner_seg is None
             else (np.asarray(owner_seg[0], float), np.asarray(owner_seg[1], float))))
 
@@ -181,6 +183,23 @@ class LayoutAuditor:
                 f'G0 LayoutAuditor partial registration: ax has {len(ax_texts)} '
                 f'visible text artists but auditor registered only {len(self.texts)}. '
                 f'set_active_auditor(auditor) MUST wrap ALL drawing calls.')
+
+        # G4: 点标签到点心距离 ≤ 0.08·L_ref（G16 引线模式除外）
+        max_pt_dist = 0.08 * L
+        for t, r in zip(self.texts, rects):
+            if t['kind'] != 'point':
+                continue
+            if t.get('is_leader'):
+                continue
+            if t.get('anchor_pt') is None or t.get('anchor') is None:
+                continue
+            d = float(np.linalg.norm(t['anchor'] - t['anchor_pt']))
+            if d > max_pt_dist:
+                label = t['name'] or 'point-label'
+                v.append(
+                    f'G4 point label "{label}" too far from its point: '
+                    f'd={d:.3f} > 0.08·L_ref={max_pt_dist:.3f}. '
+                    f'Use direction="auto" (G15) or leader=(lx,ly) (G16).')
 
         # G1: 直角符号尺寸
         for H, size in self.right_angles:
@@ -318,11 +337,96 @@ def set_active_auditor(auditor):
     _ACTIVE_AUDITOR = auditor
 
 
-def _auto_register(artist, kind='label', name='', anchor=None, owners=(), is_box=False, owner_seg=None):
+def _auto_register(artist, kind='label', name='', anchor=None,
+                   anchor_pt=None, owners=(), is_box=False,
+                   owner_seg=None, is_leader=False):
     if _ACTIVE_AUDITOR is not None:
         _ACTIVE_AUDITOR.register_text(artist, kind=kind, name=name,
-                                      anchor=anchor, owners=owners, is_box=is_box,
-                                      owner_seg=owner_seg)
+                                      anchor=anchor, anchor_pt=anchor_pt,
+                                      owners=owners, is_box=is_box,
+                                      owner_seg=owner_seg,
+                                      is_leader=is_leader)
+
+
+# ========== G15 自适应方向 + G16 引线标注 ==========
+# 当点处在密集点群（如垂足、内心、交点）时，简单 direction 容易跟邻近点标签重叠
+# 或与本地线段相撞。G15 让 label_point 自动在 8 个候选方向中选"远离线段且不与
+# 邻近标签同向"的方向；G16 在 G15 全部失败时退化为引线标注。
+
+_G15_CANDIDATES = [
+    (0, 1), (0, -1), (1, 0), (-1, 0),
+    (1, 1), (1, -1), (-1, 1), (-1, -1),
+]
+_G15_OFFSETS = (0.055, 0.07, 0.08)
+_G15_LABEL_W_RATIO = 0.06   # 估算 label 宽度 ≈ 0.06·L_ref
+_G15_LABEL_H_RATIO = 0.04   # 估算 label 高度 ≈ 0.04·L_ref
+
+
+def _auto_pick_direction(auditor, P, scale, owner_names=()):
+    """G15：在 8 个候选方向中挑一个"远离已登记线段"且"不与邻近点标签同向"的方向。
+
+    返回 (dx_unit, dy_unit, offset_ratio) 或 None（无合格候选，需走 G16 引线）。
+    owner_names：当前点/标签关联的 owner，跳过这些线段再做 G6 判定。
+    """
+    P = np.asarray(P, float)
+    delta_safe = 0.025 * scale
+    cluster_thr = 0.15 * scale
+    half_w = _G15_LABEL_W_RATIO * scale / 2
+    half_h = _G15_LABEL_H_RATIO * scale / 2
+    owners = set(owner_names)
+    segs = auditor.segments if auditor is not None else []
+
+    # 收集邻近点 (< 0.15·L_ref) 的标签方向，用于 G7 分散约束
+    nearby_dirs = []
+    if auditor is not None:
+        for name, Pt in auditor.points.items():
+            d_pp = float(np.linalg.norm(P - Pt))
+            if d_pp >= cluster_thr or d_pp < 1e-9:
+                continue
+            t = next((tt for tt in auditor.texts
+                      if tt['kind'] == 'point' and tt['name'] == name
+                      and tt.get('anchor') is not None), None)
+            if t is None:
+                continue
+            anchor_dir = t['anchor'] - Pt
+            n = float(np.linalg.norm(anchor_dir))
+            if n > 1e-9:
+                nearby_dirs.append(anchor_dir / n)
+
+    for offset in _G15_OFFSETS:
+        best = None
+        best_min_d = -1.0
+        for dx, dy in _G15_CANDIDATES:
+            d_unit = np.array([dx, dy], dtype=float)
+            d_unit = d_unit / (np.linalg.norm(d_unit) + 1e-9)
+            anchor = P + d_unit * (scale * offset)
+            rect = (anchor[0] - half_w, anchor[1] - half_h,
+                    anchor[0] + half_w, anchor[1] + half_h)
+            # G6：到非自身线段最小距离
+            min_d = float('inf')
+            for a, b, seg_owners in segs:
+                if seg_owners & owners:
+                    continue
+                d_seg = _seg_rect_distance(a, b, rect)
+                if d_seg < min_d:
+                    min_d = d_seg
+            if min_d < delta_safe:
+                continue
+            # G7：与所有邻近点标签方向夹角必须 ≥ 90°
+            g7_ok = True
+            for nd in nearby_dirs:
+                cos_a = float(d_unit @ nd)
+                if cos_a > 1e-3:
+                    g7_ok = False
+                    break
+            if not g7_ok:
+                continue
+            if min_d > best_min_d:
+                best_min_d = min_d
+                best = (float(d_unit[0]), float(d_unit[1]), offset)
+        if best is not None:
+            return best
+    return None
 
 
 # ========== 可复用工具函数（全部按 L_ref 归一） ==========
@@ -364,22 +468,47 @@ def label_point(ax, P, name, direction=(1.0, 1.0), scale=1.0,
     """绘制点和点名。文字自动登记到活动 auditor（G11）。
 
     direction: 标签相对点的方向向量（无需归一），自动按 scale*offset_ratio 归一。
+               传 'auto' 走 G15 自适应方向（默认行为）；传 (dx, dy) 显式指定。
+    leader: (lx, ly) 走 G16 引线模式：标签放在远端空白区，自动画引线连回 P。
+            触发后 G4 距离上限不再适用，但 G6/G7b 仍生效。
     scale: L_ref（来自 compute_visual_scale）。
     密集区点群 MUST 显式给出互不平行的 direction，遵循 G7。
     owners: 该点归属的名集合（默认 {name}），用于避免误报“标签压自身关联边”。
     """
     # 保护阈值：防止误把点标签抛到远处空白区。
-    if offset_ratio > 0.20:
+    if offset_ratio > 0.08 + 1e-9:
         raise ValueError(
-            f'label_point offset_ratio={offset_ratio:.3f} is too large; '
-            'use <=0.08 for normal labels, or use a dedicated callout.')
-    d = np.array(direction, dtype=float)
-    n = np.linalg.norm(d)
-    if n < 1e-9:
-        d = np.array([0.0, 1.0])
-        n = 1.0
-    d = d / n * (scale * offset_ratio)
-    anchor = np.array([P[0] + d[0], P[1] + d[1]])
+            f'label_point offset_ratio={offset_ratio:.3f} > G4 max 0.08·L_ref. '
+            f'Use direction="auto" (G15) or leader=(lx,ly) (G16) for far placements.')
+
+    is_leader_mode = leader is not None
+    if is_leader_mode:
+        leader_pt = np.asarray(leader, dtype=float)
+        # 画引线（虚线：callout 标准视觉，区别于几何实/虚线）
+        ax.plot([P[0], leader_pt[0]], [P[1], leader_pt[1]],
+                color='#666666', linewidth=0.6, linestyle=':', zorder=4)
+        if _ACTIVE_AUDITOR is not None:
+            _ACTIVE_AUDITOR.add_segment(P, leader_pt, owner_points={name})
+        anchor = leader_pt
+        offset_ratio = 1.0  # G16 模式不再受 G4 距离上限约束
+    else:
+        if isinstance(direction, str) and direction == 'auto':
+            result = _auto_pick_direction(_ACTIVE_AUDITOR, P, scale,
+                                          owner_names=owners or {name})
+            if result is not None:
+                dx, dy, offset_ratio = result
+                direction = (dx, dy)
+            else:
+                # G15 全失败：回退 (0, 1)，由 auditor 报 G4/G6 让 dev 改用 G16
+                direction = (0.0, 1.0)
+        d = np.array(direction, dtype=float)
+        n = np.linalg.norm(d)
+        if n < 1e-9:
+            d = np.array([0.0, 1.0])
+            n = 1.0
+        d = d / n * (scale * offset_ratio)
+        anchor = np.array([P[0] + d[0], P[1] + d[1]])
+
     ax.plot(P[0], P[1], 'o', color=color, markersize=4, zorder=marker_zorder)
     art = ax.text(anchor[0], anchor[1], name,
                   ha='center', va='center',
@@ -388,7 +517,9 @@ def label_point(ax, P, name, direction=(1.0, 1.0), scale=1.0,
     if _ACTIVE_AUDITOR is not None:
         _ACTIVE_AUDITOR.add_point_anchor(name, P)
         _auto_register(art, kind='point', name=name, anchor=anchor,
-                       owners=(owners if owners is not None else {name}))
+                       anchor_pt=P,
+                       owners=(owners if owners is not None else {name}),
+                       is_leader=is_leader_mode)
     return anchor  # 返回标签 xy（兼容旧调用）
 
 

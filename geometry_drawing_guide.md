@@ -57,8 +57,48 @@ def compute_visual_scale(ax):
 
 - 点标记 `markersize ≤ 5`（约 `0.006 × L_ref` 视觉半径）。
 - 点标签到点心距离 `d_label ∈ [0.04, 0.08] × L_ref`，默认 `0.055 × L_ref`。
+- **点标签距离上限 `0.08 × L_ref` MUST 由 `LayoutAuditor.check()` 强制**——超出即报 `G4`。
+  唯一例外是 G16 引线模式（标签放在远端空白、用引线连回点）。
 - 点标签 MUST 带白底 bbox（`facecolor='white', alpha=0.78`）。
 - 点标签方向选择 MUST 满足 G6 的避碰约束，禁止整张图共用一组 `dx, dy`。
+- **点标签 MUST 通过 `label_point` helper 放置**（除非 G16 引线模式手动指定引线终点）。
+  禁止用裸 `ax.text` 标注点字母，因为会绕过 G15 自适应方向与 G16 引线机制。
+- 当点处在 2+ 条线交点附近（垂足、内心、外接圆心等），本地就近方向全部冲突时，
+  MUST 走 G15（自适应方向搜索）或 G16（引线标注），不得人为把标签甩到 0.08·`L_ref` 之外。
+
+### G15 自适应点标签方向（MUST）
+
+- `label_point(...)` 支持 `direction='auto'`（默认）。未指定 `direction` 时，**默认走 auto**。
+- 候选方向：8 个等分向量 `(±1,0) / (0,±1) / (±1,±1)/√2`。
+- 对每个候选，offset 默认从 `0.055·L_ref` 起，依次尝试 `0.055, 0.07, 0.08`：
+  1. 估算 label bbox（数据坐标系：`width ≈ 0.06·L_ref`, `height ≈ 0.04·L_ref`，以 anchor 为中心）；
+  2. 计算该 bbox 到所有已登记线段的最小距离 `min_d`；
+  3. 若 `min_d ≥ δ_safe`（= `0.025·L_ref`），该候选合格。
+- 在合格候选中选 `min_d` 最大者；并列时偏向"远离附近点群质心"的方向。
+- 8 个候选在 3 个 offset 档位下均不合格 → 返回 `None`，调用方走 G16 引线。
+- **不**考虑 G6b（文字 ↔ 文字）冲突——这部分由 auditor 在 `check()` 时统一收口，
+  若报 `G6b`，开发者调整 `direction` 或减小 `offset_ratio` 即可。
+
+### G16 引线标注（callout，MUST，硬性场景）
+
+- 触发条件：G15 全部候选方向仍冲突；或点本地 `0.08·L_ref` 范围内**所有** 8 方向都至少与 1 条非自身线段相交。
+  典型场景：垂足（G3 在 AC ∩ DG 交点处）、内心、外接圆心、三角形中心等。
+- 做法：
+  1. 调用 `label_point(ax, P, name, leader=(lx, ly), scale=L, ...)`；
+  2. 标签放置在 `(lx, ly)`，可以远离 `0.08·L_ref` 范围（不再受 G4 距离上限约束）；
+  3. 从 `P` 到 `(lx, ly)` 画一条细引线（`linewidth=0.6, color='#666', zorder=4`，与原图风格一致）；
+  4. 引线作为**已登记线段**添加到 auditor：`add_segment(P, (lx, ly), owner_points={name})`，
+     该 owner 集合让 G6 不会判定"标签压在引线上"是冲突；
+  5. `(lx, ly)` 选取规则：落在 `place_legend_auto` 同款的"四象限离所有线段最远"评分位置，
+     或开发者手动指定并已在脚本中验证为空白的角。
+- 引线标签的 `register_text` MUST 传 `is_leader=True`，
+  `LayoutAuditor.check()` 的 G4 检查会跳过这类标签。
+- 引线本身画完后 MUST `set_active_auditor` 仍在激活窗口内（即 auditor 已捕获该引线段）。
+
+> 真实反例（013 step7_case3_proof 之前版本）：G 标签用裸 `ax.text` 放到 `G3[1] - 0.14·L`，
+> 偏移 1.54 个单位（远超 G4 上限 0.88），穿过 BC 边落在三角形外。
+> 修复后应走 G15：`label_point(ax, G3, 'G', direction='auto', scale=L)`，
+> auto 选 (0, 1)，label 落在 `(1.5, 2.11)`，与 AC / DG 边均无 G6 冲突。
 
 ### G5 线段标签
 

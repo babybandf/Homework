@@ -33,6 +33,8 @@
   - 说明框 / 公式框 MUST 用 `place_legend_auto` 放在空白区，MUST NOT 压住几何对象（G12）；高亮已有线段 MUST 改造原线（加粗/变色/平行偏移），MUST NOT 叠加穿过端点的双向箭头（G13）。
   - 所有几何线段（含辅助线/构造线 AO、垂线 l 等）MUST 登记到 auditor：三边用 `draw_triangle(..., names=('A','B','C'))`，辅助线用 `draw_aux_line(ax,p1,p2,owners=...)` 或 `draw_ao(...)`；MUST NOT 用裸 `ax.plot` 画几何线（否则压在该线上的标签 auditor 查不到）。线段标签 MUST 贴近其主线段（距离 ≤ 0.12·`L_ref`），不得为躲避碰撞而把标签甩到远处（G5b）。
   - 每个 `step*.png` MUST 只显式高亮当前步骤新增/讨论的几何对象；前置上下文 MUST 用 `alpha ≤ 0.35` 淡显或省略。
+  - **原题重绘，禁止直接引用原图照片**：若原题包含插图，MUST 用 matplotlib 重新绘制该图形（通常作为 `step0_original.png`），MUST NOT 以任何形式直接引用或嵌入原始题图的扫描/截屏/照片文件作为解题配图。重绘图形的整体朝向与线段位置关系 MUST 与原图一致（见下一款）。
+  - **原图一致性**：所有新绘制的几何图形 MUST 与原图的**整体朝向**（图形在画布中的摆放角度、顶点方位）和**线段位置关系**（线段之间的相对位置、交叠次序、包围关系）保持一致。MUST NOT 擅自旋转、镜像翻转、平移重组或以其他方式改变原图的空间拓扑关系。允许为了添加辅助线或分步演示而做非破坏性扩展（不改变已有元素位置）。
 - 网页：**TailwindCSS + MathJax 3 + JSXGraph 1.8.0**，全部通过 CDN 引入。
 - 中文字体：MUST 通过项目内 `font/STHeiti Medium.ttc` 以**绝对路径**加载（参见 [geometry_drawing_guide.md](geometry_drawing_guide.md) 字体章节）。
 - Markdown 公式：MUST 使用纯文本格式（如 `(1/2)`、`S△ABC`、`²`），MUST NOT 使用 `$...$` / `$$...$$`（HTML 内 MathJax 除外）。
@@ -92,6 +94,7 @@ HTML 文件 MUST 包含以下全部组件：
 ## 常见违规（出现即 FAIL）
 
 - ❌ 用 SVG / Mermaid / ASCII / Markdown 表格 替代 matplotlib PNG
+- ❌ 直接引用/嵌入原始题图的扫描、截屏或照片文件作为解题配图，未用 matplotlib 重绘
 - ❌ 图片中标签与线段、虚线、直角符号、点标记明显重叠，或关键辅助线在交点附近看似断裂
 - ❌ 直角符号尺寸 > 图幅参考长度 `L_ref` 的 5%，或 > 最近邻线段长度的 8%（违反 G1）
 - ❌ 视觉元素用绝对坐标经验值（如 `size=0.18`、`offset=0.24`），未按 `L_ref` 归一（违反 G-标准前置规则）
@@ -103,6 +106,9 @@ HTML 文件 MUST 包含以下全部组件：
 - ❌ 用双向箭头叠加在已有线段上做高亮，箭头穿过已标注点（违反 G13）
 - ❌ 几何辅助线/构造线（AO、垂线 l）用裸 `ax.plot` 绘制未登记，导致标签压在该线上但 auditor 未报警（违反原则六补充）
 - ❌ 线段标签漂离其主线段（距离 > 0.12·`L_ref`），读者无法判断它标的是哪条线（违反 G5b）
+- ❌ **点标签到点心距离 > 0.08·`L_ref`**（违反 G4 上限；G16 引线模式除外）
+- ❌ 点的字母标使用裸 `ax.text` 绕过 `label_point`（失去 direction='auto' / leader 机制；违反 G15/G16）
+- ❌ 点处在 2+ 直线交点附近（如垂足、内心），本地无空位放标签却未用 G16 引线（违反 G16）
 - ❌ 几何图脚本未 `set_active_auditor` 自动登记，或 `check()` 返回非空仍直接保存（违反 G11）
 - ❌ `LayoutAuditor` 创建/激活在绘图**之后**调用，导致 `auditor.texts` 为空、所有 bbox 检查假 PASS（违反 G0；正确顺序：autoscale → 创建 auditor → set_active → 绘图 → set_active(None) → check）
 - ❌ 网页只有中文，没有 `setLang` / `data-i18n` / `langZh` / `langEn`
@@ -112,3 +118,4 @@ HTML 文件 MUST 包含以下全部组件：
 - ❌ 创建 `NNN_<modelname>/` 之类的并列变体目录
 - ❌ 把"建议/默认"理解为"可选"
 - ❌ 解题方法超出七年级（如直接用三角函数、向量、解析几何高级技巧）
+- ❌ 原题有插图，但新绘图形整体朝向、线段相对位置关系明显偏离原图（旋转、镜像、重新排布等）
